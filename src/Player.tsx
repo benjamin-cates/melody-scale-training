@@ -23,32 +23,93 @@ export function Chromatone({
   showNotes = true,
 }: ChromatoneProps) {
   const inKey = getKeyPitchClasses(song);
-  const active = new Set(
-    activeNotes.flatMap((note) =>
-      note.noteIndices.map((noteIndex) => (noteIndex + 21) % 12),
-    ),
+  const activeIndices = new Set(activeNotes.flatMap((note) => note.noteIndices));
+  const noteIndices = song.notes.flatMap((note) => note.noteIndices);
+  const lowestOctave = Math.max(
+    0,
+    Math.floor((Math.min(...noteIndices, 36) + 21) / 12) - 1,
   );
+  const highestOctave = Math.ceil((Math.max(...noteIndices, 48) + 21) / 12);
+  const octaveCount = highestOctave - lowestOctave + 1;
+  const center = 320;
+  const centerY = 245;
+  const innerRadius = 60;
+  const ringDepth = 30;
+  const ringGap = 1;
+  const outerRadius = innerRadius + octaveCount * (ringDepth + ringGap) - ringGap;
+  const angleStep = (Math.PI * 2) / NOTE_NAMES.length;
+  const sectorWidth = angleStep * 1;
+  const point = (radius: number, angle: number) => ({
+    x: center + Math.cos(angle) * radius,
+    y: centerY + Math.sin(angle) * radius,
+  });
+  const sectorPath = (inner: number, outer: number, angle: number) => {
+    const start_radius_delta = -(angle - sectorWidth/2) / Math.PI / 2 * ringDepth;
+    const end_radius_delta = -(angle + sectorWidth/2) / Math.PI / 2 * ringDepth;
+    const start = point(inner + start_radius_delta, angle - sectorWidth / 2);
+    const end = point(inner + end_radius_delta, angle + sectorWidth / 2);
+    const outerStart = point(outer + start_radius_delta, angle - sectorWidth / 2);
+    const outerEnd = point(outer + end_radius_delta, angle + sectorWidth / 2);
+    return [
+      `M ${start.x} ${start.y}`,
+      `A ${inner} ${inner} 0 0 1 ${end.x} ${end.y}`,
+      `L ${outerEnd.x} ${outerEnd.y}`,
+      `A ${outer} ${outer} 0 0 0 ${outerStart.x} ${outerStart.y}`,
+      "Z",
+    ].join(" ");
+  };
   return (
     <div className="chromatone" aria-label={`${song.key} chromatic key map`}>
-      {NOTE_NAMES.map((noteName, index) => {
-        const isFocus = showNotes && active.has(index);
-        const isInKey = showKey && inKey.has(index);
-        return (
-          <div
-            className={`chromatone-note ${(song.tonic == index && showKey) ? "is-focus" : ""} ${isInKey ? "in-key" : "out-of-key"}`}
-            key={noteName}
-          >
-            <div
-              className="note-light"
-              style={{
-                backgroundColor: RAINBOW_COLORS[index],
-                opacity: isFocus ? 1 : 0.2,
-              }}
-            />
-            <span className="note-letter">{noteName}</span>
-          </div>
-        );
-      })}
+      <svg
+        className="chromatone-spiral"
+        viewBox={`0 0 ${center * 2} ${centerY * 2}`}
+        role="img"
+        aria-label={`${song.key} twelve-prong spiral`}
+      >
+        <g className="spiral-notes">
+          {Array.from({ length: octaveCount }, (_, octaveOffset) => {
+            const octave = lowestOctave + octaveOffset;
+            const inner = innerRadius + (octaveCount - octaveOffset - 1) * (ringDepth + ringGap);
+            const outer = inner + ringDepth;
+            return NOTE_NAMES.map((noteName, index) => {
+              const noteIndex = octave * 12 + index - 21;
+              const angle = -Math.PI / 2 + index * angleStep;
+              const isActive = activeIndices.has(noteIndex);
+              const isInKey = showKey && inKey.has(index);
+              const isFocus = showKey && song.tonic === index;
+              const outline = isFocus ? "#ffffff" : isInKey ? "#f2c84b" : "none";
+              return (
+                <path
+                  aria-label={`${noteName}, octave ${octave}`}
+                  className={`chromatone-note ${isActive && showNotes ? "is-active" : ""}`}
+                  d={sectorPath(inner, outer, angle)}
+                  fill={RAINBOW_COLORS[index]}
+                  fillOpacity={isActive && showNotes ? 1 : isFocus ? 0.4 : 0.23}
+                  key={`${octave}-${noteName}`}
+                  stroke={outline}
+                  strokeWidth={isFocus ? 2.5 : isInKey ? 1.5 : 0}
+                />
+              );
+            });
+          })}
+        </g>
+        <g className="chromatone-labels" aria-hidden="true">
+          {NOTE_NAMES.map((noteName, index) => {
+            const label = point(outerRadius + 30, -Math.PI / 2 + index * angleStep);
+            return (
+              <text
+                className={showKey && song.tonic === index ? "is-focus" : ""}
+                key={noteName}
+                textAnchor="middle"
+                x={label.x}
+                y={label.y}
+              >
+                {noteName}
+              </text>
+            );
+          })}
+        </g>
+      </svg>
     </div>
   );
 }
@@ -92,8 +153,7 @@ function useSongPlayback(song: Song, tempo: number, enabled = false) {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
       oscillator.type = "triangle";
-      oscillator.frequency.value =
-        440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
+      oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
       const duration = (currentNote.duration * beatDuration) / 1000;
       gain.gain.setValueAtTime(0.0001, context.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.025);
@@ -179,8 +239,7 @@ export function Player({
         <div className="progress-text">
           <span>{playing ? "Playing" : "Ready"}</span>
           <b>
-            {String(playback.position + 1).padStart(2, "0")} /{" "}
-            {String(song.notes.length).padStart(2, "0")}
+            {String(playback.position + 1).padStart(2, "0")} / {String(song.notes.length).padStart(2, "0")}
           </b>
         </div>
       </div>

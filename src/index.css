@@ -177,46 +177,31 @@ h2 {
   font-weight: 400;
 }
 .chromatone {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 7px;
-  padding: 35px 0 14px;
+  display: flex;
+  justify-content: center;
+  padding: 27px 0 8px;
 }
-.chromatone-note {
-  position: relative;
-  display: grid;
-  place-items: center;
-  height: 124px;
-  overflow: hidden;
-  border: 2px dashed #53616a;
-  background: #304149;
+.chromatone-spiral {
+  display: block;
+  width: min(100%, 650px);
+  height: auto;
+  overflow: visible;
+}
+.key-sectors path {
+  opacity: 0.22;
+}
+.spiral-notes .chromatone-note {
   transition:
-    border-color 0.2s,
-    transform 0.2s,
-    box-shadow 0.2s;
+    fill-opacity 0.2s,
+    stroke 0.2s;
 }
-.chromatone-note.in-key:not(.is-focus) {
-  border: 2px solid #f2c84b;
-  box-shadow: inset 0 0 0 1px rgba(242, 200, 75, 0.2);
+.chromatone-labels text {
+  fill: #b9c2be;
+  font: 13px "Trebuchet MS", sans-serif;
 }
-.chromatone-note.out-of-key {
-  border-color: #53616a;
-}
-.chromatone-note.is-focus {
-  border: 3px solid #ffffff;
-}
-.note-light {
-  position: absolute;
-  inset: 0;
-  transition: opacity 0.2s;
-}
-.note-letter {
-  position: relative;
-  z-index: 1;
-  color: #f2f0e9;
-  font:
-    14px "Trebuchet MS",
-    sans-serif;
+.chromatone-labels text.is-focus {
+  fill: #ef8a5b;
+  font-weight: bold;
 }
 .scale-caption {
   color: #9ca8a7;
@@ -734,6 +719,88 @@ input[type="range"] {
   background: #ef8a5b;
   transition: width 0.35s ease;
 }
+.note-test-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.note-test-card {
+  background: #26353c;
+  color: #f2f0e9;
+  padding: 34px 38px 38px;
+  box-shadow: 13px 13px 0 #d1cec3;
+}
+.note-test-orbit {
+  display: grid;
+  place-items: center;
+  width: 230px;
+  height: 230px;
+  margin: 36px auto 20px;
+  border: 1px solid #718087;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 22px #304149, inset 0 0 0 23px #506067;
+}
+.note-test-orbit.correct {
+  border-color: #7dc85d;
+  box-shadow: inset 0 0 0 22px #304149, inset 0 0 0 23px #7dc85d;
+}
+.note-test-orbit.wrong {
+  border-color: #ef5350;
+  box-shadow: inset 0 0 0 22px #304149, inset 0 0 0 23px #ef5350;
+}
+.note-test-play {
+  display: grid;
+  place-items: center;
+  width: 122px;
+  height: 122px;
+  border: 1px solid #ef8a5b;
+  border-radius: 50%;
+  background: #ef8a5b;
+  color: #26353c;
+  cursor: pointer;
+}
+.note-test-play span {
+  font-size: 46px;
+  line-height: 0.8;
+}
+.note-test-play small {
+  font: 10px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.note-test-feedback {
+  min-height: 20px;
+  margin: 0 0 24px;
+  color: #a8b1ae;
+  text-align: center;
+}
+.note-test-feedback.correct {
+  color: #7dc85d;
+}
+.note-test-feedback.wrong {
+  color: #ef5350;
+}
+.note-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.note-choice {
+  border: 1px solid #718087;
+  border-radius: 0;
+  background: transparent;
+  color: #f2f0e9;
+  padding: 13px 5px;
+  cursor: pointer;
+  font: 13px "Trebuchet MS", sans-serif;
+}
+.note-choice:hover:not(:disabled) {
+  border-color: var(--note-color);
+  color: var(--note-color);
+}
+.note-choice:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
 @media (max-width: 680px) {
   .app-shell {
     padding: 24px 20px 32px;
@@ -771,13 +838,9 @@ input[type="range"] {
     width: 100%;
   }
   .chromatone {
-    gap: 3px;
-    padding-top: 25px;
+    padding-top: 20px;
   }
-  .chromatone-note {
-    height: 88px;
-  }
-  .note-letter {
+  .chromatone-labels text {
     font-size: 11px;
   }
   .player-controls {
@@ -790,9 +853,17 @@ input[type="range"] {
     flex-basis: 100%;
   }
   .data-form,
-  .test-card {
+  .test-card,
+  .note-test-card {
     padding: 25px 20px;
     box-shadow: 8px 8px 0 #d1cec3;
+  }
+  .note-test-orbit {
+    width: 190px;
+    height: 190px;
+  }
+  .note-choice-grid {
+    grid-template-columns: 1fr;
   }
   .lesson-card {
     padding: 30px 23px;

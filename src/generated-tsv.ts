@@ -5,10 +5,11 @@ type TsvClip = {
   key: string;
   tonic: number;
   scale: "major" | "minor";
+  category: "Peaceful" | "Happy" | "Scary" | "Sad" | "Tests";
 };
 
 export const TSV_CLIPS: Record<string, TsvClip> = {
-  "A01(E♭ major)": {
+  "A01 (E♭ major)": {
     "notes": [
       {
         "noteIndices": [
@@ -245,6 +246,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.5
       }
     ],
+    "category": "Peaceful",
     "key": "E♭ major",
     "tonic": 3,
     "scale": "major"
@@ -488,9 +490,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "E♭ minor",
     "tonic": 3,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A02(E major)": {
+  "A02 (E major)": {
     "notes": [
       {
         "noteIndices": [
@@ -767,6 +770,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 17.503600823045264
       }
     ],
+    "category": "Peaceful",
     "key": "E major",
     "tonic": 4,
     "scale": "major"
@@ -1050,9 +1054,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "E minor",
     "tonic": 4,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A03(A major)": {
+  "A03 (A major)": {
     "notes": [
       {
         "noteIndices": [
@@ -1295,6 +1300,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.5019501950195
       }
     ],
+    "category": "Peaceful",
     "key": "A major",
     "tonic": 9,
     "scale": "major"
@@ -1544,9 +1550,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A minor",
     "tonic": 9,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A04(C major)": {
+  "A04 (C major)": {
     "notes": [
       {
         "noteIndices": [
@@ -1769,6 +1776,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 9.666779165260433
       }
     ],
+    "category": "Peaceful",
     "key": "C major",
     "tonic": 0,
     "scale": "major"
@@ -1998,9 +2006,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C minor",
     "tonic": 0,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A05(E major)": {
+  "A05 (E major)": {
     "notes": [
       {
         "noteIndices": [
@@ -2227,6 +2236,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 14.502628984554715
       }
     ],
+    "category": "Peaceful",
     "key": "E major",
     "tonic": 4,
     "scale": "major"
@@ -2460,9 +2470,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "E minor",
     "tonic": 4,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A06(A major)": {
+  "A06 (A major)": {
     "notes": [
       {
         "noteIndices": [
@@ -2758,6 +2769,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 6.000550055005501
       }
     ],
+    "category": "Peaceful",
     "key": "A major",
     "tonic": 9,
     "scale": "major"
@@ -3060,9 +3072,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A minor",
     "tonic": 9,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A07(D major)": {
+  "A07 (D major)": {
     "notes": [
       {
         "noteIndices": [
@@ -3258,6 +3271,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 12.502464673020045
       }
     ],
+    "category": "Peaceful",
     "key": "D major",
     "tonic": 2,
     "scale": "major"
@@ -3460,9 +3474,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D minor",
     "tonic": 2,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A08(B major)": {
+  "A08 (B major)": {
     "notes": [
       {
         "noteIndices": [
@@ -3747,6 +3762,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 17.5
       }
     ],
+    "category": "Peaceful",
     "key": "B major",
     "tonic": 11,
     "scale": "major"
@@ -4038,9 +4054,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "B minor",
     "tonic": 11,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A09(C♯ major)": {
+  "A09 (C♯ major)": {
     "notes": [
       {
         "noteIndices": [
@@ -4268,6 +4285,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 14.502914951989023
       }
     ],
+    "category": "Peaceful",
     "key": "C♯ major",
     "tonic": 1,
     "scale": "major"
@@ -4502,9 +4520,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C♯ minor",
     "tonic": 1,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A10(C major)": {
+  "A10 (C major)": {
     "notes": [
       {
         "noteIndices": [
@@ -4766,6 +4785,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 16
       }
     ],
+    "category": "Peaceful",
     "key": "C major",
     "tonic": 0,
     "scale": "major"
@@ -5034,9 +5054,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C minor",
     "tonic": 0,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A11(D major)": {
+  "A11 (D major)": {
     "notes": [
       {
         "noteIndices": [
@@ -5306,6 +5327,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.995601173020528
       }
     ],
+    "category": "Peaceful",
     "key": "D major",
     "tonic": 2,
     "scale": "major"
@@ -5582,9 +5604,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D minor",
     "tonic": 2,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A12(A major)": {
+  "A12 (A major)": {
     "notes": [
       {
         "noteIndices": [
@@ -5839,6 +5862,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.5
       }
     ],
+    "category": "Peaceful",
     "key": "A major",
     "tonic": 9,
     "scale": "major"
@@ -6100,9 +6124,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A minor",
     "tonic": 9,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A13(E major)": {
+  "A13 (E major)": {
     "notes": [
       {
         "noteIndices": [
@@ -6343,6 +6368,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.5
       }
     ],
+    "category": "Peaceful",
     "key": "E major",
     "tonic": 4,
     "scale": "major"
@@ -6590,9 +6616,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "E minor",
     "tonic": 4,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "A14(A♭ major)": {
+  "A14 (A♭ major)": {
     "notes": [
       {
         "noteIndices": [
@@ -6790,6 +6817,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 11.002914951989023
       }
     ],
+    "category": "Peaceful",
     "key": "A♭ major",
     "tonic": 8,
     "scale": "major"
@@ -6994,9 +7022,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A♭ minor",
     "tonic": 8,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Peaceful"
   },
-  "G01(C major)": {
+  "G01 (C major)": {
     "notes": [
       {
         "noteIndices": [
@@ -7488,6 +7517,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 16.00560224089636
       }
     ],
+    "category": "Happy",
     "key": "C major",
     "tonic": 0,
     "scale": "major"
@@ -7986,9 +8016,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C minor",
     "tonic": 0,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G02(E major)": {
+  "G02 (E major)": {
     "notes": [
       {
         "noteIndices": [
@@ -8503,6 +8534,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 27.988088147706964
       }
     ],
+    "category": "Happy",
     "key": "E major",
     "tonic": 4,
     "scale": "major"
@@ -9024,9 +9056,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "E minor",
     "tonic": 4,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G03(G major)": {
+  "G03 (G major)": {
     "notes": [
       {
         "noteIndices": [
@@ -9389,6 +9422,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.010841283607979
       }
     ],
+    "category": "Happy",
     "key": "G major",
     "tonic": 7,
     "scale": "major"
@@ -9758,9 +9792,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "G minor",
     "tonic": 7,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G04(C major)": {
+  "G04 (C major)": {
     "notes": [
       {
         "noteIndices": [
@@ -10269,6 +10304,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 31.014507253626814
       }
     ],
+    "category": "Happy",
     "key": "C major",
     "tonic": 0,
     "scale": "major"
@@ -10784,9 +10820,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C minor",
     "tonic": 0,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G05(F major)": {
+  "G05 (F major)": {
     "notes": [
       {
         "noteIndices": [
@@ -11222,6 +11259,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 14.999999999999998
       }
     ],
+    "category": "Happy",
     "key": "F major",
     "tonic": 5,
     "scale": "major"
@@ -11664,9 +11702,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "F minor",
     "tonic": 5,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G06(C major)": {
+  "G06 (C major)": {
     "notes": [
       {
         "noteIndices": [
@@ -12146,6 +12185,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 34.9967335510966
       }
     ],
+    "category": "Happy",
     "key": "C major",
     "tonic": 0,
     "scale": "major"
@@ -12632,9 +12672,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C minor",
     "tonic": 0,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G07(B♭ major)": {
+  "G07 (B♭ major)": {
     "notes": [
       {
         "noteIndices": [
@@ -13031,6 +13072,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 32.990574121679515
       }
     ],
+    "category": "Happy",
     "key": "B♭ major",
     "tonic": 10,
     "scale": "major"
@@ -13434,9 +13476,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "B♭ minor",
     "tonic": 10,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G08(A major)": {
+  "G08 (A major)": {
     "notes": [
       {
         "noteIndices": [
@@ -13788,6 +13831,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 21.99353301565691
       }
     ],
+    "category": "Happy",
     "key": "A major",
     "tonic": 9,
     "scale": "major"
@@ -14146,9 +14190,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A minor",
     "tonic": 9,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G09(G major)": {
+  "G09 (G major)": {
     "notes": [
       {
         "noteIndices": [
@@ -14567,6 +14612,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 26.020274299344067
       }
     ],
+    "category": "Happy",
     "key": "G major",
     "tonic": 7,
     "scale": "major"
@@ -14992,9 +15038,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "G minor",
     "tonic": 7,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G10(A major)": {
+  "G10 (A major)": {
     "notes": [
       {
         "noteIndices": [
@@ -15555,6 +15602,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 31.501333333333335
       }
     ],
+    "category": "Happy",
     "key": "A major",
     "tonic": 9,
     "scale": "major"
@@ -16122,9 +16170,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A minor",
     "tonic": 9,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G11(B major)": {
+  "G11 (B major)": {
     "notes": [
       {
         "noteIndices": [
@@ -16527,6 +16576,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 22.99966666666666
       }
     ],
+    "category": "Happy",
     "key": "B major",
     "tonic": 11,
     "scale": "major"
@@ -16936,9 +16986,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "B minor",
     "tonic": 11,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G12(D major)": {
+  "G12 (D major)": {
     "notes": [
       {
         "noteIndices": [
@@ -17393,6 +17444,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.006244424620874
       }
     ],
+    "category": "Happy",
     "key": "D major",
     "tonic": 2,
     "scale": "major"
@@ -17854,9 +17906,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D minor",
     "tonic": 2,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G13(C major)": {
+  "G13 (C major)": {
     "notes": [
       {
         "noteIndices": [
@@ -18574,6 +18627,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 23.75
       }
     ],
+    "category": "Happy",
     "key": "C major",
     "tonic": 0,
     "scale": "major"
@@ -19298,9 +19352,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C minor",
     "tonic": 0,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "G14(C major)": {
+  "G14 (C major)": {
     "notes": [
       {
         "noteIndices": [
@@ -19768,6 +19823,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 22.992302309307203
       }
     ],
+    "category": "Happy",
     "key": "C major",
     "tonic": 0,
     "scale": "major"
@@ -20242,9 +20298,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C minor",
     "tonic": 0,
-    "scale": "minor"
+    "scale": "minor",
+    "category": "Happy"
   },
-  "P01(B♭ minor)": {
+  "P01 (B♭ minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -20646,6 +20703,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 18.000000000000004
       }
     ],
+    "category": "Scary",
     "key": "B♭ minor",
     "tonic": 10,
     "scale": "minor"
@@ -21054,9 +21112,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "B♭ major",
     "tonic": 10,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P02(F minor)": {
+  "P02 (F minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -21566,6 +21625,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 25.509503167722574
       }
     ],
+    "category": "Scary",
     "key": "F minor",
     "tonic": 5,
     "scale": "minor"
@@ -22082,10 +22142,12 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "F major",
     "tonic": 5,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P03(C minor)": {
+  "P03 (C minor)": {
     "notes": [],
+    "category": "Scary",
     "key": "C minor",
     "tonic": 0,
     "scale": "minor"
@@ -22094,9 +22156,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     "notes": [],
     "key": "C major",
     "tonic": 0,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P04(C minor)": {
+  "P04 (C minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -22189,6 +22252,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 17.000000000000004
       }
     ],
+    "category": "Scary",
     "key": "C minor",
     "tonic": 0,
     "scale": "minor"
@@ -22288,9 +22352,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C major",
     "tonic": 0,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P05(D minor)": {
+  "P05 (D minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -22842,6 +22907,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 23.500000000000004
       }
     ],
+    "category": "Scary",
     "key": "D minor",
     "tonic": 2,
     "scale": "minor"
@@ -23400,9 +23466,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D major",
     "tonic": 2,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P06(A minor)": {
+  "P06 (A minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -23872,6 +23939,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 15.750399999999999
       }
     ],
+    "category": "Scary",
     "key": "A minor",
     "tonic": 9,
     "scale": "minor"
@@ -24348,9 +24416,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A major",
     "tonic": 9,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P07(F minor)": {
+  "P07 (F minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -24573,6 +24642,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 18.499999999999996
       }
     ],
+    "category": "Scary",
     "key": "F minor",
     "tonic": 5,
     "scale": "minor"
@@ -24802,9 +24872,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "F major",
     "tonic": 5,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P08(C minor)": {
+  "P08 (C minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -25230,6 +25301,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 17
       }
     ],
+    "category": "Scary",
     "key": "C minor",
     "tonic": 0,
     "scale": "minor"
@@ -25662,9 +25734,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C major",
     "tonic": 0,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P10(F minor)": {
+  "P10 (F minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -25739,6 +25812,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 8
       }
     ],
+    "category": "Scary",
     "key": "F minor",
     "tonic": 5,
     "scale": "minor"
@@ -25820,9 +25894,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "F major",
     "tonic": 5,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P11(B minor)": {
+  "P11 (B minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -25990,6 +26065,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 8.000314300680987
       }
     ],
+    "category": "Scary",
     "key": "B minor",
     "tonic": 11,
     "scale": "minor"
@@ -26164,9 +26240,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "B major",
     "tonic": 11,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P12(A minor)": {
+  "P12 (A minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -26400,6 +26477,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 11.999757089937448
       }
     ],
+    "category": "Scary",
     "key": "A minor",
     "tonic": 9,
     "scale": "minor"
@@ -26640,9 +26718,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A major",
     "tonic": 9,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P13(C minor)": {
+  "P13 (C minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -26826,6 +26905,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 11.502229080932782
       }
     ],
+    "category": "Scary",
     "key": "C minor",
     "tonic": 0,
     "scale": "minor"
@@ -27016,9 +27096,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C major",
     "tonic": 0,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "P14(F minor)": {
+  "P14 (F minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -27306,6 +27387,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 23.988538681948427
       }
     ],
+    "category": "Scary",
     "key": "F minor",
     "tonic": 5,
     "scale": "minor"
@@ -27600,9 +27682,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "F major",
     "tonic": 5,
-    "scale": "major"
+    "scale": "major",
+    "category": "Scary"
   },
-  "T01(E♭ minor)": {
+  "T01 (E♭ minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -27732,6 +27815,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 8
       }
     ],
+    "category": "Sad",
     "key": "E♭ minor",
     "tonic": 3,
     "scale": "minor"
@@ -27868,9 +27952,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "E♭ major",
     "tonic": 3,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T02(E♭ minor)": {
+  "T02 (E♭ minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -28016,6 +28101,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 8.5
       }
     ],
+    "category": "Sad",
     "key": "E♭ minor",
     "tonic": 3,
     "scale": "minor"
@@ -28168,9 +28254,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "E♭ major",
     "tonic": 3,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T03(A♭ minor)": {
+  "T03 (A♭ minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -28324,6 +28411,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 9.5
       }
     ],
+    "category": "Sad",
     "key": "A♭ minor",
     "tonic": 8,
     "scale": "minor"
@@ -28484,9 +28572,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A♭ major",
     "tonic": 8,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T04(C minor)": {
+  "T04 (C minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -28595,6 +28684,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 10.000900090009
       }
     ],
+    "category": "Sad",
     "key": "C minor",
     "tonic": 0,
     "scale": "minor"
@@ -28710,9 +28800,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "C major",
     "tonic": 0,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T05(D minor)": {
+  "T05 (D minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -28908,6 +28999,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 24
       }
     ],
+    "category": "Sad",
     "key": "D minor",
     "tonic": 2,
     "scale": "minor"
@@ -29110,9 +29202,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D major",
     "tonic": 2,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T06(D minor)": {
+  "T06 (D minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -29262,6 +29355,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 8.999742864489587
       }
     ],
+    "category": "Sad",
     "key": "D minor",
     "tonic": 2,
     "scale": "minor"
@@ -29418,9 +29512,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D major",
     "tonic": 2,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T08(D minor)": {
+  "T08 (D minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -29643,6 +29738,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 8.998775153105862
       }
     ],
+    "category": "Sad",
     "key": "D minor",
     "tonic": 2,
     "scale": "minor"
@@ -29872,9 +29968,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D major",
     "tonic": 2,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T09(D minor)": {
+  "T09 (D minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -30023,6 +30120,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 8.999742864489587
       }
     ],
+    "category": "Sad",
     "key": "D minor",
     "tonic": 2,
     "scale": "minor"
@@ -30178,9 +30276,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "D major",
     "tonic": 2,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T10(F minor)": {
+  "T10 (F minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -30295,6 +30394,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 7
       }
     ],
+    "category": "Sad",
     "key": "F minor",
     "tonic": 5,
     "scale": "minor"
@@ -30416,9 +30516,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "F major",
     "tonic": 5,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T11(B minor)": {
+  "T11 (B minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -30548,6 +30649,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 10.5
       }
     ],
+    "category": "Sad",
     "key": "B minor",
     "tonic": 11,
     "scale": "minor"
@@ -30684,10 +30786,12 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "B major",
     "tonic": 11,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T12(C minor)": {
+  "T12 (C minor)": {
     "notes": [],
+    "category": "Sad",
     "key": "C minor",
     "tonic": 0,
     "scale": "minor"
@@ -30696,9 +30800,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     "notes": [],
     "key": "C major",
     "tonic": 0,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T13(A minor)": {
+  "T13 (A minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -30852,6 +30957,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 20
       }
     ],
+    "category": "Sad",
     "key": "A minor",
     "tonic": 9,
     "scale": "minor"
@@ -31012,9 +31118,10 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A major",
     "tonic": 9,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   },
-  "T14(F minor)": {
+  "T14 (F minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -31189,6 +31296,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
         "onset": 9.997714808043874
       }
     ],
+    "category": "Sad",
     "key": "F minor",
     "tonic": 5,
     "scale": "minor"
@@ -31370,6 +31478,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "F major",
     "tonic": 5,
-    "scale": "major"
+    "scale": "major",
+    "category": "Sad"
   }
 } as const;

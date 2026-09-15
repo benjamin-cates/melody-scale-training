@@ -2,6 +2,14 @@ import { MIDI_CLIPS } from "./generated-midi";
 import { TSV_CLIPS } from "./generated-tsv";
 
 export type Scale = "major" | "minor";
+export type SongCategory =
+  | "Peaceful"
+  | "Happy"
+  | "Scary"
+  | "Sad"
+  | "Exercises"
+  | "Scales"
+  | "Tests";
 
 export type SongNote = {
   noteIndices: number[];
@@ -12,6 +20,7 @@ export type SongNote = {
 export type Song = {
   title: string;
   subtitle: string;
+  category: SongCategory;
   key: string;
   tonic: number;
   scale: Scale;
@@ -133,6 +142,7 @@ export const SONGS: Song[] = [
   {
     title: "Test duration",
     subtitle: "A simple test melody",
+    category: "Tests",
     key: "C major",
     tonic: 0,
     scale: "major",
@@ -150,6 +160,7 @@ export const SONGS: Song[] = [
   {
     title: "Copper Rain",
     subtitle: "A three-note study in C major",
+    category: "Exercises",
     key: "C major",
     tonic: 0,
     scale: "major",
@@ -170,6 +181,7 @@ export const SONGS: Song[] = [
   {
     title: "Copper Rain (Minor)",
     subtitle: "The same shape, recast in C minor",
+    category: "Exercises",
     key: "C minor",
     tonic: 0,
     scale: "minor",
@@ -188,8 +200,101 @@ export const SONGS: Song[] = [
     ],
   },
   {
+    title: "Notes in order",
+    subtitle: "A simple ascending melody",
+    category: "Tests",
+    key: "C major",
+    tonic: 0,
+    scale: "major",
+    notes: [
+      { noteIndices: [36], duration: 1 },
+      { noteIndices: [37], duration: 1 },
+      { noteIndices: [38], duration: 1 },
+      { noteIndices: [39], duration: 1 },
+      { noteIndices: [40], duration: 1 },
+      { noteIndices: [41], duration: 1 },
+      { noteIndices: [42], duration: 1 },
+      { noteIndices: [43], duration: 1 },
+      { noteIndices: [44], duration: 1 },
+      { noteIndices: [45], duration: 1 },
+      { noteIndices: [46], duration: 1 },
+      { noteIndices: [47], duration: 1 },
+      { noteIndices: [48], duration: 1 },
+      { noteIndices: [49], duration: 1 },
+      { noteIndices: [50], duration: 1 },
+      { noteIndices: [51], duration: 1 },
+      { noteIndices: [52], duration: 1 },
+      { noteIndices: [53], duration: 1 },
+      { noteIndices: [54], duration: 1 },
+      { noteIndices: [55], duration: 1 },
+      { noteIndices: [56], duration: 1 },
+      { noteIndices: [57], duration: 1 },
+      { noteIndices: [58], duration: 1 },
+      { noteIndices: [59], duration: 1 },
+      { noteIndices: [60], duration: 1 },
+      { noteIndices: [61], duration: 1 },
+      { noteIndices: [62], duration: 1 },
+      { noteIndices: [63], duration: 1 },
+      { noteIndices: [64], duration: 1 },
+      { noteIndices: [65], duration: 1 },
+      { noteIndices: [66], duration: 1 },
+      { noteIndices: [67], duration: 1 },
+      { noteIndices: [68], duration: 1 },
+      { noteIndices: [69], duration: 1 },
+      { noteIndices: [70], duration: 1 },
+      { noteIndices: [71], duration: 1 },
+    ],
+  },
+  {
+    title: "Feel the octaves",
+    subtitle: "A simple melody with octaves",
+    category: "Tests",
+    key: "C major",
+    tonic: 0,
+    scale: "major",
+    notes: [
+      { noteIndices: [36], duration: 1 },
+      { noteIndices: [48], duration: 1 },
+      { noteIndices: [60], duration: 1 },
+      { noteIndices: [37], duration: 1 },
+      { noteIndices: [49], duration: 1 },
+      { noteIndices: [61], duration: 1 },
+      { noteIndices: [38], duration: 1 },
+      { noteIndices: [50], duration: 1 },
+      { noteIndices: [62], duration: 1 },
+      { noteIndices: [39], duration: 1 },
+      { noteIndices: [51], duration: 1 },
+      { noteIndices: [63], duration: 1 },
+      { noteIndices: [40], duration: 1 },
+      { noteIndices: [52], duration: 1 },
+      { noteIndices: [64], duration: 1 },
+      { noteIndices: [41], duration: 1 },
+      { noteIndices: [53], duration: 1 },
+      { noteIndices: [65], duration: 1 },
+      { noteIndices: [42], duration: 1 },
+      { noteIndices: [54], duration: 1 },
+      { noteIndices: [66], duration: 1 },
+      { noteIndices: [43], duration: 1 },
+      { noteIndices: [55], duration: 1 },
+      { noteIndices: [67], duration: 1 },
+      { noteIndices: [44], duration: 1 },
+      { noteIndices: [56], duration: 1 },
+      { noteIndices: [68], duration: 1 },
+      { noteIndices: [45], duration: 1 },
+      { noteIndices: [57], duration: 1 },
+      { noteIndices: [69], duration: 1 },
+      { noteIndices: [46], duration: 1 },
+      { noteIndices: [58], duration: 1 },
+      { noteIndices: [70], duration: 1 },
+      { noteIndices: [47], duration: 1 },
+      { noteIndices: [59], duration: 1 },
+      { noteIndices: [71], duration: 1 },
+    ],
+  },
+  {
     title: "C Major Chords",
     subtitle: "The key-specific chords in order",
+    category: "Exercises",
     key: "C major",
     tonic: 0,
     scale: "major",
@@ -204,6 +309,7 @@ export const SONGS: Song[] = [
   {
     title: "A Minor Chords",
     subtitle: "The key-specific chords",
+    category: "Exercises",
     key: "A minor",
     tonic: 9,
     scale: "minor",
@@ -218,6 +324,7 @@ export const SONGS: Song[] = [
   {
     title: "Blue Hour",
     subtitle: "A suspended study in D minor",
+    category: "Exercises",
     key: "D minor",
     tonic: 2,
     scale: "minor",
@@ -235,6 +342,7 @@ export const SONGS: Song[] = [
   {
     title: "Violet Current",
     subtitle: "A three-note study in E minor",
+    category: "Exercises",
     key: "E minor",
     tonic: 4,
     scale: "minor",
@@ -252,20 +360,60 @@ export const SONGS: Song[] = [
   {
     title: "Greensleeves",
     subtitle: "Traditional melody in F major",
+    category: "Exercises",
     key: "F major",
     tonic: 5,
     scale: "major",
     notes: [...GREENSLEEVES_PHRASE, ...GREENSLEEVES_PHRASE],
   },
+  ...NOTE_NAMES.map((noteName, tonic) => {
+    const notes = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
+      { noteIndices: [tonic + MAJOR_INTERVALS[value % 7] + (value === 7 ? 12 : 0) + 27], duration: 1 }
+    ));
+    return { 
+      title: `${noteName} Major`, 
+      subtitle: "Ascending and descending melody", 
+      category: "Scales",
+      key: `${noteName} major`, 
+      tonic, 
+      scale: "major",
+      notes
+    } satisfies Song;
+  }),
+  ...NOTE_NAMES.map((noteName, tonic) => {
+    const notes = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
+      { noteIndices: [tonic + MINOR_INTERVALS[value % 7] + (value === 7 ? 12 : 0) + 27], duration: 1 }
+    ));
+    return { 
+      title: `${noteName} Minor`, 
+      subtitle: "Ascending and descending melody", 
+      category: "Scales",
+      key: `${noteName} minor`, 
+      tonic, 
+      scale: "minor",
+      notes
+    } satisfies Song;
+  }),
   ...Object.entries(TSV_CLIPS).map(([title, clip]) => ({
     title,
     subtitle: "",
+    category: clip.category,
     notes: clip.notes,
     key: clip.key,
     tonic: clip.tonic,
     scale: clip.scale,
-  })),
+  } satisfies Song)),
 ];
+
+export const SONG_CATEGORIES = [
+  "Exercises",
+  "Tests",
+  "Scales",
+  "Peaceful",
+  "Happy",
+  "Scary",
+  "Sad",
+] as const;
 
 export function getKeyPitchClasses(song: Song) {
   return new Set(

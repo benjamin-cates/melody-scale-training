@@ -16,6 +16,7 @@ type DetectedKey = {
 
 type TsvClip = DetectedKey & {
   notes: SongNote[];
+  category: "Peaceful" | "Happy" | "Scary" | "Sad";
 };
 
 type TsvRow = {
@@ -185,6 +186,21 @@ function clipName(fileName: string) {
   return fileName.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_$]/g, "_");
 }
 
+function categoryFromFileName(fileName: string): TsvClip["category"] {
+  switch (fileName[0]?.toUpperCase()) {
+    case "A":
+      return "Peaceful";
+    case "G":
+      return "Happy";
+    case "P":
+      return "Scary";
+    case "T":
+      return "Sad";
+    default:
+      throw new Error(`unknown TSV category: ${fileName}`);
+  }
+}
+
 async function convertDirectory(directory: string) {
   const files = (await Array.fromAsync(new Bun.Glob("*.tsv").scan(directory))).sort();
   if (files.length === 0) throw new Error(`no TSV files found in ${directory}`);
@@ -194,7 +210,8 @@ async function convertDirectory(directory: string) {
     const name = clipName(file);
     const notes = parseTsv(await Bun.file(`${directory}/${file}`).text());
     const stats = detectKey(notes, file);
-    clips[name + "(" + stats.key + ")"] = { notes, ...stats };
+    const category = categoryFromFileName(file);
+    clips[name + " (" + stats.key + ")"] = { notes, category, ...stats };
 
     const modifiedScale = stats.scale === "major" ? "minor" : "major";
     clips[name + " (modified)"] = {
@@ -202,12 +219,13 @@ async function convertDirectory(directory: string) {
       key: `${NOTE_NAMES[stats.tonic]} ${modifiedScale}`,
       tonic: stats.tonic,
       scale: modifiedScale,
+      category,
     };
   }
   return clips;
 }
 
 const clips = await convertDirectory(inputDirectory);
-const output = `import type { SongNote } from "./music";\n\ntype TsvClip = {\n  notes: SongNote[];\n  key: string;\n  tonic: number;\n  scale: "major" | "minor";\n};\n\nexport const TSV_CLIPS: Record<string, TsvClip> = ${JSON.stringify(clips, null, 2)} as const;\n`;
+const output = `import type { SongNote } from "./music";\n\ntype TsvClip = {\n  notes: SongNote[];\n  key: string;\n  tonic: number;\n  scale: "major" | "minor";\n  category: "Peaceful" | "Happy" | "Scary" | "Sad" | "Tests";\n};\n\nexport const TSV_CLIPS: Record<string, TsvClip> = ${JSON.stringify(clips, null, 2)} as const;\n`;
 if (outputPath) await Bun.write(outputPath, output);
 else process.stdout.write(output);

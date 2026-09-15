@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
 import { Learner } from "./Learner";
 import { Test } from "./Test";
+import { NoteTest } from "./NoteTest";
 import { Explorer } from "./Explorer";
 
 export function downloadJson(filename: string, data: unknown) {
@@ -16,13 +17,14 @@ export function downloadJson(filename: string, data: unknown) {
   URL.revokeObjectURL(url);
 }
 
-type Route = "explorer" | "survey" | "learner" | "test";
+type Route = "explorer" | "survey" | "learner" | "test" | "note-test";
 
 const ROUTES: { id: Route; label: string }[] = [
   { id: "explorer", label: "Explorer" },
   { id: "survey", label: "Survey" },
   { id: "learner", label: "Learner" },
   { id: "test", label: "Test" },
+  { id: "note-test", label: "Note test" },
 ];
 
 function getRoute(): Route {
@@ -77,6 +79,8 @@ export function AppRoutes() {
       <Learner />
     ) : route === "test" ? (
       <Test />
+    ) : route === "note-test" ? (
+      <NoteTest />
     ) : (
       <Explorer />
     );

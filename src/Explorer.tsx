@@ -1,10 +1,17 @@
 import { useState } from "react";
-import { SONGS } from "./music";
+import { SONG_CATEGORIES, SONGS, type SongCategory } from "./music";
 import { Player } from "./Player";
 
 export function Explorer() {
-  const [songIndex, setSongIndex] = useState(0);
-  const song = SONGS[songIndex];
+  const [category, setCategory] = useState<SongCategory>(SONG_CATEGORIES[0]);
+  const songsInCategory = SONGS.filter((song) => song.category === category);
+  const [songTitle, setSongTitle] = useState(songsInCategory[0].title);
+  const song = songsInCategory.find((item) => item.title === songTitle) ?? songsInCategory[0];
+
+  function selectCategory(nextCategory: SongCategory) {
+    setCategory(nextCategory);
+    setSongTitle(SONGS.find((songItem) => songItem.category === nextCategory)!.title);
+  }
   return (
     <section className="page-section explorer-page">
       <section className="practice-panel" aria-label="Melody explorer">
@@ -15,14 +22,26 @@ export function Explorer() {
             <p className="muted">{song.subtitle}</p>
           </div>
           <div className="song-picker">
+            <label htmlFor="explorer-category">Category</label>
+            <select
+              id="explorer-category"
+              value={category}
+              onChange={(event) => selectCategory(event.target.value as SongCategory)}
+            >
+              {SONG_CATEGORIES.map((item) => (
+                <option value={item} key={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
             <label htmlFor="explorer-song">Song</label>
             <select
               id="explorer-song"
-              value={songIndex}
-              onChange={(event) => setSongIndex(Number(event.target.value))}
+              value={song.title}
+              onChange={(event) => setSongTitle(event.target.value)}
             >
-              {SONGS.map((item, index) => (
-                <option value={index} key={item.title}>
+              {songsInCategory.map((item) => (
+                <option value={item.title} key={item.title}>
                   {item.title}
                 </option>
               ))}

@@ -203,6 +203,41 @@ h2 {
   fill: #ef8a5b;
   font-weight: bold;
 }
+.custom-chromatone-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #506067;
+  padding: 22px 0 0;
+  color: #98a5a4;
+  font: 10px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.sustain-button {
+  border: 1px solid #ef8a5b;
+  border-radius: 0;
+  background: transparent;
+  color: #ef8a5b;
+  padding: 10px 14px;
+  cursor: pointer;
+  font: 11px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sustain-button:hover,
+.sustain-button.is-active {
+  background: #ef8a5b;
+  color: #26353c;
+}
+.custom-note {
+  cursor: pointer;
+  outline: none;
+}
+.custom-note:focus {
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
 .scale-caption {
   color: #9ca8a7;
   font:

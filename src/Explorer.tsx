@@ -1,20 +1,43 @@
 import { useState } from "react";
 import { SONG_CATEGORIES, SONGS, type SongCategory } from "./music";
-import { Player } from "./Player";
+import { CustomChromatone, Player } from "./Player";
 
 export function Explorer() {
   const [category, setCategory] = useState<SongCategory>(SONG_CATEGORIES[0]);
   const songsInCategory = SONGS.filter((song) => song.category === category);
-  const [songTitle, setSongTitle] = useState(songsInCategory[0].title);
+  const [songTitle, setSongTitle] = useState(songsInCategory[0]?.title ?? "");
   const song = songsInCategory.find((item) => item.title === songTitle) ?? songsInCategory[0];
 
   function selectCategory(nextCategory: SongCategory) {
     setCategory(nextCategory);
-    setSongTitle(SONGS.find((songItem) => songItem.category === nextCategory)!.title);
+    setSongTitle(SONGS.find((songItem) => songItem.category === nextCategory)?.title ?? "");
   }
   return (
     <section className="page-section explorer-page">
       <section className="practice-panel" aria-label="Melody explorer">
+        {category === "Custom" ? (
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">Custom instrument</p>
+              <h2>Play the chromatic scale</h2>
+              <p className="muted">Choose notes directly from the map.</p>
+            </div>
+            <div className="song-picker">
+              <label htmlFor="explorer-category">Category</label>
+              <select
+                id="explorer-category"
+                value={category}
+                onChange={(event) => selectCategory(event.target.value as SongCategory)}
+              >
+                {SONG_CATEGORIES.map((item) => (
+                  <option value={item} key={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ) : (
         <div className="panel-heading">
           <div>
             <p className="eyebrow">Now listening</p>
@@ -52,7 +75,8 @@ export function Explorer() {
             <strong>{song.key}</strong>
           </div>
         </div>
-        <Player song={song} showKey showNotes />
+        )}
+        {category === "Custom" ? <CustomChromatone /> : <Player song={song} showKey showNotes />}
       </section>
     </section>
   );

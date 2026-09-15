@@ -3,6 +3,7 @@ import { TSV_CLIPS } from "./generated-tsv";
 
 export type Scale = "major" | "minor";
 export type SongCategory =
+  | "Custom"
   | "Peaceful"
   | "Happy"
   | "Scary"
@@ -367,7 +368,7 @@ export const SONGS: Song[] = [
     notes: [...GREENSLEEVES_PHRASE, ...GREENSLEEVES_PHRASE],
   },
   ...NOTE_NAMES.map((noteName, tonic) => {
-    const notes = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
+    const notes = [0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
       { noteIndices: [tonic + MAJOR_INTERVALS[value % 7] + (value === 7 ? 12 : 0) + 27], duration: 1 }
     ));
     return { 
@@ -381,7 +382,7 @@ export const SONGS: Song[] = [
     } satisfies Song;
   }),
   ...NOTE_NAMES.map((noteName, tonic) => {
-    const notes = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
+    const notes = [0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
       { noteIndices: [tonic + MINOR_INTERVALS[value % 7] + (value === 7 ? 12 : 0) + 27], duration: 1 }
     ));
     return { 
@@ -407,6 +408,7 @@ export const SONGS: Song[] = [
 
 export const SONG_CATEGORIES = [
   "Exercises",
+  "Custom",
   "Tests",
   "Scales",
   "Peaceful",

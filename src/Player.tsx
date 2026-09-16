@@ -14,6 +14,7 @@ type ChromatoneProps = {
   activeNotes?: SongNote[];
   showKey?: boolean;
   showNotes?: boolean;
+  showChordLines?: "all" | "none" | "tonic-only";
 };
 
 export function Chromatone({
@@ -21,6 +22,7 @@ export function Chromatone({
   activeNotes = [],
   showKey = true,
   showNotes = true,
+  showChordLines = "tonic-only",
 }: ChromatoneProps) {
   const inKey = getKeyPitchClasses(song);
   const activeIndices = new Set(activeNotes.flatMap((note) => note.noteIndices));
@@ -43,6 +45,43 @@ export function Chromatone({
     x: center + Math.cos(angle) * radius,
     y: centerY + Math.sin(angle) * radius,
   });
+  const getNotePoint = (noteIndex: number, angleOffset: number) => {
+    const index = ((noteIndex + 21) % 12 + 12) % 12;
+    const octave = Math.floor((noteIndex + 21) / 12);
+    const octaveOffset = octave - lowestOctave;
+    const inner = innerRadius + (octaveCount - octaveOffset - 1) * (ringDepth + ringGap);
+    return point(inner + ringDepth / 2, -Math.PI / 2 + index * angleStep + angleOffset);
+  };
+  const activeNoteByPitchClass = new Map<number, number>();
+  activeNotes.forEach((activeNote) => {
+    activeNote.noteIndices.forEach((noteIndex) => {
+      const pitchClass = ((noteIndex + 21) % 12 + 12) % 12;
+      if (!activeNoteByPitchClass.has(pitchClass)) {
+        activeNoteByPitchClass.set(pitchClass, noteIndex);
+      }
+    });
+  });
+  const chordLines = showChordLines !== "none"
+    ? [...activeNoteByPitchClass.entries()]
+      .filter(([rootPitchClass]) => showChordLines === "all" || rootPitchClass === song.tonic)
+      .flatMap(([rootPitchClass, rootNote]) =>
+        [
+          { interval: 4, className: "major-third" },
+          { interval: 3, className: "minor-third" },
+          { interval: 7, className: "perfect-fifth" },
+        ].flatMap(({ interval, className }) => {
+          const otherNote = activeNoteByPitchClass.get((rootPitchClass + interval) % 12);
+          if (otherNote === undefined) return [];
+          const rootOffset = interval === 7 ? -angleStep * 0.18 : angleStep * 0.18;
+          const rootPoint = getNotePoint(rootNote, rootOffset);
+          const otherPoint = getNotePoint(otherNote, -rootOffset);
+          return [{
+            className,
+            points: `${rootPoint.x},${rootPoint.y} ${center},${centerY} ${otherPoint.x},${otherPoint.y}`,
+          }];
+        }),
+      )
+    : [];
   const sectorPath = (inner: number, outer: number, angle: number) => {
     const start_radius_delta = -(angle - sectorWidth/2) / Math.PI / 2 * ringDepth;
     const end_radius_delta = -(angle + sectorWidth/2) / Math.PI / 2 * ringDepth;
@@ -66,6 +105,15 @@ export function Chromatone({
         role="img"
         aria-label={`${song.key} twelve-prong spiral`}
       >
+        <g className="chromatone-chord-lines" aria-hidden="true">
+          {chordLines.map((chordLine, index) => (
+            <polyline
+              className={chordLine.className}
+              key={`${chordLine.className}-${index}`}
+              points={chordLine.points}
+            />
+          ))}
+        </g>
         <g className="spiral-notes">
           {Array.from({ length: octaveCount }, (_, octaveOffset) => {
             const octave = lowestOctave + octaveOffset;

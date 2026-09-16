@@ -195,6 +195,21 @@ h2 {
     fill-opacity 0.2s,
     stroke 0.2s;
 }
+.chromatone-chord-lines polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+.chromatone-chord-lines .major-third {
+  stroke: #f2d447;
+}
+.chromatone-chord-lines .minor-third {
+  stroke: #8fd8ef;
+}
+.chromatone-chord-lines .perfect-fifth {
+  stroke: #a875d6;
+}
 .chromatone-labels text {
   fill: #b9c2be;
   font: 13px "Trebuchet MS", sans-serif;

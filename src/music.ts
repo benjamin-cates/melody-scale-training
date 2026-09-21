@@ -180,6 +180,19 @@ export const SONGS: Song[] = [
     ],
   },
   {
+    title: "Blank space bayybeee",
+    subtitle: "A playful test melody",
+    category: "Tests",
+    key: "C major",
+    tonic: 0,
+    scale: "major",
+    notes: [
+      { noteIndices: [36], duration: 1 },
+      { noteIndices: [39], duration: 1, onset: 4 },
+      { noteIndices: [43], duration: 1, onset: 5 },
+    ],
+  },
+  {
     title: "Copper Rain (Minor)",
     subtitle: "The same shape, recast in C minor",
     category: "Exercises",

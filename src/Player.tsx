@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getAudioBus, getAudioContext } from "./audio";
 import {
   getKeyPitchClasses,
   getNoteOnset,
@@ -205,8 +206,9 @@ export function CustomChromatone() {
   }
 
   function playNote(noteIndex: number) {
-    const context = audioContext.current ?? new AudioContext();
+    const context = audioContext.current ?? getAudioContext();
     audioContext.current = context;
+    const bus = getAudioBus();
     void context.resume();
     if (sustain && oscillators.current.has(noteIndex)) {
       stopNote(noteIndex);
@@ -223,7 +225,7 @@ export function CustomChromatone() {
     oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
     gain.gain.setValueAtTime(0.0001, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.025);
-    oscillator.connect(gain).connect(context.destination);
+    oscillator.connect(gain).connect(bus);
     oscillator.start();
     if (sustain) {
       oscillators.current.set(noteIndex, oscillator);
@@ -337,8 +339,9 @@ function useSongPlayback(song: Song, tempo: number, enabled = false) {
     }
     const currentNote = song.notes[position];
     const beatDuration = 60000 / tempo;
-    const context = audioContext.current ?? new AudioContext();
+    const context = audioContext.current ?? getAudioContext();
     audioContext.current = context;
+    const bus = getAudioBus();
     void context.resume();
     const currentOscillators = currentNote.noteIndices.map((noteIndex) => {
       const oscillator = context.createOscillator();
@@ -352,7 +355,7 @@ function useSongPlayback(song: Song, tempo: number, enabled = false) {
         0.0001,
         context.currentTime + Math.max(duration - 0.03, 0.04),
       );
-      oscillator.connect(gain).connect(context.destination);
+      oscillator.connect(gain).connect(bus);
       oscillator.start();
       oscillator.stop(context.currentTime + duration);
       return oscillator;

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { NOTE_NAMES } from "./music";
+import { getAudioBus, getAudioContext } from "./audio";
 
 const NOTE_FREQUENCIES = NOTE_NAMES.map((_, index) =>
   261.6256 * Math.pow(2, index / 12),
 );
-let audioContext: AudioContext | null = null;
-
 type NoteSequence = {
   first: number;
   second: number;
@@ -19,8 +18,8 @@ function createSequence(): NoteSequence {
 }
 
 function playNote(note: number, duration = 0.88, delay = 0) {
-  const context = audioContext ?? new AudioContext();
-  audioContext = context;
+  const context = getAudioContext();
+  const bus = getAudioBus();
   void context.resume();
   const start = context.currentTime + delay;
   const oscillator = context.createOscillator();
@@ -30,7 +29,7 @@ function playNote(note: number, duration = 0.88, delay = 0) {
   gain.gain.setValueAtTime(0.0001, start);
   gain.gain.exponentialRampToValueAtTime(0.16, start + 0.025);
   gain.gain.exponentialRampToValueAtTime(0.001, start + duration - 0.025);
-  oscillator.connect(gain).connect(context.destination);
+  oscillator.connect(gain).connect(bus);
   oscillator.start(start);
   oscillator.stop(start + duration);
 }

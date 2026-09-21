@@ -851,6 +851,147 @@ input[type="range"] {
   cursor: default;
   opacity: 0.55;
 }
+.vocoder {
+  position: fixed;
+  z-index: 10;
+  left: 24px;
+  bottom: 24px;
+  width: min(328px, calc(100vw - 32px));
+  color: #f2f0e9;
+  background: #26353c;
+  box-shadow: 8px 8px 0 rgba(38, 53, 60, 0.2);
+}
+.vocoder-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1px solid #506067;
+  background: #26353c;
+  color: #f2f0e9;
+  padding: 13px 15px;
+  cursor: pointer;
+  font: 11px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.vocoder-toggle b {
+  margin-left: auto;
+  color: #ef8a5b;
+  font-size: 18px;
+  font-weight: 400;
+}
+.vocoder-status {
+  width: 7px;
+  height: 7px;
+  margin-right: 9px;
+  border-radius: 50%;
+  background: #718087;
+}
+.vocoder-status.is-live {
+  background: #7dc85d;
+  box-shadow: 0 0 0 4px rgba(125, 200, 93, 0.15);
+}
+.vocoder-panel {
+  display: flex;
+  gap: 12px;
+  border: 1px solid #506067;
+  border-top: 0;
+  padding: 15px;
+}
+.vocoder-panel-body {
+  flex: 1;
+  min-width: 0;
+}
+.vocoder-channel-meter {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  width: 42px;
+  align-self: stretch;
+  padding: 2px 0;
+}
+.vocoder-channel-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 8px;
+  background: #1c282e;
+  border: 1px solid #415057;
+  border-radius: 2px;
+  color: #f4f0d0;
+  font: 9px/1 "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: background-color 0.06s ease, box-shadow 0.06s ease;
+}
+.vocoder-intro,
+.vocoder-note,
+.vocoder-error {
+  margin: 0 0 14px;
+  color: #98a5a4;
+  font: 11px/1.45 "Trebuchet MS", sans-serif;
+}
+.vocoder-error {
+  color: #ef8a5b;
+}
+.vocoder-note {
+  margin: 15px 0 0;
+  font-size: 10px;
+}
+.vocoder-power {
+  width: 100%;
+  border: 1px solid #ef8a5b;
+  background: #ef8a5b;
+  color: #26353c;
+  padding: 10px;
+  cursor: pointer;
+  font: 11px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vocoder-power:hover,
+.vocoder-power.is-on {
+  background: transparent;
+  color: #ef8a5b;
+}
+.vocoder-field {
+  display: block;
+  margin-top: 14px;
+  color: #b9c2be;
+  font: 11px "Trebuchet MS", sans-serif;
+}
+.vocoder-field > span {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.vocoder-field output {
+  color: #ef8a5b;
+}
+.vocoder-field input[type="range"] {
+  width: 100%;
+}
+.vocoder-field select,
+.vocoder-field input:not([type="range"]) {
+  width: 100%;
+  border: 1px solid #718087;
+  border-radius: 0;
+  background: #304149;
+  color: #f2f0e9;
+  padding: 8px;
+  font: 11px "Trebuchet MS", sans-serif;
+}
+.vocoder-field input.has-error {
+  border-color: #ef5350;
+}
+.vocoder-field small {
+  display: block;
+  margin-top: 5px;
+  color: #98a5a4;
+  font-size: 10px;
+}
 @media (max-width: 680px) {
   .app-shell {
     padding: 24px 20px 32px;
@@ -944,5 +1085,9 @@ input[type="range"] {
   .footer-note {
     margin-left: 0;
     margin-top: 43px;
+  }
+  .vocoder {
+    left: 16px;
+    bottom: 16px;
   }
 }

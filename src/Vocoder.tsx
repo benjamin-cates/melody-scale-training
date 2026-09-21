@@ -64,14 +64,12 @@ function makeBandPass(
   center: number,
   low: number,
   high: number,
-  slope: number,
 ): BiquadFilterNode {
   const filter = context.createBiquadFilter();
   filter.type = "bandpass";
   filter.frequency.value = center;
-  const bandwidth = Math.max(40, high - low);
-  const slopeBoost = Math.max(0.75, Math.min(2.5, 1 + Math.abs(slope) / 12));
-  filter.Q.value = Math.min(12, Math.max(2.5, (center / bandwidth) * slopeBoost));
+  const bandwidth = Math.max(1, high - low);
+  filter.Q.value = center / bandwidth;
   return filter;
 }
 
@@ -135,7 +133,7 @@ export function Vocoder() {
         bus.connect(source);
         source.connect(inputAnalyser);
         edges.forEach(({ center, low, high }) => {
-          const bandpassFilter = makeBandPass(context, center, low, high, settings.slope);
+          const bandpassFilter = makeBandPass(context, center, low, high);
           const rectifier = context.createWaveShaper();
           rectifier.curve = Float32Array.from({ length: 1025 }, (_, index) =>
             Math.abs((index * 2) / 1024 - 1));

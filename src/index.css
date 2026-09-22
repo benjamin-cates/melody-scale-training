@@ -956,6 +956,26 @@ input[type="range"] {
   background: transparent;
   color: #ef8a5b;
 }
+.vocoder-test {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid #718087;
+  background: transparent;
+  color: #b9c2be;
+  padding: 8px;
+  cursor: pointer;
+  font: 10px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vocoder-test:hover:not(:disabled) {
+  border-color: #ef8a5b;
+  color: #ef8a5b;
+}
+.vocoder-test:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
 .vocoder-field {
   display: block;
   margin-top: 14px;

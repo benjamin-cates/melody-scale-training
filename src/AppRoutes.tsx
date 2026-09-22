@@ -4,7 +4,7 @@ import { Learner } from "./Learner";
 import { Test } from "./Test";
 import { NoteTest } from "./NoteTest";
 import { Explorer } from "./Explorer";
-import { Vocoder } from "./Vocoder";
+import { Vocoder } from "./VocoderSpectrum";
 
 export function downloadJson(filename: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {

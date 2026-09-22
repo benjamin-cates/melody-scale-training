@@ -221,7 +221,7 @@ export function CustomChromatone() {
     }
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.type = "triangle";
+    oscillator.type = "sine";
     oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
     gain.gain.setValueAtTime(0.0001, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.025);

@@ -477,7 +477,9 @@ input[type="range"] {
     sans-serif;
 }
 .data-form select,
-.data-form textarea {
+.data-form textarea,
+.data-form input[type="text"],
+.data-form input[type="number"] {
   display: block;
   width: 100%;
   margin-top: 8px;
@@ -489,6 +491,7 @@ input[type="range"] {
   font:
     13px "Trebuchet MS",
     sans-serif;
+  box-sizing: border-box;
 }
 .data-form textarea {
   resize: vertical;
@@ -545,6 +548,88 @@ input[type="range"] {
   font:
     12px "Trebuchet MS",
     sans-serif;
+}
+.field-hint {
+  display: block;
+  color: #98a7ae;
+  font-size: 11px;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+.field-matter-note {
+  display: block;
+  color: #f2c84b;
+  background: rgba(242, 200, 75, 0.08);
+  border-left: 3px solid #f2c84b;
+  padding: 8px 12px;
+  margin-top: 7px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.warning-banner {
+  color: #ffb4a8;
+  background: rgba(239, 90, 60, 0.16);
+  border: 1px solid #ef5a3c;
+  padding: 14px 16px;
+  margin: 18px 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.warning-banner strong {
+  color: #ff6f52;
+}
+.ear-block {
+  background: #1f2d33;
+  border: 1px solid #3d4e56;
+  padding: 20px 22px;
+  margin: 20px 0 28px;
+}
+.ear-header {
+  color: #ef8a5b;
+  font:
+    bold 12px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0 !important;
+  font-size: 12px !important;
+  color: #d1ded8 !important;
+  cursor: pointer;
+}
+.checkbox-item input {
+  accent-color: #ef8a5b;
+  margin-right: 8px;
+}
+.timing-badge {
+  display: inline-block;
+  background: #2a3c44;
+  border: 1px solid #5a707a;
+  color: #8be0b2;
+  padding: 6px 10px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.4;
 }
 .lesson-track {
   max-width: 850px;

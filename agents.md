@@ -25,6 +25,8 @@ The app is intentionally practice-oriented:
 - `scripts/convert-midi.ts`: converts MIDI files into generated note clips.
 - `scripts/convert-tsv.ts`: converts TSV note data, detects a mode, and generates original/modified-mode clips.
 - `src/generated-midi.ts` and `src/generated-tsv.ts`: generated data; do not hand-edit these files.
+- `src/VocoderBiquad.tsx`: old vocoder to simulate cochlear implants for normal hearing listeners
+- `src/VocoderSpectrum.tsx`: new vocoder based on spectrum analysis
 
 ## Music and visual model
 

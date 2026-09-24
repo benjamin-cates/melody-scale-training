@@ -15,66 +15,61 @@ export function Explorer() {
   return (
     <section className="page-section explorer-page">
       <section className="practice-panel" aria-label="Melody explorer">
+        <div className="explorer-picker">
+          <div className="explorer-picker-group">
+            <span className="explorer-picker-label">Category</span>
+            <div className="explorer-button-row" aria-label="Song category">
+              {SONG_CATEGORIES.map((item) => (
+                <button
+                  className={item === category ? "explorer-picker-button is-selected" : "explorer-picker-button"}
+                  key={item}
+                  type="button"
+                  aria-pressed={item === category}
+                  onClick={() => selectCategory(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+          {category !== "Custom" && (
+            <div className="explorer-picker-group">
+              <span className="explorer-picker-label">Song</span>
+              <div className="explorer-button-row" aria-label="Song selection">
+              {songsInCategory.map((item) => (
+                <button
+                  className={item.title === song.title ? "explorer-picker-button is-selected" : "explorer-picker-button"}
+                  key={item.title}
+                  type="button"
+                  aria-pressed={item.title === song.title}
+                  onClick={() => setSongTitle(item.title)}
+                >
+                  {item.title}
+                </button>
+              ))}
+              </div>
+            </div>
+          )}
+        </div>
         {category === "Custom" ? (
-          <div className="panel-heading">
+          <div className="panel-heading explorer-details">
             <div>
               <p className="eyebrow">Custom instrument</p>
               <h2>Play the chromatic scale</h2>
               <p className="muted">Choose notes directly from the map.</p>
             </div>
-            <div className="song-picker">
-              <label htmlFor="explorer-category">Category</label>
-              <select
-                id="explorer-category"
-                value={category}
-                onChange={(event) => selectCategory(event.target.value as SongCategory)}
-              >
-                {SONG_CATEGORIES.map((item) => (
-                  <option value={item} key={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
         ) : (
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">Now listening</p>
-            <h2>{song.title}</h2>
-            <p className="muted">{song.subtitle}</p>
+          <div className="panel-heading explorer-details">
+            <div>
+              <h2>{song.title}</h2>
+              <p className="muted">{song.subtitle}</p>
+            </div>
+            <div className="key-readout">
+              <span>Key</span>
+              <strong>{song.key}</strong>
+            </div>
           </div>
-          <div className="song-picker">
-            <label htmlFor="explorer-category">Category</label>
-            <select
-              id="explorer-category"
-              value={category}
-              onChange={(event) => selectCategory(event.target.value as SongCategory)}
-            >
-              {SONG_CATEGORIES.map((item) => (
-                <option value={item} key={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-            <label htmlFor="explorer-song">Song</label>
-            <select
-              id="explorer-song"
-              value={song.title}
-              onChange={(event) => setSongTitle(event.target.value)}
-            >
-              {songsInCategory.map((item) => (
-                <option value={item.title} key={item.title}>
-                  {item.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="key-readout">
-            <span>Key</span>
-            <strong>{song.key}</strong>
-          </div>
-        </div>
         )}
         {category === "Custom" ? <CustomChromatone /> : <Player song={song} showKey showNotes />}
       </section>

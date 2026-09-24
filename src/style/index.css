@@ -127,6 +127,49 @@ h2 {
   color: #a8b1ae;
   font-size: 13px;
 }
+.explorer-picker {
+  border-bottom: 1px solid #506067;
+  padding-bottom: 24px;
+}
+.explorer-picker-group + .explorer-picker-group {
+  margin-top: 16px;
+}
+.explorer-picker-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #98a5a4;
+  font: 10px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.explorer-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.explorer-picker-button {
+  border: 1px solid #718087;
+  border-radius: 0;
+  background: transparent;
+  color: #b9c2be;
+  padding: 8px 11px;
+  cursor: pointer;
+  font: 11px "Trebuchet MS", sans-serif;
+}
+.explorer-picker-button:hover,
+.explorer-picker-button.is-selected {
+  border-color: #ef8a5b;
+  background: #ef8a5b;
+  color: #26353c;
+}
+.explorer-picker-button:focus-visible {
+  outline: 1px solid #f2f0e9;
+  outline-offset: 2px;
+}
+.explorer-details {
+  border-bottom: 0;
+  padding: 24px 0 0;
+}
 .song-picker {
   display: flex;
   flex-direction: column;
@@ -843,12 +886,8 @@ input[type="range"] {
     gap: 20px;
     flex-wrap: wrap;
   }
-  .song-picker {
-    order: 3;
-    flex-basis: 100%;
-  }
-  .song-picker select {
-    width: 100%;
+  .explorer-details {
+    padding-top: 20px;
   }
   .chromatone {
     padding-top: 20px;

@@ -1,7 +1,7 @@
 .vocoder {
   position: fixed;
   z-index: 10;
-  left: 24px;
+  right: 24px;
   bottom: 24px;
   width: min(328px, calc(100vw - 32px));
   color: #f2f0e9;

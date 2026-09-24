@@ -421,13 +421,13 @@ export const SONGS: Song[] = [
 
 export const SONG_CATEGORIES = [
   "Exercises",
-  "Custom",
   "Tests",
   "Scales",
   "Peaceful",
   "Happy",
   "Scary",
   "Sad",
+  "Custom",
 ] as const;
 
 export function getKeyPitchClasses(song: Song) {

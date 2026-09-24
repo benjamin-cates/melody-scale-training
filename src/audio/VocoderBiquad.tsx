@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getAudioBus, getAudioContext } from "./audio";
+import { getAudioBus, getAudioContext } from "./audio/audio";
 
 type Spacing = "greenwood" | "linear" | "custom";
 

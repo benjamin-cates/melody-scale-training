@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { NOTE_NAMES } from "./music";
-import { getAudioBus, getAudioContext } from "./audio";
+import { NOTE_NAMES } from "./audio/music";
+import { getAudioBus, getAudioContext } from "./audio/audio";
 
 const NOTE_FREQUENCIES = NOTE_NAMES.map((_, index) =>
   261.6256 * Math.pow(2, index / 12),

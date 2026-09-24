@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { SONGS, type Song } from "./music";
-import { Player } from "./Player";
+import { SONGS, type Song } from "./audio/music";
+import { Player } from "./audio/Player";
 
 type LearningEvent = {
   type: "text" | "song";

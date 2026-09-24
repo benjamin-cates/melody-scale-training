@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { SONG_CATEGORIES, SONGS, type SongCategory } from "./music";
-import { CustomChromatone, Player } from "./Player";
+import { SONG_CATEGORIES, SONGS, type SongCategory } from "./audio/music";
+import { CustomChromatone, Player } from "./audio/Player";
 
 export function Explorer() {
   const [category, setCategory] = useState<SongCategory>(SONG_CATEGORIES[0]);

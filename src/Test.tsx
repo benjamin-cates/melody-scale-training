@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { SONGS } from "./music";
+import { SONGS } from "./audio/music";
 import { downloadJson } from "./AppRoutes";
-import { Player } from "./Player";
+import { Player } from "./audio/Player";
 
 const TEST_SONGS = [SONGS[0], SONGS[1], SONGS[4], SONGS[5]];
 export function Test() {

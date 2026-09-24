@@ -1,3 +1,5 @@
+import "./style/index.css";
+import "./style/survey.css";
 import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
 import { Learner } from "./Learner";

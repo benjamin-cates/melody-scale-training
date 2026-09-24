@@ -38,10 +38,9 @@ type ColorBlindType = "" | "no" | "red_green" | "blue_yellow" | "total" | "not_s
 type HearingStatus = "" | "ci" | "normal" | "hearing_aid" | "impaired";
 
 interface CIEarDetails {
+  manufacturer: string;
+  manufacturerOther: string;
   internalImplant: string;
-  internalImplantOther: string;
-  channels: string;
-  channelsOther: string;
   audioProcessor: string;
   processorPlacement: string;
   retainedHearing: string;
@@ -52,10 +51,9 @@ interface CIEarDetails {
 }
 
 const initialCIEarDetails: CIEarDetails = {
+  manufacturer: "",
+  manufacturerOther: "",
   internalImplant: "",
-  internalImplantOther: "",
-  channels: "",
-  channelsOther: "",
   audioProcessor: "",
   processorPlacement: "",
   retainedHearing: "",
@@ -247,75 +245,52 @@ export function Survey() {
     return (
       <div className="ear-block">
         <div className="ear-header">
-          <span>{sideLabel} Ear - Cochlear Implant Details</span>
+          <span>{sideLabel} Ear</span>
         </div>
 
         <label>
-          What <b>internal implant</b> do you have?
+          What <b>manufacturer of cochlear implant</b> do you use?
           <select
-            value={details.internalImplant}
-            onChange={(e) => update("internalImplant", e.target.value)}
+            value={details.manufacturer}
+            onChange={(e) => update("manufacturer", e.target.value)}
             required
           >
             <option value="" disabled>
-              Select internal implant model / manufacturer
+              Select manufacturer of cochlear implant
             </option>
-            <option value="cochlear">Cochlear (e.g., Profile Plus, CI600, CI500, Freedom)</option>
-            <option value="medel">MED-EL (e.g., Synchrony, Concert, Sonata)</option>
-            <option value="advanced_bionics">Advanced Bionics (e.g., HiRes Ultra 3D, HiRes 90K)</option>
-            <option value="oticon_medical">Oticon Medical / Neurelec (e.g., Neuro Zti, Digisonic)</option>
+            <option value="cochlear">Cochlear</option>
+            <option value="medel">MED-EL</option>
+            <option value="advanced_bionics">Advanced Bionics</option>
+            <option value="oticon_medical">Oticon Medical</option>
             <option value="other">Other (specify)</option>
             <option value="unknown">Unknown</option>
           </select>
         </label>
-        {details.internalImplant === "other" && (
+        {details.manufacturer === "other" && (
           <label>
-            Please specify internal implant
+            Please specify manufacturer name
             <input
               type="text"
-              value={details.internalImplantOther}
-              onChange={(e) => update("internalImplantOther", e.target.value)}
-              placeholder="e.g. Model name or manufacturer"
+              value={details.manufacturerOther}
+              onChange={(e) => update("manufacturerOther", e.target.value)}
+              placeholder="Manufacturer"
               required
             />
           </label>
         )}
-
         <label>
-          <b>Number of channels</b> (active electrode channels)
-          <select
-            value={details.channels}
-            onChange={(e) => update("channels", e.target.value)}
+          What <b>internal implant</b> do you have in the {sideLabel.toLowerCase()} ear? Write "unknown" if unsure.
+          <input
+            type="text"
+            value={details.internalImplant}
+            onChange={(e) => update("internalImplant", e.target.value)}
+            placeholder="e.g. Nucleus CI612, Sonata, HiRes Ultra 3D"
             required
-          >
-            <option value="" disabled>
-              Select number of channels
-            </option>
-            <option value="12">12 channels (typical MED-EL)</option>
-            <option value="16">16 channels (typical Advanced Bionics)</option>
-            <option value="20">20 channels (typical Oticon Medical)</option>
-            <option value="22">22 channels (typical Cochlear)</option>
-            <option value="other">Other channel count</option>
-            <option value="unknown">Unknown</option>
-          </select>
+          />
         </label>
-        {details.channels === "other" && (
-          <label>
-            Specify number of channels
-            <input
-              type="number"
-              min="1"
-              max="128"
-              value={details.channelsOther}
-              onChange={(e) => update("channelsOther", e.target.value)}
-              placeholder="e.g. 24"
-              required
-            />
-          </label>
-        )}
 
         <label>
-          What <b>external audio processor</b> do you use?
+          What <b>external audio processor</b> do you use on the {sideLabel.toLowerCase()} ear? Write "unknown" if unsure.
           <input
             type="text"
             value={details.audioProcessor}
@@ -342,7 +317,7 @@ export function Survey() {
         </label>
 
         <label>
-          How much <b>normal hearing</b> have you retained in this ear?
+          How much <b>normal hearing</b> have you retained in the {sideLabel.toLowerCase()} ear?
           <select
             value={details.retainedHearing}
             onChange={(e) => update("retainedHearing", e.target.value)}
@@ -360,7 +335,7 @@ export function Survey() {
         </label>
 
         <label>
-          What is the <b>cause</b> of your hearing difficulty?
+          What is the <b>cause</b> of your hearing difficulty for the {sideLabel.toLowerCase()} ear?
           <select
             value={details.hearingLossCause}
             onChange={(e) => update("hearingLossCause", e.target.value)}
@@ -412,8 +387,8 @@ export function Survey() {
 
         <div className="form-row">
           <label>
-            Age when you <b>started needing</b> the cochlear implant
-            <span className="field-hint">Onset of severe to profound loss</span>
+            Age when you <b>had severe to profound hearing loss</b> in the {sideLabel.toLowerCase()} ear
+            <span className="field-hint">Approximation is okay for progressive conditions. Enter 0 if since birth.</span>
             <input
               type="number"
               min="0"
@@ -424,8 +399,8 @@ export function Survey() {
             />
           </label>
           <label>
-            Age when you <b>received</b> the cochlear implant
-            <span className="field-hint">Implantation age (if loss was progressive)</span>
+            Age when you <b>received</b> the implant in the {sideLabel.toLowerCase()} ear
+            <span className="field-hint">Needed to compare to music history.</span>
             <input
               type="number"
               min="0"
@@ -612,7 +587,7 @@ export function Survey() {
           <legend>Musical Experience</legend>
 
           <label>
-            Do you have a background of <b>musical training</b>?
+            Do you have a background of <b>musical training</b> beyond standard secondary school education?
             <select
               value={hasMusicalTraining}
               onChange={(e) => setHasMusicalTraining(e.target.value)}

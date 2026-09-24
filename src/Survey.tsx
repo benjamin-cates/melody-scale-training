@@ -2,42 +2,42 @@ import { useState } from "react";
 import { downloadJson } from "./AppRoutes";
 
 interface SurveyData {
-    exportedAt: string;
-    surveyVersion: string;
-    hearingProfile: {
-        hasCochlearImplant: boolean;
-        hasCochlearImplantForAtLeastOneYear: boolean;
-        studyEar: string;
-        studyCondition: "cochlear_implant" | "normal_hearing" | "ineligible" | "undetermined";
-        leftEar: {
-            ciDetails?: CIEarDetails | undefined;
-            status: string;
-        };
-        rightEar: {
-            ciDetails?: CIEarDetails | undefined;
-            status: string;
-        };
-    };
-    participantInfo: {
-        currentAge: number | null;
-        gender: string;
-        isColorBlind: boolean;
-        colorBlindType: string;
-    };
-    musicalExperience: {
-        hasMusicalTraining: boolean;
-        instrument: string | null;
-        trainingStartAge: number | null;
-        trainingEndAge: number | null;
-        trainingTimingRelativeToHearingLoss: "before" | "after" | "spanned" | "unknown";
-        listeningFrequency: string;
-        genres: string[];
-    }
+  exportedAt: string;
+  surveyVersion: string;
+  studyCondition: "cochlear_implant" | "normal_hearing" | "ineligible" | "undetermined";
+  hearingProfile: {
+      studyEar: string;
+      leftEar: {
+          ciDetails?: CIEarDetails | undefined;
+          status: HearingStatus;
+      };
+      rightEar: {
+          ciDetails?: CIEarDetails | undefined;
+          status: HearingStatus;
+      };
+        additionalComments: string;
   };
+  participantInfo: {
+      currentAge: number | null;
+      gender: string;
+      colorBlindType: ColorBlindType;
+  };
+  musicalExperience: {
+      hasMusicalTraining: boolean;
+      instrument: string | null;
+      trainingStartAge: number | null;
+      trainingEndAge: number | null;
+      trainingTimingRelativeToHearingLoss: "before" | "after" | "spanned" | "unknown";
+      trainingAdditionalComments: string;
+      listeningFrequency: string;
+      genres: string[];
+  }
+};
 
+type ColorBlindType = "" | "no" | "red_green" | "blue_yellow" | "total" | "not_sure";
+type HearingStatus = "" | "ci" | "normal" | "hearing_aid" | "impaired";
 
 interface CIEarDetails {
-  usageDuration: string;
   internalImplant: string;
   internalImplantOther: string;
   channels: string;
@@ -52,7 +52,6 @@ interface CIEarDetails {
 }
 
 const initialCIEarDetails: CIEarDetails = {
-  usageDuration: "",
   internalImplant: "",
   internalImplantOther: "",
   channels: "",
@@ -87,14 +86,15 @@ export function Survey() {
 
   // Hearing profile state
   const [hasCIForAtLeastOneYear, setHasCIForAtLeastOneYear] = useState<string>("");
-  const [leftEarStatus, setLeftEarStatus] = useState<string>("");
-  const [rightEarStatus, setRightEarStatus] = useState<string>("");
+  const [leftEarStatus, setLeftEarStatus] = useState<HearingStatus>("");
+  const [rightEarStatus, setRightEarStatus] = useState<HearingStatus>("");
+  const [hearingAdditionalComments, setHearingAdditionalComments] = useState<string>("");
 
   const [leftCI, setLeftCI] = useState<CIEarDetails>(initialCIEarDetails);
   const [rightCI, setRightCI] = useState<CIEarDetails>(initialCIEarDetails);
 
   // General survey state
-  const [colorBlind, setColorBlind] = useState<string>("");
+  const [colorBlind, setColorBlind] = useState<ColorBlindType>("");
   const [currentAge, setCurrentAge] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [genderOther, setGenderOther] = useState<string>("");
@@ -102,6 +102,7 @@ export function Survey() {
   const [instrument, setInstrument] = useState<string>("");
   const [trainingStartAge, setTrainingStartAge] = useState<string>("");
   const [trainingEndAge, setTrainingEndAge] = useState<string>("");
+  const [trainingAdditionalComments, setTrainingAdditionalComments] = useState<string>("");
   const [listenFrequency, setListenFrequency] = useState<string>("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [genreOther, setGenreOther] = useState<string>("");
@@ -120,16 +121,6 @@ export function Survey() {
   const copyLeftToRight = () => {
     setRightCI({ ...leftCI });
   };
-
-  // Check 1-year CI experience filter
-  const leftLessThan1Year = leftIsCI && leftCI.usageDuration === "less_than_1_year";
-  const rightLessThan1Year = rightIsCI && rightCI.usageDuration === "less_than_1_year";
-
-  const isFilteredOut =
-    hasCIForAtLeastOneYear === "yes" &&
-    ((leftIsCI && rightIsCI && leftLessThan1Year && rightLessThan1Year) ||
-      (!rightIsCI && leftLessThan1Year) ||
-      (!leftIsCI && rightLessThan1Year));
 
   // Determine study ear and study condition based on hearing profile
   let studyEar = "Undetermined";
@@ -214,11 +205,9 @@ export function Survey() {
     const surveyData = {
       exportedAt: new Date().toISOString(),
       surveyVersion: "2.0",
+      studyCondition,
       hearingProfile: {
-        hasCochlearImplant: hasCIForAtLeastOneYear === "yes",
-        hasCochlearImplantForAtLeastOneYear: hasCIForAtLeastOneYear === "yes",
         studyEar,
-        studyCondition,
         leftEar: {
           status: leftEarStatus,
           ...(leftIsCI ? { ciDetails: leftCI } : {}),
@@ -227,11 +216,11 @@ export function Survey() {
           status: rightEarStatus,
           ...(rightIsCI ? { ciDetails: rightCI } : {}),
         },
+        additionalComments: hearingAdditionalComments,
       },
       participantInfo: {
         currentAge: currentAge ? Number(currentAge) : null,
         gender: gender === "self_describe" ? genderOther : gender,
-        isColorBlind: colorBlind !== "no" && colorBlind !== "",
         colorBlindType: colorBlind,
       },
       musicalExperience: {
@@ -240,6 +229,7 @@ export function Survey() {
         trainingStartAge: hasMusicalTraining === "yes" && trainingStartAge ? Number(trainingStartAge) : null,
         trainingEndAge: hasMusicalTraining === "yes" && trainingEndAge ? Number(trainingEndAge) : null,
         trainingTimingRelativeToHearingLoss: trainingTimingCode,
+        trainingAdditionalComments,
         listeningFrequency: listenFrequency,
         genres: selectedGenres.concat(genreOther ? [`Other: ${genreOther}`] : []),
       },
@@ -258,39 +248,7 @@ export function Survey() {
       <div className="ear-block">
         <div className="ear-header">
           <span>{sideLabel} Ear - Cochlear Implant Details</span>
-          {sideLabel === "Right" && leftIsCI && (
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={copyLeftToRight}
-            >
-              Copy Left Ear Details
-            </button>
-          )}
         </div>
-
-        <label>
-          <b>How long</b> have you used the cochlear implant in this ear?
-          <select
-            value={details.usageDuration}
-            onChange={(e) => update("usageDuration", e.target.value)}
-            required
-          >
-            <option value="" disabled>
-              Select duration
-            </option>
-            <option value="less_than_1_year">Less than 1 year (insufficient experience)</option>
-            <option value="1_to_2_years">1-2 years</option>
-            <option value="3_to_5_years">3-5 years</option>
-            <option value="6_to_10_years">6-10 years</option>
-            <option value="more_than_10_years">10+ years</option>
-          </select>
-          {details.usageDuration === "less_than_1_year" && (
-            <span className="field-hint" style={{ color: "#ff8b7b" }}>
-              Caution: To be eligible for this study, participants must either have an ear with normal hearing or an ear trained on a cochlear implant for at least one year.
-            </span>
-          )}
-        </label>
 
         <label>
           What <b>internal implant</b> do you have?
@@ -486,13 +444,10 @@ export function Survey() {
     <section className="page-section narrow">
       <form className="data-form" onSubmit={submit}>
         <fieldset>
-          <legend>Hearing Profile &amp; Cochlear Implant Status</legend>
+          <legend>Hearing Profile</legend>
 
           <label>
-            Do you have a <b>cochlear implant for at least one year</b>?
-            <span className="field-hint">
-              This is the differentiating factor in determining whether you will use a cochlear implant or your normal hearing ear for the study.
-            </span>
+            Do you have a <b>cochlear implant that you have had for at least one year</b>?
             <select
               value={hasCIForAtLeastOneYear}
               onChange={(e) => {
@@ -505,7 +460,7 @@ export function Survey() {
               <option value="" disabled>
                 Select one
               </option>
-              <option value="yes">Yes, I have a cochlear implant for at least one year</option>
+              <option value="yes">Yes, I have had a cochlear implant for at least one year</option>
               <option value="no">No</option>
             </select>
           </label>
@@ -516,7 +471,7 @@ export function Survey() {
                 <b>Left</b> ear hearing status
                 <select
                   value={leftEarStatus}
-                  onChange={(e) => setLeftEarStatus(e.target.value)}
+                  onChange={(e) => setLeftEarStatus(e.target.value as HearingStatus)}
                   required
                 >
                   <option value="" disabled>
@@ -533,7 +488,7 @@ export function Survey() {
                 <b>Right</b> ear hearing status
                 <select
                   value={rightEarStatus}
-                  onChange={(e) => setRightEarStatus(e.target.value)}
+                  onChange={(e) => setRightEarStatus(e.target.value as HearingStatus)}
                   required
                 >
                   <option value="" disabled>
@@ -563,27 +518,36 @@ export function Survey() {
           {leftIsCI && hasCIForAtLeastOneYear === "yes" && renderCIEarFields("Left", leftCI, updateLeftCI)}
           {rightIsCI && hasCIForAtLeastOneYear === "yes" && renderCIEarFields("Right", rightCI, updateRightCI)}
 
-          {isFilteredOut && (
-            <div className="warning-banner" role="alert">
-              <strong>Participant Filter Notice:</strong> This study requires at least one full year of cochlear implant experience. 
-            </div>
+          {leftEarStatus && rightEarStatus && (
+            <label className="form-row">
+              Additional comments about your hearing status
+              <span className="field-hint">
+                Please describe any hearing-related details that are not captured by this survey.
+              </span>
+              <textarea
+                value={hearingAdditionalComments}
+                onChange={(e) => setHearingAdditionalComments(e.target.value)}
+                rows={4}
+                placeholder=""
+              />
+            </label>
           )}
 
           {studyCondition === "ineligible" && (
             <div className="warning-banner" role="alert">
-              <strong>Participant Eligibility Notice:</strong> To participate in this study, you must either have a cochlear implant for at least one year or an ear with normal hearing.
+              <strong>Participant Eligibility Notice:</strong> To participate in this study, you must either have either had a cochlear implant for at least one year or have an ear with normal hearing.
             </div>
           )}
         </fieldset>
 
         <fieldset>
-          <legend>Participant Information</legend>
+          <legend>Demographic Information</legend>
 
           <label>
             Are you color blind?
             <select
               value={colorBlind}
-              onChange={(e) => setColorBlind(e.target.value)}
+              onChange={(e) => setColorBlind(e.target.value as any)}
               required
             >
               <option value="" disabled>
@@ -645,7 +609,7 @@ export function Survey() {
         </fieldset>
 
         <fieldset>
-          <legend>Musical Experience &amp; Habits</legend>
+          <legend>Musical Experience</legend>
 
           <label>
             Do you have a background of <b>musical training</b>?
@@ -703,6 +667,19 @@ export function Survey() {
                 </label>
               </div>
 
+              <label>
+                Additional comments about your musical training
+                <span className="field-hint">
+                  If the above questions do not capture your musical training experience, please describe multiple periods of training, breaks, or how your training relates to the timeline of your hearing loss.
+                </span>
+                <textarea
+                  value={trainingAdditionalComments}
+                  onChange={(e) => setTrainingAdditionalComments(e.target.value)}
+                  rows={4}
+                  placeholder=""
+                />
+              </label>
+
             </>
           )}
 
@@ -726,7 +703,7 @@ export function Survey() {
           </label>
 
           <label>
-            What <b>genres</b> of music do you listen to? (select all that apply)
+            What <b>genres</b> of music have you listened to recently? (select all that apply)
             <div className="checkbox-grid">
               {MUSIC_GENRES.map((genre) => (
                 <label key={genre} className="checkbox-item">

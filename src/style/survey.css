@@ -1,0 +1,151 @@
+.data-form {
+	max-width: 760px;
+	background: #26353c;
+	color: #f2f0e9;
+	padding: 34px 38px;
+	box-shadow: 13px 13px 0 #d1cec3;
+}
+.data-form fieldset {
+	border: 0;
+	margin: 0 0 29px;
+	padding: 0;
+}
+.data-form legend {
+	border-bottom: 1px solid #506067;
+	width: 100%;
+	margin-bottom: 21px;
+	padding-bottom: 10px;
+	color: #ef8a5b;
+	font:
+		11px "Trebuchet MS",
+		sans-serif;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+.data-form > fieldset + fieldset {
+	margin-top: 34px;
+}
+.data-form label {
+	display: block;
+	margin-bottom: 20px;
+	color: #b9c2be;
+	font:
+		13px/1.4 "Trebuchet MS",
+		sans-serif;
+}
+.data-form select,
+.data-form textarea,
+.data-form input[type="text"],
+.data-form input[type="number"] {
+	display: block;
+	width: 100%;
+	margin-top: 8px;
+	border: 1px solid #718087;
+	border-radius: 0;
+	background: #304149;
+	color: #f2f0e9;
+	padding: 11px;
+	font:
+		13px "Trebuchet MS",
+		sans-serif;
+	box-sizing: border-box;
+}
+.data-form textarea {
+	resize: vertical;
+}
+.success-message {
+	color: #f2c84b;
+	font:
+		12px "Trebuchet MS",
+		sans-serif;
+}
+.field-hint {
+	display: block;
+	color: #98a7ae;
+	font-size: 11px;
+	margin-top: 5px;
+	line-height: 1.4;
+}
+.field-matter-note {
+	display: block;
+	color: #f2c84b;
+	background: rgba(242, 200, 75, 0.08);
+	border-left: 3px solid #f2c84b;
+	padding: 8px 12px;
+	margin-top: 7px;
+	font-size: 11px;
+	line-height: 1.45;
+}
+.warning-banner {
+	color: #ffb4a8;
+	background: rgba(239, 90, 60, 0.16);
+	border: 1px solid #ef5a3c;
+	padding: 14px 16px;
+	margin: 18px 0;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.warning-banner strong {
+	color: #ff6f52;
+}
+.ear-block {
+	background: #1f2d33;
+	border: 1px solid #3d4e56;
+	padding: 20px 22px;
+	margin: 20px 0 28px;
+}
+.ear-header {
+	color: #ef8a5b;
+	font:
+		bold 12px "Trebuchet MS",
+		sans-serif;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	margin-bottom: 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.form-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 16px;
+}
+.checkbox-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+	gap: 8px 12px;
+	margin-top: 10px;
+}
+.checkbox-item {
+	display: flex;
+	align-items: center;
+	margin-bottom: 0 !important;
+	font-size: 12px !important;
+	color: #d1ded8 !important;
+	cursor: pointer;
+}
+.checkbox-item input {
+	accent-color: #ef8a5b;
+	margin-right: 8px;
+}
+.timing-badge {
+	display: inline-block;
+	background: #2a3c44;
+	border: 1px solid #5a707a;
+	color: #8be0b2;
+	padding: 6px 10px;
+	margin-top: 8px;
+	margin-bottom: 12px;
+	font-size: 11px;
+	line-height: 1.4;
+}
+
+@media (max-width: 680px) {
+	.data-form {
+		padding: 25px 20px;
+		box-shadow: 8px 8px 0 #d1cec3;
+	}
+}

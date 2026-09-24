@@ -1,5 +1,6 @@
 import "./style/index.css";
 import "./style/survey.css";
+import "./style/vocoder.css"
 import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
 import { Learner } from "./Learner";
@@ -45,10 +46,8 @@ function Layout({ route, children }: { route: Route; children: ReactNode }) {
     <main className="app-shell">
       <header className="topbar">
         <a className="brand-link" href="#/explorer">
-          <span className="brand-mark">◌</span>
           <span>
-            <small>Hearing practice</small>
-            <b>chromatone</b>
+            <b>Melody scale training</b>
           </span>
         </a>
         <nav className="route-nav" aria-label="Main navigation">
@@ -64,7 +63,7 @@ function Layout({ route, children }: { route: Route; children: ReactNode }) {
         </nav>
       </header>
       {children}
-      <Vocoder />
+      {route !== "survey" && <Vocoder />}
     </main>
   );
 }

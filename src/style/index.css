@@ -438,7 +438,6 @@ input[type="range"] {
   max-width: 950px;
   margin: 0 auto;
 }
-.data-form,
 .test-card {
   max-width: 760px;
   background: #26353c;
@@ -446,13 +445,11 @@ input[type="range"] {
   padding: 34px 38px;
   box-shadow: 13px 13px 0 #d1cec3;
 }
-.data-form fieldset,
 .test-form fieldset {
   border: 0;
   margin: 0 0 29px;
   padding: 0;
 }
-.data-form legend,
 .test-form legend {
   border-bottom: 1px solid #506067;
   width: 100%;
@@ -464,37 +461,6 @@ input[type="range"] {
     sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-.data-form > fieldset + fieldset {
-  margin-top: 34px;
-}
-.data-form label {
-  display: block;
-  margin-bottom: 20px;
-  color: #b9c2be;
-  font:
-    13px/1.4 "Trebuchet MS",
-    sans-serif;
-}
-.data-form select,
-.data-form textarea,
-.data-form input[type="text"],
-.data-form input[type="number"] {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  border: 1px solid #718087;
-  border-radius: 0;
-  background: #304149;
-  color: #f2f0e9;
-  padding: 11px;
-  font:
-    13px "Trebuchet MS",
-    sans-serif;
-  box-sizing: border-box;
-}
-.data-form textarea {
-  resize: vertical;
 }
 .radio-row,
 .choice-row {
@@ -542,94 +508,6 @@ input[type="range"] {
 .secondary-button:hover {
   background: #ef8a5b;
   color: #26353c;
-}
-.success-message {
-  color: #f2c84b;
-  font:
-    12px "Trebuchet MS",
-    sans-serif;
-}
-.field-hint {
-  display: block;
-  color: #98a7ae;
-  font-size: 11px;
-  margin-top: 5px;
-  line-height: 1.4;
-}
-.field-matter-note {
-  display: block;
-  color: #f2c84b;
-  background: rgba(242, 200, 75, 0.08);
-  border-left: 3px solid #f2c84b;
-  padding: 8px 12px;
-  margin-top: 7px;
-  font-size: 11px;
-  line-height: 1.45;
-}
-.warning-banner {
-  color: #ffb4a8;
-  background: rgba(239, 90, 60, 0.16);
-  border: 1px solid #ef5a3c;
-  padding: 14px 16px;
-  margin: 18px 0;
-  font-size: 12px;
-  line-height: 1.5;
-}
-.warning-banner strong {
-  color: #ff6f52;
-}
-.ear-block {
-  background: #1f2d33;
-  border: 1px solid #3d4e56;
-  padding: 20px 22px;
-  margin: 20px 0 28px;
-}
-.ear-header {
-  color: #ef8a5b;
-  font:
-    bold 12px "Trebuchet MS",
-    sans-serif;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-.checkbox-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 8px 12px;
-  margin-top: 10px;
-}
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0 !important;
-  font-size: 12px !important;
-  color: #d1ded8 !important;
-  cursor: pointer;
-}
-.checkbox-item input {
-  accent-color: #ef8a5b;
-  margin-right: 8px;
-}
-.timing-badge {
-  display: inline-block;
-  background: #2a3c44;
-  border: 1px solid #5a707a;
-  color: #8be0b2;
-  padding: 6px 10px;
-  margin-top: 8px;
-  font-size: 11px;
-  line-height: 1.4;
 }
 .lesson-track {
   max-width: 850px;
@@ -936,167 +814,6 @@ input[type="range"] {
   cursor: default;
   opacity: 0.55;
 }
-.vocoder {
-  position: fixed;
-  z-index: 10;
-  left: 24px;
-  bottom: 24px;
-  width: min(328px, calc(100vw - 32px));
-  color: #f2f0e9;
-  background: #26353c;
-  box-shadow: 8px 8px 0 rgba(38, 53, 60, 0.2);
-}
-.vocoder-toggle {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  border: 1px solid #506067;
-  background: #26353c;
-  color: #f2f0e9;
-  padding: 13px 15px;
-  cursor: pointer;
-  font: 11px "Trebuchet MS", sans-serif;
-  letter-spacing: 0.08em;
-  text-align: left;
-  text-transform: uppercase;
-}
-.vocoder-toggle b {
-  margin-left: auto;
-  color: #ef8a5b;
-  font-size: 18px;
-  font-weight: 400;
-}
-.vocoder-status {
-  width: 7px;
-  height: 7px;
-  margin-right: 9px;
-  border-radius: 50%;
-  background: #718087;
-}
-.vocoder-status.is-live {
-  background: #7dc85d;
-  box-shadow: 0 0 0 4px rgba(125, 200, 93, 0.15);
-}
-.vocoder-panel {
-  display: flex;
-  gap: 12px;
-  border: 1px solid #506067;
-  border-top: 0;
-  padding: 15px;
-}
-.vocoder-panel-body {
-  flex: 1;
-  min-width: 0;
-}
-.vocoder-channel-meter {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 4px;
-  width: 42px;
-  align-self: stretch;
-  padding: 2px 0;
-}
-.vocoder-channel-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  min-height: 8px;
-  background: #1c282e;
-  border: 1px solid #415057;
-  border-radius: 2px;
-  color: #f4f0d0;
-  font: 9px/1 "Courier New", monospace;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  transition: background-color 0.06s ease, box-shadow 0.06s ease;
-}
-.vocoder-intro,
-.vocoder-note,
-.vocoder-error {
-  margin: 0 0 14px;
-  color: #98a5a4;
-  font: 11px/1.45 "Trebuchet MS", sans-serif;
-}
-.vocoder-error {
-  color: #ef8a5b;
-}
-.vocoder-note {
-  margin: 15px 0 0;
-  font-size: 10px;
-}
-.vocoder-power {
-  width: 100%;
-  border: 1px solid #ef8a5b;
-  background: #ef8a5b;
-  color: #26353c;
-  padding: 10px;
-  cursor: pointer;
-  font: 11px "Trebuchet MS", sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.vocoder-power:hover,
-.vocoder-power.is-on {
-  background: transparent;
-  color: #ef8a5b;
-}
-.vocoder-test {
-  width: 100%;
-  margin-top: 8px;
-  border: 1px solid #718087;
-  background: transparent;
-  color: #b9c2be;
-  padding: 8px;
-  cursor: pointer;
-  font: 10px "Trebuchet MS", sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.vocoder-test:hover:not(:disabled) {
-  border-color: #ef8a5b;
-  color: #ef8a5b;
-}
-.vocoder-test:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-.vocoder-field {
-  display: block;
-  margin-top: 14px;
-  color: #b9c2be;
-  font: 11px "Trebuchet MS", sans-serif;
-}
-.vocoder-field > span {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 7px;
-}
-.vocoder-field output {
-  color: #ef8a5b;
-}
-.vocoder-field input[type="range"] {
-  width: 100%;
-}
-.vocoder-field select,
-.vocoder-field input:not([type="range"]) {
-  width: 100%;
-  border: 1px solid #718087;
-  border-radius: 0;
-  background: #304149;
-  color: #f2f0e9;
-  padding: 8px;
-  font: 11px "Trebuchet MS", sans-serif;
-}
-.vocoder-field input.has-error {
-  border-color: #ef5350;
-}
-.vocoder-field small {
-  display: block;
-  margin-top: 5px;
-  color: #98a5a4;
-  font-size: 10px;
-}
 @media (max-width: 680px) {
   .app-shell {
     padding: 24px 20px 32px;
@@ -1148,7 +865,6 @@ input[type="range"] {
     order: 3;
     flex-basis: 100%;
   }
-  .data-form,
   .test-card,
   .note-test-card {
     padding: 25px 20px;

@@ -61,6 +61,7 @@ export const MINOR_INTERVALS = [0, 2, 3, 5, 7, 8, 10];
 
 export function getNoteOnset(song: Song, position: number) {
   const note = song.notes[position];
+  if (!note) return 0;
   if (note.onset !== undefined) return note.onset;
   return song.notes
     .slice(0, position)

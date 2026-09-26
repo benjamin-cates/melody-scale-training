@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { NOTE_NAMES } from "@/music";
+import { NOTE_NAMES } from "@/audio/music";
 
 type SongNote = {
   noteIndices: number[];
@@ -37,7 +37,7 @@ const MINOR_PROFILE = [
   1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0,
 ];
 const inputDirectory = process.argv[2] ?? "clips-csv";
-const outputPath = process.argv[3];
+const outputPath = process.argv[3] ?? "src/audio/generated-tsv.ts";
 
 function parseNumber(value: string, label: string) {
   const number = Number(value.replace(",", "."));

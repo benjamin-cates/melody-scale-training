@@ -30789,21 +30789,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     "scale": "major",
     "category": "Sad"
   },
-  "T12 (C minor)": {
-    "notes": [],
-    "category": "Sad",
-    "key": "C minor",
-    "tonic": 0,
-    "scale": "minor"
-  },
-  "T12 (modified)": {
-    "notes": [],
-    "key": "C major",
-    "tonic": 0,
-    "scale": "major",
-    "category": "Sad"
-  },
-  "T13 (A minor)": {
+  "T12 (A minor)": {
     "notes": [
       {
         "noteIndices": [
@@ -30962,7 +30948,7 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     "tonic": 9,
     "scale": "minor"
   },
-  "T13 (modified)": {
+  "T12 (modified)": {
     "notes": [
       {
         "noteIndices": [
@@ -31118,6 +31104,336 @@ export const TSV_CLIPS: Record<string, TsvClip> = {
     ],
     "key": "A major",
     "tonic": 9,
+    "scale": "major",
+    "category": "Sad"
+  },
+  "T13 (C minor)": {
+    "notes": [
+      {
+        "noteIndices": [
+          32,
+          47
+        ],
+        "duration": 1.1976,
+        "onset": 0
+      },
+      {
+        "noteIndices": [
+          35,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 0.5
+      },
+      {
+        "noteIndices": [
+          35,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 1
+      },
+      {
+        "noteIndices": [
+          35,
+          39,
+          46
+        ],
+        "duration": 0.396,
+        "onset": 1.5
+      },
+      {
+        "noteIndices": [
+          35,
+          39,
+          44
+        ],
+        "duration": 0.7968,
+        "onset": 2
+      },
+      {
+        "noteIndices": [
+          35,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 2.5
+      },
+      {
+        "noteIndices": [
+          31,
+          46
+        ],
+        "duration": 1.5992000000000002,
+        "onset": 3
+      },
+      {
+        "noteIndices": [
+          37,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 3.5
+      },
+      {
+        "noteIndices": [
+          37,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 4
+      },
+      {
+        "noteIndices": [
+          35,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 4.5
+      },
+      {
+        "noteIndices": [
+          35,
+          37,
+          51
+        ],
+        "duration": 0.7968,
+        "onset": 5
+      },
+      {
+        "noteIndices": [
+          34,
+          37
+        ],
+        "duration": 0.396,
+        "onset": 5.5
+      },
+      {
+        "noteIndices": [
+          32,
+          47
+        ],
+        "duration": 1.1976,
+        "onset": 6
+      },
+      {
+        "noteIndices": [
+          35,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 6.5
+      },
+      {
+        "noteIndices": [
+          35,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 7
+      },
+      {
+        "noteIndices": [
+          35,
+          39,
+          46
+        ],
+        "duration": 0.396,
+        "onset": 7.5
+      },
+      {
+        "noteIndices": [
+          35,
+          39,
+          44
+        ],
+        "duration": 0.7968,
+        "onset": 8
+      },
+      {
+        "noteIndices": [
+          35,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 8.5
+      },
+      {
+        "noteIndices": [
+          27,
+          44
+        ],
+        "duration": 0.4688,
+        "onset": 9
+      }
+    ],
+    "category": "Sad",
+    "key": "C minor",
+    "tonic": 0,
+    "scale": "minor"
+  },
+  "T13 (modified)": {
+    "notes": [
+      {
+        "noteIndices": [
+          32,
+          48
+        ],
+        "duration": 1.1976,
+        "onset": 0
+      },
+      {
+        "noteIndices": [
+          36,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 0.5
+      },
+      {
+        "noteIndices": [
+          36,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 1
+      },
+      {
+        "noteIndices": [
+          36,
+          39,
+          46
+        ],
+        "duration": 0.396,
+        "onset": 1.5
+      },
+      {
+        "noteIndices": [
+          36,
+          39,
+          44
+        ],
+        "duration": 0.7968,
+        "onset": 2
+      },
+      {
+        "noteIndices": [
+          36,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 2.5
+      },
+      {
+        "noteIndices": [
+          31,
+          46
+        ],
+        "duration": 1.5992000000000002,
+        "onset": 3
+      },
+      {
+        "noteIndices": [
+          38,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 3.5
+      },
+      {
+        "noteIndices": [
+          38,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 4
+      },
+      {
+        "noteIndices": [
+          36,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 4.5
+      },
+      {
+        "noteIndices": [
+          36,
+          38,
+          51
+        ],
+        "duration": 0.7968,
+        "onset": 5
+      },
+      {
+        "noteIndices": [
+          34,
+          38
+        ],
+        "duration": 0.396,
+        "onset": 5.5
+      },
+      {
+        "noteIndices": [
+          32,
+          48
+        ],
+        "duration": 1.1976,
+        "onset": 6
+      },
+      {
+        "noteIndices": [
+          36,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 6.5
+      },
+      {
+        "noteIndices": [
+          36,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 7
+      },
+      {
+        "noteIndices": [
+          36,
+          39,
+          46
+        ],
+        "duration": 0.396,
+        "onset": 7.5
+      },
+      {
+        "noteIndices": [
+          36,
+          39,
+          44
+        ],
+        "duration": 0.7968,
+        "onset": 8
+      },
+      {
+        "noteIndices": [
+          36,
+          39
+        ],
+        "duration": 0.396,
+        "onset": 8.5
+      },
+      {
+        "noteIndices": [
+          27,
+          44
+        ],
+        "duration": 0.4688,
+        "onset": 9
+      }
+    ],
+    "key": "C major",
+    "tonic": 0,
     "scale": "major",
     "category": "Sad"
   },

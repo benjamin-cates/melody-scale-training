@@ -224,7 +224,7 @@ export function CustomChromatone() {
     oscillator.type = "sine";
     oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
     gain.gain.setValueAtTime(0.0001, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.5, context.currentTime + 0.025);
     oscillator.connect(gain).connect(bus);
     oscillator.start();
     if (sustain) {
@@ -338,6 +338,9 @@ function useSongPlayback(song: Song, tempo: number, enabled = false) {
       return;
     }
     const currentNote = song.notes[position];
+    if (!currentNote) {
+      return;
+    }
     const beatDuration = 60000 / tempo;
     const context = audioContext.current ?? getAudioContext();
     audioContext.current = context;
@@ -350,7 +353,11 @@ function useSongPlayback(song: Song, tempo: number, enabled = false) {
       oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
       const duration = (currentNote.duration * beatDuration) / 1000;
       gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.3, context.currentTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(
+        0.3,
+        context.currentTime + Math.max(duration - 0.03, 0.04) - 0.025,
+      );
       gain.gain.exponentialRampToValueAtTime(
         0.0001,
         context.currentTime + Math.max(duration - 0.03, 0.04),
@@ -433,7 +440,7 @@ export function Player({
         <div className="progress-text">
           <span>{playing ? "Playing" : "Ready"}</span>
           <b>
-            {String(playback.position + 1).padStart(2, "0")} / {String(song.notes.length).padStart(2, "0")}
+            {String(playback.position < song.notes.length ? playback.position + 1 : 1).padStart(2, "0")} / {String(song.notes.length).padStart(2, "0")}
           </b>
         </div>
       </div>

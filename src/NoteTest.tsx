@@ -27,7 +27,7 @@ function playNote(note: number, duration = 0.88, delay = 0) {
   oscillator.type = "triangle";
   oscillator.frequency.value = NOTE_FREQUENCIES[note];
   gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(0.16, start + 0.025);
+  gain.gain.exponentialRampToValueAtTime(0.3, start + 0.025);
   gain.gain.exponentialRampToValueAtTime(0.001, start + duration - 0.025);
   oscillator.connect(gain).connect(bus);
   oscillator.start(start);

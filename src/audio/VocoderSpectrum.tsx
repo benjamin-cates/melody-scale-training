@@ -10,7 +10,6 @@ type VocoderSettings = {
   slope: number;
   spacing: Spacing;
   carrier: Carrier;
-  customFrequencies: string;
 };
 
 const DEFAULT_SETTINGS: VocoderSettings = {
@@ -19,7 +18,6 @@ const DEFAULT_SETTINGS: VocoderSettings = {
   slope: -12,
   spacing: "greenwood",
   carrier: "sine",
-  customFrequencies: "250, 390, 560, 780, 1080, 1500, 2200, 3200",
 };
 
 function greenwoodPosition(frequency: number) {
@@ -30,20 +28,8 @@ function greenwoodFrequency(position: number) {
   return 165.4 * (10 ** (2.1 * position) - 0.88);
 }
 
-function parseCustomFrequencies(value: string, channels: number, maxFrequency: number) {
-  const values = value
-    .split(/[\s,]+/)
-    .map(Number)
-    .filter((frequency) => Number.isFinite(frequency) && frequency >= 200 && frequency <= maxFrequency);
-  return values.length >= channels ? values.sort((left, right) => left - right).slice(0, channels) : null;
-}
-
 function getCenterFrequencies(settings: VocoderSettings): number[] {
   const minimum = 200;
-  if (settings.spacing === "custom") {
-    return parseCustomFrequencies(settings.customFrequencies, settings.channels, settings.maxFrequency) ??
-      getCenterFrequencies({ ...settings, spacing: "greenwood" });
-  }
   if (settings.spacing === "linear") {
     return Array.from({ length: settings.channels }, (_, index) =>
       minimum + ((settings.maxFrequency - minimum) * index) / Math.max(settings.channels - 1, 1));
@@ -273,8 +259,6 @@ export function Vocoder() {
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
   const testOscillatorRef = useRef<OscillatorNode | null>(null);
   const centers = useMemo(() => getCenterFrequencies(settings), [settings]);
-  const customValid = settings.spacing !== "custom" || parseCustomFrequencies(settings.customFrequencies, settings.channels, settings.maxFrequency) !== null;
-
   useEffect(() => {
     if (!enabled) return;
     const effectId = effectInstance += 1;
@@ -518,13 +502,6 @@ export function Vocoder() {
                 <option value="noise">Noise bands</option>
               </select>
             </label>
-            {settings.spacing === "custom" && (
-              <label className="vocoder-field">
-                <span>Centers, Hz</span>
-                <input className={!customValid ? "has-error" : ""} value={settings.customFrequencies} onChange={(event) => updateSettings({ customFrequencies: event.target.value })} placeholder="250, 390, 560 ..." />
-                <small>{customValid ? `Using ${centers.length} center frequencies` : `Enter ${settings.channels} values from 200 to ${settings.maxFrequency} Hz`}</small>
-              </label>
-            )}
             {error && <p className="vocoder-error">{error}</p>}
             <p className="vocoder-note">Processes audio from this app before it reaches your speakers.</p>
           </div>

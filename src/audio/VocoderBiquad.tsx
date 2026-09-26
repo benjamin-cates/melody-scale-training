@@ -1,23 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAudioBus, getAudioContext } from "./audio";
 
-type Spacing = "greenwood" | "linear" | "custom";
+type FilterSlope = -12 | -24;
 
 type VocoderSettings = {
   channels: number;
-  maxFrequency: number;
-  slope: number;
-  spacing: Spacing;
-  customFrequencies: string;
+  slope: FilterSlope;
 };
 
 const DEFAULT_SETTINGS: VocoderSettings = {
   channels: 8,
-  maxFrequency: 4000,
   slope: -12,
-  spacing: "greenwood",
-  customFrequencies: "250, 390, 560, 780, 1080, 1500, 2200, 3200",
 };
+const FILTER_RESPONSE_SAMPLES = 4096;
+const NOISE_SOURCE_POWER = 1 / 3;
 
 function greenwoodPosition(frequency: number) {
   return Math.log10(frequency / 165.4 + 0.88) / 2.1;
@@ -27,26 +23,11 @@ function greenwoodFrequency(position: number) {
   return 165.4 * (10 ** (2.1 * position) - 0.88);
 }
 
-function parseCustomFrequencies(value: string, channels: number, maxFrequency: number) {
-  const values = value
-    .split(/[\s,]+/)
-    .map(Number)
-    .filter((frequency) => Number.isFinite(frequency) && frequency >= 200 && frequency <= maxFrequency);
-  return values.length >= channels ? values.sort((left, right) => left - right).slice(0, channels) : null;
-}
-
 function getCenterFrequencies(settings: VocoderSettings): number[] {
-  const minimum = 200;
-  if (settings.spacing === "custom") {
-    return parseCustomFrequencies(settings.customFrequencies, settings.channels, settings.maxFrequency) ??
-      getCenterFrequencies({ ...settings, spacing: "greenwood" });
-  }
-  if (settings.spacing === "linear") {
-    return Array.from({ length: settings.channels }, (_, index) =>
-      minimum + ((settings.maxFrequency - minimum) * index) / Math.max(settings.channels - 1, 1));
-  }
+  const minimum = 100;
+  const maximum = 6000;
   const start = greenwoodPosition(minimum);
-  const end = greenwoodPosition(settings.maxFrequency);
+  const end = greenwoodPosition(maximum);
   return Array.from({ length: settings.channels }, (_, index) =>
     greenwoodFrequency(start + ((end - start) * index) / Math.max(settings.channels - 1, 1)));
 }
@@ -64,13 +45,65 @@ function makeBandPass(
   center: number,
   low: number,
   high: number,
-): BiquadFilterNode {
-  const filter = context.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = center;
+  slope: FilterSlope,
+): BiquadFilterNode[] {
   const bandwidth = Math.max(1, high - low);
-  filter.Q.value = center / bandwidth;
-  return filter;
+  const stages = slope === -24 ? 2 : 1;
+  return Array.from({ length: stages }, () => {
+    const filter = context.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = center;
+    filter.Q.value = center / bandwidth;
+    return filter;
+  });
+}
+
+function makeFourthOrderLowPass(context: AudioContext, frequency: number): BiquadFilterNode[] {
+  return [0.5411961, 1.306563].map((q) => {
+    const filter = context.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = frequency;
+    filter.Q.value = q;
+    return filter;
+  });
+}
+
+function connectFilters(input: AudioNode, filters: BiquadFilterNode[]) {
+  let previous: AudioNode = input;
+  filters.forEach((filter) => {
+    previous.connect(filter);
+    previous = filter;
+  });
+}
+
+function getCascadePower(filters: BiquadFilterNode[], sampleRate: number): number {
+  const nyquist = sampleRate / 2;
+  const frequencies = Float32Array.from({ length: FILTER_RESPONSE_SAMPLES }, (_, index) =>
+    ((index + 0.5) * nyquist) / FILTER_RESPONSE_SAMPLES);
+  const magnitudes = new Float32Array(FILTER_RESPONSE_SAMPLES).fill(1);
+  const phase = new Float32Array(FILTER_RESPONSE_SAMPLES);
+
+  filters.forEach((filter) => {
+    const response = new Float32Array(FILTER_RESPONSE_SAMPLES);
+    filter.getFrequencyResponse(frequencies, response, phase);
+    for (let index = 0; index < response.length; index += 1) {
+      magnitudes[index] *= response[index];
+    }
+  });
+
+  return magnitudes.reduce((power, magnitude) => power + magnitude * magnitude, 0) / magnitudes.length;
+}
+
+function createNoiseCarrier(context: AudioContext): AudioBufferSourceNode {
+  const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let index = 0; index < samples.length; index += 1) {
+    samples[index] = Math.random() * 2 - 1;
+  }
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  return source;
 }
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
@@ -99,11 +132,6 @@ export function Vocoder() {
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const centers = useMemo(() => getCenterFrequencies(settings), [settings]);
-  const customValid = settings.spacing !== "custom" || parseCustomFrequencies(
-    settings.customFrequencies,
-    settings.channels,
-    settings.maxFrequency,
-  ) !== null;
 
   useEffect(() => {
     if (!enabled) return;
@@ -116,54 +144,51 @@ export function Vocoder() {
         const context = getAudioContext();
         const bus = getAudioBus();
         const source = context.createGain();
-        const inputAnalyser = context.createAnalyser();
-        const outputAnalyser = context.createAnalyser();
-        inputAnalyser.fftSize = 1024;
-        outputAnalyser.fftSize = 1024;
-        const inputData = new Float32Array(inputAnalyser.fftSize);
-        const outputData = new Float32Array(outputAnalyser.fftSize);
-        const normalizer = context.createGain();
-        normalizer.gain.value = 2.5;
+        const preEmphasis = context.createBiquadFilter();
+        preEmphasis.type = "highpass";
+        preEmphasis.frequency.value = 1200;
+        preEmphasis.Q.value = Math.SQRT1_2;
         if (cancelled) return;
-        const edges = getBandEdges(centers, 200, settings.maxFrequency);
+        const edges = getBandEdges(centers, 100, 6000);
         const sum = context.createGain();
         const channelAnalysers: AnalyserNode[] = [];
-        const nodes: AudioNode[] = [source, inputAnalyser, sum, normalizer, outputAnalyser];
+        const analysisPowers: number[] = [];
+        const nodes: AudioNode[] = [source, preEmphasis, sum];
         bus.disconnect();
         bus.connect(source);
-        source.connect(inputAnalyser);
+        source.connect(preEmphasis);
         edges.forEach(({ center, low, high }) => {
-          const bandpassFilter = makeBandPass(context, center, low, high);
+          const analysisFilters = makeBandPass(context, center, low, high, settings.slope);
           const rectifier = context.createWaveShaper();
           rectifier.curve = Float32Array.from({ length: 1025 }, (_, index) =>
-            Math.abs((index * 2) / 1024 - 1));
-          const envelope = context.createBiquadFilter();
-          envelope.type = "lowpass";
-          envelope.frequency.value = 180;
-          envelope.Q.value = 0.707;
+            Math.max(0, (index * 2) / 1024 - 1));
+          const envelopeFilters = makeFourthOrderLowPass(context, 500);
           const channelAnalyser = context.createAnalyser();
           channelAnalyser.fftSize = 128;
           channelAnalyser.smoothingTimeConstant = 0.3;
-          const carrier = context.createOscillator();
+          const carrier = createNoiseCarrier(context);
+          const carrierFilters = makeBandPass(context, center, low, high, settings.slope);
+          const carrierLevel = context.createGain();
+          carrierLevel.gain.value = 1 / Math.sqrt(NOISE_SOURCE_POWER * getCascadePower(carrierFilters, context.sampleRate));
           const modulator = context.createGain();
           modulator.gain.value = 0;
+          analysisPowers.push(getCascadePower([preEmphasis, ...analysisFilters], context.sampleRate));
 
-          source.connect(bandpassFilter);
-          bandpassFilter.connect(rectifier);
-          rectifier.connect(envelope);
-          envelope.connect(modulator.gain);
-          envelope.connect(channelAnalyser);
-          carrier.frequency.value = center;
-          carrier.type = "sine";
+          connectFilters(preEmphasis, analysisFilters);
+          analysisFilters.at(-1)?.connect(rectifier);
+          connectFilters(rectifier, envelopeFilters);
+          envelopeFilters.at(-1)?.connect(modulator.gain);
+          envelopeFilters.at(-1)?.connect(channelAnalyser);
           carrier.connect(modulator);
-          modulator.connect(sum);
+          modulator.connect(carrierLevel);
+          connectFilters(carrierLevel, carrierFilters);
+          carrierFilters.at(-1)?.connect(sum);
           carrier.start();
-          nodes.push(bandpassFilter, rectifier, envelope, carrier, modulator, channelAnalyser);
+          nodes.push(...analysisFilters, rectifier, ...envelopeFilters, carrier, modulator, carrierLevel, ...carrierFilters, channelAnalyser);
           channelAnalysers.push(channelAnalyser);
         });
-        sum.gain.value = 1 / Math.sqrt(edges.length);
-        sum.connect(outputAnalyser);
-        sum.connect(normalizer).connect(context.destination);
+        sum.gain.value = 1 / Math.sqrt(0.5 * analysisPowers.reduce((total, power) => total + power, 0));
+        sum.connect(context.destination);
         graph = { context, bus, nodes };
         audioRef.current = graph;
         await context.resume();
@@ -198,23 +223,6 @@ export function Vocoder() {
           animationFrameId = window.requestAnimationFrame(updateMeter);
         };
         animationFrameId = window.requestAnimationFrame(updateMeter);
-
-        const normalize = () => {
-          if (cancelled || audioRef.current !== graph) return;
-          inputAnalyser.getFloatTimeDomainData(inputData);
-          outputAnalyser.getFloatTimeDomainData(outputData);
-          const inputRms = Math.sqrt(inputData.reduce((sumValue, sample) => sumValue + sample * sample, 0) / inputData.length);
-          const outputRms = Math.sqrt(outputData.reduce((sumValue, sample) => sumValue + sample * sample, 0) / outputData.length);
-          if (inputRms > 0.002 && outputRms > 0.0001) {
-            normalizer.gain.setTargetAtTime(
-              Math.min(8, Math.max(0.25, inputRms / outputRms)),
-              context.currentTime,
-              0.015,
-            );
-          }
-          window.setTimeout(normalize, 100);
-        };
-        normalize();
       } catch (reason) {
         if (!cancelled) {
           setError(reason instanceof Error ? reason.message : "The audio output could not be processed.");
@@ -253,7 +261,7 @@ export function Vocoder() {
       }
       if (audioRef.current === current) audioRef.current = null;
     };
-  }, [centers, enabled, settings.maxFrequency, settings.slope]);
+  }, [centers, enabled, settings.slope]);
 
   function updateSettings(patch: Partial<VocoderSettings>) {
     setSettings((current) => ({ ...current, ...patch }));
@@ -269,7 +277,7 @@ export function Vocoder() {
       {open && (
         <div className="vocoder-panel">
           <div className="vocoder-panel-body">
-            <p className="vocoder-intro">Live eight-to-thirty-two channel speech simulation</p>
+            <p className="vocoder-intro">Live four- or eight-channel noise vocoder</p>
             <button
               className={`vocoder-power ${enabled ? "is-on" : ""}`}
               onClick={() => {
@@ -281,33 +289,14 @@ export function Vocoder() {
             </button>
             <label className="vocoder-field">
               <span>Channels <output>{settings.channels}</output></span>
-              <input type="range" min="8" max="32" value={settings.channels} onChange={(event) => updateSettings({ channels: Number(event.target.value) })} />
+              <input type="range" min="4" max="8" step="4" value={settings.channels} onChange={(event) => updateSettings({ channels: Number(event.target.value) })} />
             </label>
             <label className="vocoder-field">
-              <span>Maximum frequency <output>{settings.maxFrequency} Hz</output></span>
-              <input type="range" min="4000" max="8000" step="500" value={settings.maxFrequency} onChange={(event) => updateSettings({ maxFrequency: Number(event.target.value) })} />
+              <span>Filter slope <output>{settings.slope} dB/oct</output></span>
+              <input type="range" min="-24" max="-12" step="12" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) as FilterSlope })} />
             </label>
-            <label className="vocoder-field">
-              <span>Attenuation slope <output>{settings.slope} dB/oct</output></span>
-              <input type="range" min="-30" max="-6" step="0.1" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) })} />
-            </label>
-            <label className="vocoder-field">
-              <span>Frequency spacing</span>
-              <select value={settings.spacing} onChange={(event) => updateSettings({ spacing: event.target.value as Spacing })}>
-                <option value="greenwood">Greenwood logarithmic</option>
-                <option value="linear">Linear</option>
-                <option value="custom">Custom list</option>
-              </select>
-            </label>
-            {settings.spacing === "custom" && (
-              <label className="vocoder-field">
-                <span>Centers, Hz</span>
-                <input className={!customValid ? "has-error" : ""} value={settings.customFrequencies} onChange={(event) => updateSettings({ customFrequencies: event.target.value })} placeholder="250, 390, 560 ..." />
-                <small>{customValid ? `Using ${centers.length} center frequencies` : `Enter ${settings.channels} values from 200 to ${settings.maxFrequency} Hz`}</small>
-              </label>
-            )}
             {error && <p className="vocoder-error">{error}</p>}
-            <p className="vocoder-note">Processes audio from this app before it reaches your speakers.</p>
+            <p className="vocoder-note">100-6000 Hz Greenwood-spaced bands with 1200 Hz pre-emphasis and 500 Hz envelopes.</p>
           </div>
           <div className="vocoder-channel-meter" aria-label="Channel activity meter">
             {centers.map((center, index) => (

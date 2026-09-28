@@ -1,6 +1,7 @@
 import "./style/index.css";
 import "./style/survey.css";
 import "./style/vocoder.css"
+import logoUrl from "./logo.svg";
 import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
 import { Learner } from "./Learner";
@@ -46,6 +47,7 @@ function Layout({ route, children }: { route: Route; children: ReactNode }) {
     <main className="app-shell">
       <header className="topbar">
         <a className="brand-link" href="#/explorer">
+          <img className="brand-logo" src={logoUrl} alt="Logo" />
           <span>
             <b>Melody scale training</b>
           </span>

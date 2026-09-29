@@ -14,9 +14,13 @@ The app is intentionally practice-oriented:
 
 ## Important files
 
+- `src/audio/audio.ts`: controls audio playback functions
+- `src/audio/Chromatone.tsx`: The main element that's a visual spiral
+- `src/audio/generated-tsv.ts`: songs from generated data; do not edit.
+- `src/audio/useSongPlayback.ts`: effect to add song playback.
+- `src/audio/music.ts`: `Song`/`SongNote` types, note names, scale intervals, generated clip composition, and key helpers.
 - `src/AppRoutes.tsx`: hash-based routes, shared layout, and JSON download helpers.
-- `src/music.ts`: `Song`/`SongNote` types, note names, scale intervals, generated clip composition, and key helpers.
-- `src/Player.tsx`: audio playback, play controls, and the `Chromatone` / `CustomChromatone` visual guidance components.
+- `src/Player.tsx`: audio playback, play controls.
 - `src/index.css`: the visual language and responsive layout for the app.
 - `src/Explorer.tsx`: category/song selection and the main listening view.
 - `src/Learner.tsx`: the guided major/minor lesson sequence.

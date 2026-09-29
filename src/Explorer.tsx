@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SONG_CATEGORIES, SONGS, type SongCategory } from "./audio/music";
-import { CustomChromatone, Player } from "./audio/Player";
+import { Chromatone } from "./audio/Chromatone";
+import { Player } from "./audio/Player";
 
 export function Explorer() {
   const [category, setCategory] = useState<SongCategory>(SONG_CATEGORIES[0]);
@@ -71,7 +72,7 @@ export function Explorer() {
             </div>
           </div>
         )}
-        {category === "Custom" ? <CustomChromatone /> : <Player song={song} showKey showNotes />}
+        {category === "Custom" ? <Chromatone isInteractive /> : <Player song={song} showKey showNotes />}
       </section>
     </section>
   );

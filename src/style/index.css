@@ -220,9 +220,48 @@ h2 {
   font-weight: 400;
 }
 .chromatone {
+  position: relative;
   display: flex;
   justify-content: center;
   padding: 27px 0 8px;
+}
+.chromatone-active-key-banner {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  background: rgba(32, 43, 48, 0.9);
+  border: 1px solid #f2c84b;
+  padding: 5px 12px;
+  border-radius: 4px;
+  z-index: 5;
+  pointer-events: none;
+  animation: key-banner-fade 0.2s ease-in;
+}
+.chromatone-active-key-banner .active-key-label {
+  font: 10px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #98a5a4;
+}
+.chromatone-active-key-banner .active-key-value {
+  font: 16px "Trebuchet MS", sans-serif;
+  color: #f2c84b;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+@keyframes key-banner-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .chromatone-spiral {
   display: block;
@@ -263,14 +302,224 @@ h2 {
 }
 .custom-chromatone-toolbar {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #506067;
-  padding: 22px 0 0;
+  padding: 16px 0 10px;
   color: #98a5a4;
-  font: 10px "Trebuchet MS", sans-serif;
-  letter-spacing: 0.1em;
+  font: 11px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.05em;
+}
+.custom-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.custom-toolbar-key-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   text-transform: uppercase;
+}
+.custom-toolbar-key-selector label {
+  font-weight: bold;
+  color: #cdd5d4;
+}
+.custom-toolbar-key-selector select {
+  background: #202b30;
+  border: 1px solid #506067;
+  color: #ffffff;
+  padding: 5px 8px;
+  font: 11px "Trebuchet MS", sans-serif;
+  cursor: pointer;
+}
+.custom-toolbar-key-selector select:focus {
+  outline: none;
+  border-color: #ef8a5b;
+}
+.custom-toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hover-frequency-badge {
+  background: #202b30;
+  border: 1px solid #506067;
+  padding: 4px 10px;
+  border-radius: 3px;
+  color: #48c5a2;
+  font-family: monospace;
+  font-size: 12px;
+}
+.hover-frequency-badge.placeholder {
+  color: #7b8b8b;
+  font-style: italic;
+  font-family: inherit;
+  font-size: 11px;
+}
+.hover-frequency-badge strong {
+  color: #f2c84b;
+  margin-right: 4px;
+}
+.sustained-count {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.chord-mode-button {
+  border: 1px solid #48c5a2;
+  border-radius: 0;
+  background: transparent;
+  color: #48c5a2;
+  padding: 10px 14px;
+  cursor: pointer;
+  font: 11px "Trebuchet MS", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.chord-mode-button:hover,
+.chord-mode-button.is-active {
+  background: #48c5a2;
+  color: #172428;
+  font-weight: bold;
+}
+.custom-chord-builder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #1e282d;
+  border: 1px dashed #506067;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+.chord-builder-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.chord-builder-summary {
+  font: 12px "Trebuchet MS", sans-serif;
+  color: #cdd5d4;
+}
+.chord-builder-summary strong {
+  color: #f2c84b;
+  margin-left: 6px;
+}
+.chord-builder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.chord-name-input {
+  background: #172428;
+  border: 1px solid #506067;
+  color: #ffffff;
+  padding: 6px 10px;
+  font: 11px "Trebuchet MS", sans-serif;
+}
+.chord-name-input:focus {
+  outline: none;
+  border-color: #48c5a2;
+}
+.chord-action-btn {
+  background: transparent;
+  border: 1px solid #7b8b8b;
+  color: #d8e2df;
+  padding: 6px 12px;
+  cursor: pointer;
+  font: 11px "Trebuchet MS", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.chord-action-btn:hover:not(:disabled) {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+.chord-action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.chord-action-btn.primary {
+  border-color: #f2b544;
+  color: #f2b544;
+}
+.chord-action-btn.primary:hover:not(:disabled) {
+  background: #f2b544;
+  color: #172428;
+}
+.chord-action-btn.clear {
+  border-color: #ef5350;
+  color: #ef5350;
+}
+.chord-action-btn.clear:hover:not(:disabled) {
+  background: #ef5350;
+  color: #ffffff;
+}
+.saved-chords-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #33434a;
+  padding-top: 10px;
+}
+.saved-chords-heading {
+  font: 11px "Trebuchet MS", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #98a5a4;
+}
+.saved-chords-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.saved-chord-chip {
+  display: flex;
+  align-items: center;
+  background: #25333a;
+  border: 1px solid #506067;
+  overflow: hidden;
+}
+.saved-chord-play {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 6px 8px;
+  cursor: pointer;
+  font: 11px "Trebuchet MS", sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.saved-chord-play:hover {
+  background: #2d3e47;
+  color: #48c5a2;
+}
+.saved-chord-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.saved-chord-delete {
+  background: transparent;
+  border: none;
+  border-left: 1px solid #44545b;
+  color: #ef8a5b;
+  padding: 4px 7px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.saved-chord-delete:hover {
+  background: #ef5350;
+  color: #ffffff;
 }
 .sustain-button {
   border: 1px solid #ef8a5b;

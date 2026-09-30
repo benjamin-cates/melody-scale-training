@@ -13,7 +13,6 @@ type ChordPresentation = "arpeggio" | "melodic";
 type PitchQuestion = {
 	id: string;
 	section: "pitch";
-	semitoneGap: 1 | 2 | 4;
 	firstNote: number;
 	secondNote: number;
 	correctAnswer: PitchAnswer;
@@ -49,8 +48,8 @@ export type BaselineTrial = {
 	answer: Answer;
 	isCorrect: boolean;
 	questionStartedAt: string;
-	taskElapsedMs: number;
-	replayEvents: ReplayEvent[];
+	timeElapsedMs: number;
+	replayEvents: number[];
 };
 
 export type BaselineTestResults = {
@@ -202,7 +201,7 @@ export function Test({ onNext }: TestProps) {
 	const startedAt = useRef(new Date());
 	const questionStartedAt = useRef(new Date());
 	const taskStartedAt = useRef(new Date());
-	const replayEvents = useRef<ReplayEvent[]>([]);
+	const replayEvents = useRef<number[]>([]);
 	const oscillators = useRef<OscillatorNode[]>([]);
 	const question = questions[questionIndex];
 	const isComplete = !question;
@@ -252,7 +251,7 @@ export function Test({ onNext }: TestProps) {
 	useEffect(() => {
 		if (!question) return;
 		questionStartedAt.current = new Date();
-		replayEvents.current = [{ type: "automatic", elapsedMs: 0 }];
+		replayEvents.current = [0];
 		playQuestion(question);
 		return stopPlayback;
 	}, [question]);
@@ -263,7 +262,7 @@ export function Test({ onNext }: TestProps) {
 		if (!question) return;
 		replayEvents.current = [
 			...replayEvents.current,
-			{ type: "hear-again", elapsedMs: Date.now() - questionStartedAt.current.getTime() },
+      Date.now() - questionStartedAt.current.getTime(),
 		];
 		playQuestion(question);
 	};
@@ -272,7 +271,7 @@ export function Test({ onNext }: TestProps) {
 		if (!question) return;
 		const nextIndex = Math.min(questionIndex + 10, questions.length);
 		const nextQuestion = questions[nextIndex];
-		if (nextQuestion && nextQuestion.section !== question.section) taskStartedAt.current = new Date();
+		if (nextQuestion) taskStartedAt.current = new Date();
 		setAnswer(null);
 		stopPlayback();
 		setQuestionIndex(nextIndex);
@@ -288,11 +287,12 @@ export function Test({ onNext }: TestProps) {
 			answer,
 			isCorrect: answer === question.correctAnswer,
 			questionStartedAt: questionStartedAt.current.toISOString(),
-			taskElapsedMs: nextAt.getTime() - taskStartedAt.current.getTime(),
+			timeElapsedMs: nextAt.getTime() - taskStartedAt.current.getTime(),
 			replayEvents: replayEvents.current,
 		};
 		const allTrials = [...trials, trial];
 		const completed = questionIndex === questions.length - 1;
+    console.log(allTrials);
 		onNext?.({
 			startedAt: startedAt.current.toISOString(),
 			completedAt: completed ? nextAt.toISOString() : undefined,
@@ -306,7 +306,7 @@ export function Test({ onNext }: TestProps) {
 			setQuestionIndex((index) => index + 1);
 			return;
 		}
-		if (questions[questionIndex + 1].section !== question.section) taskStartedAt.current = new Date();
+		taskStartedAt.current = new Date();
 		setAnswer(null);
 		setQuestionIndex((index) => index + 1);
 	};

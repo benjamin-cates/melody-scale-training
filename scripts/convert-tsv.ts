@@ -226,6 +226,6 @@ async function convertDirectory(directory: string) {
 }
 
 const clips = await convertDirectory(inputDirectory);
-const output = `import type { SongNote } from "./music";\n\ntype TsvClip = {\n  notes: SongNote[];\n  key: string;\n  tonic: number;\n  scale: "major" | "minor";\n  category: "Peaceful" | "Happy" | "Scary" | "Sad" | "Tests";\n};\n\nexport const TSV_CLIPS: Record<string, TsvClip> = ${JSON.stringify(clips, null, 2)} as const;\n`;
+const output = `// These musical excerpts are protected by copyright, belonging to Bernard Bouchard (Copyright, Bernard Bouchard, 1998). This material may be used for the purpose of publication and of communication with acknowledgment as property of the rightful author (Copyright, Bernard Bouchard, 1998).\nimport type { SongNote } from "./music";\n\ntype TsvClip = {\n  notes: SongNote[];\n  key: string;\n  tonic: number;\n  scale: "major" | "minor";\n  category: "Peaceful" | "Happy" | "Scary" | "Sad" | "Tests";\n};\n\nexport const TSV_CLIPS: Record<string, TsvClip> = ${JSON.stringify(clips, null, 2)} as const;\n`;
 if (outputPath) await Bun.write(outputPath, output);
 else process.stdout.write(output);

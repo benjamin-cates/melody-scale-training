@@ -1,3 +1,4 @@
+// These musical excerpts are protected by copyright, belonging to Bernard Bouchard (Copyright, Bernard Bouchard, 1998). This material may be used for the purpose of publication and of communication with acknowledgment as property of the rightful author (Copyright, Bernard Bouchard, 1998).
 import type { SongNote } from "./music";
 
 type TsvClip = {

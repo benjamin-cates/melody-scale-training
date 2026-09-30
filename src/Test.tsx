@@ -142,8 +142,8 @@ function questionPrompt(question: Question) {
 function optionsFor(question: Question): { value: Answer; label: string }[] {
 	if (question.section === "pitch") {
 		return [
-			{ value: "lower", label: "Second lower" },
-			{ value: "higher", label: "Second higher" },
+			{ value: "lower", label: "Decreasing pitch" },
+			{ value: "higher", label: "Increasing pitch" },
 		];
 	}
 	if (question.section === "chords") {
@@ -312,19 +312,18 @@ export function Test({ onNext }: TestProps) {
 		<section className="page-section test-page">
 			<article className="test-card">
 				<div className="test-meta">
-					<span>{sectionLabel(question.section)}</span>
-					<span>{sectionPosition} / {sectionQuestions.length}</span>
+					<span>{sectionLabel(question.section)} {sectionPosition} / {sectionQuestions.length}</span>
 				</div>
 				<div className="test-art" aria-hidden="true">
 					<span className="test-orbit" />
 					<span>♪</span>
 				</div>
 				<p className="sequence-status" aria-live="polite">
-					{answer === null ? "Listen, then choose an answer" : "Answer recorded"}
+					{"Listen, then choose an answer"}
 				</p>
 				<form className="test-form" onSubmit={(event) => { event.preventDefault(); next(); }}>
 					<fieldset>
-						<legend>{questionPrompt(question)}</legend>
+						{/* <legend>{questionPrompt(question)}</legend> */}
 						<div className="choice-row">
 							{optionsFor(question).map((option) => (
 								<label className={answer === option.value ? "selected" : ""} key={option.value}>

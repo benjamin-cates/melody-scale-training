@@ -20,6 +20,8 @@ export type ChromatoneProps = {
   showNotes?: boolean;
   showChordLines?: "all" | "none" | "tonic-only";
   isInteractive?: boolean;
+  /** Outlines the song's tonic in white without highlighting the full scale. */
+  emphasizeTonic?: boolean;
 };
 
 export function Chromatone({
@@ -29,6 +31,7 @@ export function Chromatone({
   showNotes = true,
   showChordLines = "tonic-only",
   isInteractive = false,
+  emphasizeTonic = false,
 }: ChromatoneProps) {
   const [sustain, setSustain] = useState(false);
   const [interactiveActiveNotes, setInteractiveActiveNotes] = useState<Set<number>>(new Set());
@@ -250,6 +253,8 @@ export function Chromatone({
   const ringDepth = 30;
   const ringGap = 1;
   const outerRadius = innerRadius + octaveCount * (ringDepth + ringGap) - ringGap;
+  const svgRadius = outerRadius + 42;
+  const svgSize = svgRadius * 2;
   const angleStep = (Math.PI * 2) / NOTE_NAMES.length;
   const sectorWidth = angleStep * 1;
   const point = (radius: number, angle: number) => ({
@@ -347,7 +352,9 @@ export function Chromatone({
     >
       <svg
         className="chromatone-spiral"
-        viewBox={`0 0 ${center * 2} ${centerY * 2}`}
+        width={svgSize}
+        height={svgSize}
+        viewBox={`${center - svgRadius} ${centerY - svgRadius} ${svgSize} ${svgSize}`}
         role="img"
         aria-label={isInteractive ? "Clickable five-octave chromatic map" : `${song?.key ?? ""} twelve-prong spiral`}
       >
@@ -376,7 +383,7 @@ export function Chromatone({
                 : showKey && inKey.has(index);
               const isFocus = isInteractive
                 ? (activeKeyInfo ? activeKeyInfo.tonic === index : selectedTonic === index)
-                : showKey && song?.tonic === index;
+                : (showKey || emphasizeTonic) && song?.tonic === index;
               const outline = isFocus ? "#ffffff" : isInKey ? "#f2c84b" : "none";
               const fillOpacity = isInteractive
                 ? (isActive ? 1 : isFocus ? 0.45 : isInKey ? 0.35 : 0.2)

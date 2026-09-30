@@ -1,0 +1,99 @@
+.lesson-track {
+  max-width: 850px;
+}
+.lesson-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+  color: #727a79;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.lesson-progress > div {
+  display: flex;
+  gap: 8px;
+}
+.lesson-progress button {
+  width: 28px;
+  height: 3px;
+  border: 0;
+  background: #c9c7be;
+  cursor: pointer;
+}
+.lesson-progress button.current {
+  background: #c76745;
+}
+.lesson-progress button.done {
+  background: #26353c;
+}
+.lesson-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 620px;
+  background: #26353c;
+  color: #f2f0e9;
+  padding: 43px 48px;
+  box-shadow: 13px 13px 0 #d1cec3;
+}
+.lesson-card h2 {
+  max-width: 580px;
+  font-size: 39px;
+  margin: 10px 0 18px;
+}
+.lesson-body {
+  max-width: 520px;
+  color: #c2cbc6;
+  font-size: 17px;
+  line-height: 1.65;
+}
+.lesson-key {
+  color: #ef8a5b;
+  font-size: 21px;
+}
+.lesson-card .chromatone {
+  margin-top: 0;
+  padding-top: 0;
+}
+.lesson-card .player-controls {
+  margin-top: 20px;
+}
+.lesson-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: auto;
+  padding-top: 27px;
+}
+.lesson-actions.continue-only {
+  justify-content: flex-end;
+}
+@media (max-width: 680px) {
+  .lesson-card {
+    padding: 30px 23px;
+    box-shadow: 8px 8px 0 #d1cec3;
+  }
+  .lesson-card h2 {
+    font-size: 30px;
+  }
+  .lesson-progress {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+  }
+  .lesson-actions {
+    flex-direction: column;
+  }
+  .lesson-actions.continue-only {
+    align-items: flex-end;
+  }
+  .lesson-actions button {
+    width: 100%;
+  }
+  .lesson-actions.continue-only button {
+    width: auto;
+  }
+}

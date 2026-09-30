@@ -1,12 +1,21 @@
-import "./style/index.css";
+import "./style/base.css";
+import "./style/layout.css";
+import "./style/buttons.css";
+import "./style/panel.css";
+import "./style/chromatone.css";
+import "./style/player.css";
+import "./style/lesson.css";
+import "./style/quiz.css";
+import "./style/note-test.css";
 import "./style/survey.css";
 import "./style/vocoder.css"
 import logoUrl from "./logo.svg";
 import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
-import { Learner } from "./Learner";
+import { NoteLearner } from "./NoteLearner";
+import { ChordLearner } from "./ChordLearner";
+import { MelodyLearner } from "./MelodyLearner";
 import { Test } from "./Test";
-import { NoteTest } from "./NoteTest";
 import { Explorer } from "./Explorer";
 import { Vocoder } from "./audio/VocoderBiquad";
 
@@ -22,14 +31,15 @@ export function downloadJson(filename: string, data: unknown) {
   URL.revokeObjectURL(url);
 }
 
-type Route = "explorer" | "survey" | "learner" | "test" | "note-test";
+type Route = "explorer" | "survey" | "note_learner" | "chord_learner" | "melody_learner" | "test" | "note-test";
 
 const ROUTES: { id: Route; label: string }[] = [
   { id: "explorer", label: "Explorer" },
   { id: "survey", label: "Survey" },
-  { id: "learner", label: "Learner" },
+  { id: "note_learner", label: "Note Learner" },
+  { id: "chord_learner", label: "Chord Learner" },
+  { id: "melody_learner", label: "Melody Learner" },
   { id: "test", label: "Test" },
-  { id: "note-test", label: "Note test" },
 ];
 
 function getRoute(): Route {
@@ -80,12 +90,14 @@ export function AppRoutes() {
   const page =
     route === "survey" ? (
       <Survey />
-    ) : route === "learner" ? (
-      <Learner />
+    ) : route === "note_learner" ? (
+      <NoteLearner />
+    ) : route === "chord_learner" ? (
+      <ChordLearner />
+    ) : route === "melody_learner" ? (
+      <MelodyLearner />
     ) : route === "test" ? (
       <Test />
-    ) : route === "note-test" ? (
-      <NoteTest />
     ) : (
       <Explorer />
     );

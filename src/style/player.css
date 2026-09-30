@@ -1,0 +1,89 @@
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 31px;
+  border-top: 1px solid #506067;
+  margin-top: 28px;
+  padding-top: 22px;
+}
+.play-button {
+  border: 1px solid #ef8a5b;
+  border-radius: 0;
+  background: #ef8a5b;
+  color: #26353c;
+  padding: 11px 17px;
+  cursor: pointer;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.play-button:hover {
+  background: transparent;
+  color: #ef8a5b;
+}
+.play-button span {
+  margin-right: 9px;
+}
+.tempo-control {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+.tempo-control label {
+  color: #98a5a4;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+input[type="range"] {
+  height: 3px;
+  flex: 1;
+  accent-color: #ef8a5b;
+  cursor: pointer;
+}
+.tempo-control output {
+  min-width: 58px;
+  color: #f2f0e9;
+  font-size: 14px;
+}
+.tempo-control small {
+  color: #98a5a4;
+  font:
+    9px "Trebuchet MS",
+    sans-serif;
+}
+.progress-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  color: #98a5a4;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.progress-text b {
+  color: #f2f0e9;
+  font-weight: 400;
+}
+@media (max-width: 680px) {
+  .player-controls {
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .tempo-control {
+    order: 3;
+    flex-basis: 100%;
+  }
+}

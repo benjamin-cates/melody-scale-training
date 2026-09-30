@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getAudioBus, getAudioContext } from "./audio/audio";
+import { getAudioBus, getAudioContext, playTone } from "./audio/audio";
 import { SONGS, type Song } from "./audio/music";
 
 type TestSection = "pitch" | "chords" | "melodies";
@@ -116,9 +116,10 @@ function createMelodyQuestions(): MelodyQuestion[] {
 	const affectSongs = SONGS.filter(
 		(song) => song.category === "Peaceful" || song.category === "Sad",
 	);
-	const songs = affectSongs.length > 0 ? affectSongs : SONGS.filter((song) => song.category === "Scales");
+	let songs = affectSongs.length > 0 ? affectSongs : SONGS.filter((song) => song.category === "Scales");
+	songs = shuffle(songs);
 	return Array.from({ length: 16 }, (_, index) => {
-		const song = shuffle(songs)[index % songs.length];
+		const song = songs[index % songs.length];
 		return {
 			id: `melody-${index + 1}-${song.title}`,
 			section: "melodies",
@@ -130,26 +131,6 @@ function createMelodyQuestions(): MelodyQuestion[] {
 
 function createQuestions() {
 	return [...createPitchQuestions(), ...createChordQuestions(), ...createMelodyQuestions()];
-}
-
-function playTone(
-	note: number,
-	start: number,
-	duration: number,
-	oscillators: OscillatorNode[],
-) {
-	const context = getAudioContext();
-	const oscillator = context.createOscillator();
-	const gain = context.createGain();
-	oscillator.type = "triangle";
-	oscillator.frequency.value = 440 * Math.pow(2, (note + 21 - 69) / 12);
-	gain.gain.setValueAtTime(0.0001, start);
-	gain.gain.exponentialRampToValueAtTime(0.3, start + 0.02);
-	gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(duration - 0.02, 0.04));
-	oscillator.connect(gain).connect(getAudioBus());
-	oscillator.start(start);
-	oscillator.stop(start + duration);
-	oscillators.push(oscillator);
 }
 
 function questionPrompt(question: Question) {
@@ -223,8 +204,8 @@ export function Test({ onNext }: TestProps) {
 		void context.resume();
 		const start = context.currentTime + 0.05;
 		if (currentQuestion.section === "pitch") {
-			playTone(currentQuestion.firstNote, start, 0.7, oscillators.current);
-			playTone(currentQuestion.secondNote, start + 0.95, 0.7, oscillators.current);
+			oscillators.current.push(playTone(currentQuestion.firstNote, start, 0.7, oscillators.current));
+			oscillators.current.push(playTone(currentQuestion.secondNote, start + 0.95, 0.7, oscillators.current));
 			return;
 		}
 		if (currentQuestion.section === "chords") {
@@ -234,15 +215,15 @@ export function Test({ onNext }: TestProps) {
 				currentQuestion.rootNote + CHORD_INTERVALS[currentQuestion.secondInterval],
 			];
 			const noteOffset = currentQuestion.presentation === "arpeggio" ? 0.2 : 0;
-			first.forEach((note, index) => playTone(note, start + index * noteOffset, 0.55, oscillators.current));
-			second.forEach((note, index) => playTone(note, start + 0.6 + index * noteOffset, 0.55, oscillators.current));
+			first.forEach((note, index) => oscillators.current.push(playTone(note, start + index * noteOffset, 0.55, oscillators.current)));
+			second.forEach((note, index) => oscillators.current.push(playTone(note, start + 0.6 + index * noteOffset, 0.55, oscillators.current)));
 			return;
 		}
 		currentQuestion.song.notes.forEach((note) => {
 			const onset = start + Math.min(note.onset ?? 0, 14.5) * 0.5;
 			if (onset < start + 15) {
 				note.noteIndices.forEach((noteIndex) =>
-					playTone(noteIndex, onset, Math.min(note.duration * 0.5, 1), oscillators.current),
+					oscillators.current.push(playTone(noteIndex, onset, Math.min(note.duration * 0.5, 1), oscillators.current)),
 				);
 			}
 		});

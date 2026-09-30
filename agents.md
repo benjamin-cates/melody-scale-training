@@ -19,9 +19,8 @@ The app is intentionally practice-oriented:
 - `src/audio/generated-tsv.ts`: songs from generated data; do not edit.
 - `src/audio/useSongPlayback.ts`: effect to add song playback.
 - `src/audio/music.ts`: `Song`/`SongNote` types, note names, scale intervals, generated clip composition, and key helpers.
-- `src/AppRoutes.tsx`: hash-based routes, shared layout, and JSON download helpers.
+- `src/AppRoutes.tsx`: hash-based routes, shared layout, JSON download helpers, and the stylesheet imports.
 - `src/Player.tsx`: audio playback, play controls.
-- `src/index.css`: the visual language and responsive layout for the app.
 - `src/Explorer.tsx`: category/song selection and the main listening view.
 - `src/Learner.tsx`: the guided major/minor lesson sequence.
 - `src/Test.tsx`: hidden-key classification test and result export.
@@ -31,6 +30,21 @@ The app is intentionally practice-oriented:
 - `src/generated-midi.ts` and `src/generated-tsv.ts`: generated data; do not hand-edit these files.
 - `src/VocoderBiquad.tsx`: old vocoder to simulate cochlear implants for normal hearing listeners
 - `src/VocoderSpectrum.tsx`: new vocoder based on spectrum analysis
+
+## Stylesheets
+
+`AppRoutes.tsx` imports each file below directly. Each file owns its own `@media (max-width: 680px)` block for its own selectors, rather than one shared responsive block.
+
+- `base.css`: global resets and bare-element defaults (`:root`, `body`, `h1`/`h2`, `.accent`, `.muted`, `.eyebrow`).
+- `layout.css`: page chrome shared by every route: app shell, topbar, brand mark, route nav, intro/page headings, and footer.
+- `buttons.css`: the shared `.primary-button` / `.secondary-button` pair used across learner, test, and survey pages.
+- `panel.css`: the `Explorer` selection panel: `.practice-panel`, category/song pickers, key readout, and scale legend.
+- `chromatone.css`: the Chromatone spiral visual itself, plus the custom-mode toolbar, chord builder, saved chords, and sustain controls layered on top of it.
+- `player.css`: the audio transport controls (`.player-controls`, `.play-button`, tempo slider, progress text) shared by `Explorer` and the learner pages.
+- `lesson.css`: the guided lesson sequence chrome used by `ChordLearner`, `MelodyLearner`, and `NoteLearner` (`.lesson-track`, `.lesson-progress`, `.lesson-card`, `.lesson-actions`).
+- `quiz.css`: the hidden-answer quiz card shared by `Test` and the embedded quiz steps at the end of each learner page (`.test-card`, `.test-form`, `.choice-row`, `.confidence-*`, `.test-progress`).
+- `note-test.css`: the two-note pitch comparison exercise styling (`.note-test-*`, `.note-choice*`).
+- `survey.css` and `vocoder.css` remain separate, self-contained stylesheets imported directly by `AppRoutes.tsx`.
 
 ## Music and visual model
 

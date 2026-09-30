@@ -1,0 +1,32 @@
+.primary-button,
+.secondary-button {
+  border: 1px solid #ef8a5b;
+  border-radius: 0;
+  padding: 12px 17px;
+  cursor: pointer;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.primary-button {
+  background: #ef8a5b;
+  color: #26353c;
+}
+.primary-button:hover {
+  background: transparent;
+  color: #ef8a5b;
+}
+.primary-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.secondary-button {
+  background: transparent;
+  color: #ef8a5b;
+}
+.secondary-button:hover {
+  background: #ef8a5b;
+  color: #26353c;
+}

@@ -5,7 +5,7 @@ import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
 
 type GuidanceMode = "visual" | "auditory";
-type Direction = "up" | "down";
+type Direction = "increasing" | "decreasing";
 
 type LessonStep =
   | "intro"
@@ -62,27 +62,27 @@ function createPitchTrials(gap: number): PitchTrial[] {
   return shuffle(
     NOTE_NAMES.flatMap((_, pitchClass) => {
       const startNote = MIDDLE_C + pitchClass;
-      return (["up", "down"] as const).map((direction) => ({
+      return (["increasing", "decreasing"] as const).map((direction) => ({
         id: `${gap}-${pitchClass}-${direction}`,
         gap,
         startNote,
-        secondNote: startNote + (direction === "up" ? gap : -gap),
+        secondNote: startNote + (direction === "increasing" ? gap : -gap),
         direction,
       }));
     }),
-  ).slice(0,12);
+  ).slice(0, 12);
 }
 
 function createExampleTrials(): PitchTrial[] {
   return shuffle(
     ([4, 2, 1] as const).flatMap((gap) =>
-      (["up", "down"] as const).map((direction) => {
+      (["increasing", "decreasing"] as const).map((direction) => {
         const startNote = MIDDLE_C + Math.floor(Math.random() * 12);
         return {
           id: `example-${gap}-${direction}`,
           gap,
           startNote,
-          secondNote: startNote + (direction === "up" ? gap : -gap),
+          secondNote: startNote + (direction === "increasing" ? gap : -gap),
           direction,
         };
       }),
@@ -316,7 +316,7 @@ export function NoteLearner() {
         </>
       );
     }
-    const correctLabel = exampleTrial.direction === "up" ? "Increasing" : "Decreasing";
+    const correctLabel = exampleTrial.direction === "increasing" ? "Increasing" : "Decreasing";
     return (
       <>
         <p>
@@ -331,7 +331,7 @@ export function NoteLearner() {
           Answer: this sequence goes {correctLabel}. Click the matching button below.
         </p>
         <div className="choice-row">
-          {(["up", "down"] as const).map((direction) => (
+          {(["increasing", "decreasing"] as const).map((direction) => (
             <label
               className={exampleGuess === direction ? "selected" : ""}
               key={direction}
@@ -347,7 +347,7 @@ export function NoteLearner() {
                   }
                 }}
               />
-              {direction === "up" ? "Increasing" : "Decreasing"}
+              {direction === "increasing" ? "Increasing" : "Decreasing"}
             </label>
           ))}
         </div>
@@ -443,10 +443,10 @@ export function NoteLearner() {
     const isAnswerCorrect = test.answer === trial.direction;
     return (
       <>
-				<div className="test-art" aria-hidden="true">
-					<span className="test-orbit" />
-					<span>♪</span>
-				</div>
+        <div className="test-art" aria-hidden="true">
+          <span className="test-orbit" />
+          <span>♪</span>
+        </div>
         <p
           className={`sequence-status${test.answer === null ? "" : isAnswerCorrect ? " is-correct" : " is-incorrect"}`}
           aria-live="polite"
@@ -455,10 +455,10 @@ export function NoteLearner() {
             ? "Listen, then choose Up or Down"
             : isAnswerCorrect
               ? "Correct"
-              : `Not quite. The correct answer is ${trial.direction === "up" ? "Increasing" : "Decreasing"}.`}
+              : `Not quite. The correct answer is ${trial.direction === "increasing" ? "Increasing" : "Decreasing"}.`}
         </p>
         <div className="choice-row test-answer-options" role="radiogroup" aria-label="Direction">
-          {(["up", "down"] as const).map((direction) => (
+          {(["increasing", "decreasing"] as const).map((direction) => (
             <label
               className={`${test.answer === direction ? "selected" : ""}${test.answer !== null ? " locked" : ""}`}
               key={direction}
@@ -470,7 +470,7 @@ export function NoteLearner() {
                 disabled={test.answer !== null}
                 onChange={() => test.setAnswer(direction)}
               />
-              {direction === "up" ? "Increasing" : "Decreasing"}
+              {direction === "increasing" ? "Increasing" : "Decreasing"}
             </label>
           ))}
         </div>

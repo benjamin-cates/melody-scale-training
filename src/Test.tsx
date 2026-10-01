@@ -3,12 +3,10 @@ import { getAudioBus, getAudioContext, playTone } from "./audio/audio";
 import { SONGS, type Song } from "./audio/music";
 
 type TestSection = "pitch" | "chords" | "melodies";
-type PitchAnswer = "higher" | "lower";
+type PitchAnswer = "increasing" | "decreasing";
 type ChordAnswer = "same" | "different";
-type MelodyAnswer = "positive-affect-major" | "negative-affect-minor";
+type MelodyAnswer = "positive" | "negative";
 type Answer = PitchAnswer | ChordAnswer | MelodyAnswer;
-type ChordInterval = "major-third" | "minor-third" | "perfect-fifth";
-type ChordPresentation = "arpeggio" | "melodic";
 
 type PitchQuestion = {
 	id: string;
@@ -22,15 +20,15 @@ type ChordQuestion = {
 	id: string;
 	section: "chords";
 	rootNote: number;
-	secondInterval: ChordInterval;
-	presentation: ChordPresentation;
+	secondInterval: 3 | 4 | 7;
+	presentation: "arpeggio" | "melodic";
 	correctAnswer: ChordAnswer;
 };
 
 type MelodyQuestion = {
 	id: string;
 	section: "melodies";
-	song: Song;
+	song: string;
 	correctAnswer: MelodyAnswer;
 };
 
@@ -41,33 +39,16 @@ export type ReplayEvent = {
 	elapsedMs: number;
 };
 
-export type BaselineTrial = {
-	questionId: string;
-	question: Omit<Question, "correctAnswer" | "song"> & { songTitle?: string };
-	correctAnswer: Answer;
+export type UserResponse = {
+	question: Question;
 	answer: Answer;
-	isCorrect: boolean;
-	questionStartedAt: string;
+	startedAt: string;
 	timeElapsedMs: number;
 	replayEvents: number[];
 };
 
-export type BaselineTestResults = {
-	startedAt: string;
-	completedAt?: string;
-	elapsedMs: number;
-	completed: boolean;
-	trials: BaselineTrial[];
-};
-
 export type TestProps = {
-	onNext?: (results: BaselineTestResults) => void;
-};
-
-const CHORD_INTERVALS: Record<ChordInterval, number> = {
-	"major-third": 4,
-	"minor-third": 3,
-	"perfect-fifth": 7,
+	onNext?: (results: UserResponse[]) => void;
 };
 
 function shuffle<T>(values: T[]) {
@@ -90,17 +71,17 @@ function createPitchQuestions(): PitchQuestion[] {
 				semitoneGap,
 				firstNote,
 				secondNote: firstNote + (rising ? semitoneGap : -semitoneGap),
-				correctAnswer: rising ? "higher" : "lower",
+				correctAnswer: rising ? "increasing" : "decreasing",
 			};
 		})),
 	);
 }
 
 function createChordQuestions(): ChordQuestion[] {
-	const intervals: ChordInterval[] = [
-		...Array.from({ length: 12 }, (): ChordInterval => "major-third"),
-		...Array.from({ length: 12 }, (): ChordInterval => "minor-third"),
-		...Array.from({ length: 12 }, (): ChordInterval => "perfect-fifth"),
+	const intervals: (3 | 4 | 7)[] = [
+		...Array.from({ length: 12 }, (): 3 | 4 | 7 => 4),
+		...Array.from({ length: 12 }, (): 3 | 4 | 7 => 3),
+		...Array.from({ length: 12 }, (): 3 | 4 | 7 => 7),
 	];
 	return shuffle(intervals).map((secondInterval, index) => ({
 		id: `chord-${index + 1}`,
@@ -108,7 +89,7 @@ function createChordQuestions(): ChordQuestion[] {
 		rootNote: 39 + Math.floor(Math.random() * 12),
 		secondInterval,
 		presentation: index % 2 === 0 ? "arpeggio" : "melodic",
-		correctAnswer: secondInterval === "major-third" ? "same" : "different",
+		correctAnswer: secondInterval === 4 ? "same" : "different",
 	}));
 }
 
@@ -123,8 +104,8 @@ function createMelodyQuestions(): MelodyQuestion[] {
 		return {
 			id: `melody-${index + 1}-${song.title}`,
 			section: "melodies",
-			song,
-			correctAnswer: song.scale === "major" ? "positive-affect-major" : "negative-affect-minor",
+			song: song.title,
+			correctAnswer: song.scale === "major" ? "positive" : "negative",
 		};
 	});
 }
@@ -133,17 +114,11 @@ function createQuestions() {
 	return [...createPitchQuestions(), ...createChordQuestions(), ...createMelodyQuestions()];
 }
 
-function questionPrompt(question: Question) {
-	if (question.section === "pitch") return "Was the second note higher or lower?";
-	if (question.section === "chords") return "Were the two intervals the same or different?";
-	return "Which affect label best fits this melody?";
-}
-
 function optionsFor(question: Question): { value: Answer; label: string }[] {
 	if (question.section === "pitch") {
 		return [
-			{ value: "lower", label: "Decreasing pitch" },
-			{ value: "higher", label: "Increasing pitch" },
+			{ value: "decreasing", label: "Decreasing pitch" },
+			{ value: "increasing", label: "Increasing pitch" },
 		];
 	}
 	if (question.section === "chords") {
@@ -153,8 +128,8 @@ function optionsFor(question: Question): { value: Answer; label: string }[] {
 		];
 	}
 	return [
-		{ value: "positive-affect-major", label: "Positive affect (major)" },
-		{ value: "negative-affect-minor", label: "Negative affect (minor)" },
+		{ value: "positive", label: "Positive affect (major)" },
+		{ value: "negative", label: "Negative affect (minor)" },
 	];
 }
 
@@ -164,21 +139,12 @@ function sectionLabel(section: TestSection) {
 	return "Full melodies";
 }
 
-function telemetryQuestion(question: Question): BaselineTrial["question"] {
-	if (question.section === "melodies") {
-		const { song, correctAnswer, ...questionData } = question;
-		return { ...questionData, songTitle: song.title };
-	}
-	const { correctAnswer, ...questionData } = question;
-	return questionData;
-}
-
 export function Test({ onNext }: TestProps) {
 	const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
 	const [questions] = useState(createQuestions);
 	const [questionIndex, setQuestionIndex] = useState(0);
 	const [answer, setAnswer] = useState<Answer | null>(null);
-	const [trials, setTrials] = useState<BaselineTrial[]>([]);
+	const [trials, setTrials] = useState<UserResponse[]>([]);
 	const startedAt = useRef(new Date());
 	const questionStartedAt = useRef(new Date());
 	const taskStartedAt = useRef(new Date());
@@ -212,14 +178,15 @@ export function Test({ onNext }: TestProps) {
 			const first = [currentQuestion.rootNote, currentQuestion.rootNote + 4];
 			const second = [
 				currentQuestion.rootNote,
-				currentQuestion.rootNote + CHORD_INTERVALS[currentQuestion.secondInterval],
+				currentQuestion.rootNote + currentQuestion.secondInterval
 			];
 			const noteOffset = currentQuestion.presentation === "arpeggio" ? 0.2 : 0;
 			first.forEach((note, index) => oscillators.current.push(playTone(note, start + index * noteOffset, 0.55, oscillators.current)));
 			second.forEach((note, index) => oscillators.current.push(playTone(note, start + 0.6 + index * noteOffset, 0.55, oscillators.current)));
 			return;
 		}
-		currentQuestion.song.notes.forEach((note) => {
+		let song = SONGS.find((s) => s.title === currentQuestion.song);
+		song?.notes.forEach((note) => {
 			const onset = start + Math.min(note.onset ?? 0, 14.5) * 0.5;
 			if (onset < start + 15) {
 				note.noteIndices.forEach((noteIndex) =>
@@ -243,7 +210,7 @@ export function Test({ onNext }: TestProps) {
 		if (!question) return;
 		replayEvents.current = [
 			...replayEvents.current,
-      Date.now() - questionStartedAt.current.getTime(),
+			Date.now() - questionStartedAt.current.getTime(),
 		];
 		playQuestion(question);
 	};
@@ -261,26 +228,17 @@ export function Test({ onNext }: TestProps) {
 	const next = () => {
 		if (!question || answer === null) return;
 		const nextAt = new Date();
-		const trial: BaselineTrial = {
-			questionId: question.id,
-			question: telemetryQuestion(question),
-			correctAnswer: question.correctAnswer,
+		const trial: UserResponse = {
+			question: question,
 			answer,
-			isCorrect: answer === question.correctAnswer,
-			questionStartedAt: questionStartedAt.current.toISOString(),
+			startedAt: questionStartedAt.current.toISOString(),
 			timeElapsedMs: nextAt.getTime() - taskStartedAt.current.getTime(),
 			replayEvents: replayEvents.current,
 		};
 		const allTrials = [...trials, trial];
 		const completed = questionIndex === questions.length - 1;
-    console.log(allTrials);
-		onNext?.({
-			startedAt: startedAt.current.toISOString(),
-			completedAt: completed ? nextAt.toISOString() : undefined,
-			elapsedMs: nextAt.getTime() - startedAt.current.getTime(),
-			completed,
-			trials: allTrials,
-		});
+		console.log(allTrials);
+		onNext?.(allTrials);
 		setTrials(allTrials);
 		stopPlayback();
 		if (completed) {
@@ -323,7 +281,6 @@ export function Test({ onNext }: TestProps) {
 				</p>
 				<form className="test-form" onSubmit={(event) => { event.preventDefault(); next(); }}>
 					<fieldset>
-						{/* <legend>{questionPrompt(question)}</legend> */}
 						<div className="choice-row">
 							{optionsFor(question).map((option) => (
 								<label className={answer === option.value ? "selected" : ""} key={option.value}>

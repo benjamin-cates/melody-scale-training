@@ -5,7 +5,6 @@ import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
 
 type GuidanceMode = "visual" | "auditory";
-type ChordType = "major3" | "minor3" | "perfect5";
 type PlaybackMode = "arpeggio" | "block";
 type Answer = "same" | "different";
 
@@ -21,23 +20,28 @@ type LessonStep =
 type ChordTrial = {
   id: string;
   root: number;
-  chordType: ChordType;
+  chordType: 3 | 4 | 7;
 };
 
 type DiscriminationTrial = {
   id: string;
   root: number;
-  comparisonType: ChordType;
+  comparisonType: 3 | 4 | 7;
   correctAnswer: Answer;
+  mode: PlaybackMode;
 };
 
 type DiscriminationResult = {
   trialId: string;
   root: number;
-  comparisonType: ChordType;
+  mode: PlaybackMode;
+  comparisonType: 3 | 4 | 7;
   correctAnswer: Answer;
   answer: Answer;
   isCorrect: boolean;
+  startedAt: string;
+  timeElapsedMs: number;
+  replayEvents: number[];
 };
 
 const STEPS: { id: LessonStep; label: string }[] = [
@@ -52,12 +56,12 @@ const STEPS: { id: LessonStep; label: string }[] = [
 
 const MIDDLE_C = 39;
 
-const CHORD_TYPES: ChordType[] = ["major3", "minor3", "perfect5"];
+const CHORD_TYPES: (3 | 4 | 7)[] = [3, 4, 7];
 
-const CHORD_DEFS: Record<ChordType, { label: string; interval: number; mood: string }> = {
-  major3: { label: "Major third", interval: 4, mood: "bright, cheerful, or peaceful" },
-  minor3: { label: "Minor third", interval: 3, mood: "somber, tense, or sad" },
-  perfect5: { label: "Perfect fifth", interval: 7, mood: "open and neutral" },
+const CHORD_DEFS: Record<3 | 4 | 7, { label: string; interval: number; mood: string }> = {
+  4: { label: "Major third", interval: 4, mood: "bright, cheerful, or peaceful" },
+  3: { label: "Minor third", interval: 3, mood: "somber, tense, or sad" },
+  7: { label: "Perfect fifth", interval: 7, mood: "open and neutral" },
 };
 
 function shuffle<T>(values: T[]) {
@@ -69,9 +73,9 @@ function shuffle<T>(values: T[]) {
   return shuffled;
 }
 
-function chordNotes(root: number, chordType: ChordType) {
+function chordNotes(root: number, chordType: 3 | 4 | 7) {
   const rootNote = MIDDLE_C + root;
-  return [rootNote, rootNote + CHORD_DEFS[chordType].interval];
+  return [rootNote, rootNote + chordType];
 }
 
 function createExampleTrials(): ChordTrial[] {
@@ -84,13 +88,14 @@ function createExampleTrials(): ChordTrial[] {
   );
 }
 
-function createDiscriminationTrials(): DiscriminationTrial[] {
+function createDiscriminationTrials(mode: PlaybackMode): DiscriminationTrial[] {
   return shuffle(
-    CHORD_TYPES.flatMap((comparisonType) => [0, 1, 2].map((repetition) => ({
+    ([3, 4, 7] as const).flatMap((comparisonType) => [0, 1, 2].map((repetition) => ({
       id: `${comparisonType}-${repetition}`,
       root: Math.floor(Math.random() * 12),
       comparisonType,
-      correctAnswer: (comparisonType === "major3" ? "same" : "different") as Answer,
+      correctAnswer: (comparisonType === 4 ? "same" : "different") as Answer,
+      mode,
     }))),
   );
 }
@@ -157,10 +162,25 @@ function useDiscriminationTest(trials: DiscriminationTrial[]) {
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [results, setResults] = useState<DiscriminationResult[]>([]);
+  const questionStartedAt = useRef(new Date());
+  const replayEvents = useRef<number[]>([]);
   const trial = trials[index];
+
+  const beginTrial = () => {
+    questionStartedAt.current = new Date();
+    replayEvents.current = [0];
+  };
+
+  const recordReplay = () => {
+    replayEvents.current = [
+      ...replayEvents.current,
+      Date.now() - questionStartedAt.current.getTime(),
+    ];
+  };
 
   const submit = () => {
     if (!trial || answer === null) return;
+    const submittedAt = new Date();
     setResults((previous) => [
       ...previous,
       {
@@ -168,15 +188,19 @@ function useDiscriminationTest(trials: DiscriminationTrial[]) {
         root: trial.root,
         comparisonType: trial.comparisonType,
         correctAnswer: trial.correctAnswer,
+        mode: trial.mode,
         answer,
         isCorrect: answer === trial.correctAnswer,
+        startedAt: questionStartedAt.current.toISOString(),
+        timeElapsedMs: submittedAt.getTime() - questionStartedAt.current.getTime(),
+        replayEvents: [...replayEvents.current],
       },
     ]);
     setAnswer(null);
     setIndex((value) => value + 1);
   };
 
-  return { trial, index, answer, setAnswer, results, submit, isDone: !trial };
+  return { trial, index, answer, setAnswer, results, beginTrial, recordReplay, submit, isDone: !trial };
 }
 
 function ChordVisual({
@@ -186,7 +210,7 @@ function ChordVisual({
 }: {
   guidance: GuidanceMode;
   root: number;
-  chordType: ChordType | null;
+  chordType: 3 | 4 | 7 | null;
 }) {
   const notes = chordType ? chordNotes(root, chordType) : [MIDDLE_C + root];
   if (guidance === "auditory") {
@@ -214,20 +238,28 @@ function ChordVisual({
   );
 }
 
-export function ChordLearner() {
+export function ChordLearner({
+  guidanceMode,
+  showDownloadResults = true,
+  onResults,
+}: {
+  guidanceMode?: GuidanceMode;
+  showDownloadResults?: boolean;
+  onResults?: (results: Record<string, unknown>) => void;
+} = {}) {
   const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
   const [stepIndex, setStepIndex] = useState(0);
-  const [guidance, setGuidance] = useState<GuidanceMode>("visual");
+  const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
   const [playgroundRoot, setPlaygroundRoot] = useState(0);
-  const [playgroundType, setPlaygroundType] = useState<ChordType>("major3");
+  const [playgroundType, setPlaygroundType] = useState<3 | 4 | 7>(3);
   const [exampleArpeggioTrials] = useState(createExampleTrials);
   const [exampleMelodicTrials] = useState(createExampleTrials);
   const [exampleArpeggioIndex, setExampleArpeggioIndex] = useState(0);
   const [exampleMelodicIndex, setExampleMelodicIndex] = useState(0);
-  const [exampleArpeggioGuess, setExampleArpeggioGuess] = useState<ChordType | null>(null);
-  const [exampleMelodicGuess, setExampleMelodicGuess] = useState<ChordType | null>(null);
-  const [testArpeggioTrials] = useState(createDiscriminationTrials);
-  const [testMelodicTrials] = useState(createDiscriminationTrials);
+  const [exampleArpeggioGuess, setExampleArpeggioGuess] = useState<3 | 4 | 7 | null>(null);
+  const [exampleMelodicGuess, setExampleMelodicGuess] = useState<3 | 4 | 7 | null>(null);
+  const [testArpeggioTrials] = useState(() => createDiscriminationTrials("arpeggio"));
+  const [testMelodicTrials] = useState(() => createDiscriminationTrials("block"));
 
   const player = useChordPlayer();
   const testArpeggio = useDiscriminationTest(testArpeggioTrials);
@@ -257,14 +289,16 @@ export function ChordLearner() {
   useEffect(() => {
     if (step !== "test-arpeggio" || !testArpeggio.trial) return;
     const { root, comparisonType } = testArpeggio.trial;
-    player.playPair(chordNotes(root, "major3"), chordNotes(root, comparisonType), "arpeggio");
+    testArpeggio.beginTrial();
+    player.playPair(chordNotes(root, 3), chordNotes(root, comparisonType), "arpeggio");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, testArpeggio.index]);
 
   useEffect(() => {
     if (step !== "test-melodic" || !testMelodic.trial) return;
     const { root, comparisonType } = testMelodic.trial;
-    player.playPair(chordNotes(root, "major3"), chordNotes(root, comparisonType), "block");
+    testMelodic.beginTrial();
+    player.playPair(chordNotes(root, 3), chordNotes(root, comparisonType), "block");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, testMelodic.index]);
 
@@ -322,12 +356,12 @@ export function ChordLearner() {
         <p className="lesson-body">
           A chord is a combination of notes played together or in rapid sequence (an arpeggio). We
           will focus on three core intervals built from a root note. The major third has an
-          interval size of 4 steps above the root and sounds {CHORD_DEFS.major3.mood}. The minor
-          third has an interval size of 3 steps and sounds {CHORD_DEFS.minor3.mood}. The perfect
-          fifth has a gap of 7 steps and sounds {CHORD_DEFS.perfect5.mood}. The root note, Middle
+          interval size of 4 steps above the root and sounds {CHORD_DEFS[4].mood}. The minor
+          third has an interval size of 3 steps and sounds {CHORD_DEFS[3].mood}. The perfect
+          fifth has a gap of 7 steps and sounds {CHORD_DEFS[7].mood}. The root note, Middle
           C for now, is highlighted below.
         </p>
-        {guidanceToggle}
+        {!guidanceMode && guidanceToggle}
         <p className="lesson-body">
           {guidance === "visual"
             ? "Chords are shown as connected notes on the spiral. The white outline marks the root note. The perfect fifth line is purple, the major third line is yellow (representing happiness), and the minor third line is blue (representing sadness). Classify each chord correctly."
@@ -353,8 +387,8 @@ export function ChordLearner() {
   function renderExamples(
     mode: PlaybackMode,
     trial: ChordTrial | undefined,
-    guess: ChordType | null,
-    setGuess: (value: ChordType | null) => void,
+    guess: 3 | 4 | 7 | null,
+    setGuess: (value: 3 | 4 | 7 | null) => void,
     index: number,
     total: number,
     onAdvance: () => void,
@@ -524,7 +558,10 @@ export function ChordLearner() {
           <button
             className="secondary-button"
             type="button"
-            onClick={() => player.playPair(chordNotes(trial.root, "major3"), chordNotes(trial.root, trial.comparisonType), mode)}
+            onClick={() => {
+              test.recordReplay();
+              player.playPair(chordNotes(trial.root, 4), chordNotes(trial.root, trial.comparisonType), mode);
+            }}
           >
             Hear again
           </button>
@@ -561,16 +598,21 @@ export function ChordLearner() {
         <button
           className="primary-button"
           type="button"
-          onClick={() =>
-            downloadJson("chords-lesson-results.json", {
+          onClick={() => {
+            const results = {
               exportedAt: new Date().toISOString(),
               guidance,
               testArpeggio: testArpeggio.results,
               testMelodic: testMelodic.results,
-            })
-          }
+            };
+            if (showDownloadResults) {
+              downloadJson("chords-lesson-results.json", results);
+            } else {
+              onResults?.(results);
+            }
+          }}
         >
-          Download results (JSON)
+          {showDownloadResults ? "Download results (JSON)" : "Continue"}
         </button>
       </>
     );

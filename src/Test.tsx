@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { downloadJson } from "./AppRoutes";
 import { getAudioBus, getAudioContext, playTone } from "./audio/audio";
 import { SONGS, type Song } from "./audio/music";
 
 type TestSection = "pitch" | "chords" | "melodies";
 type PitchAnswer = "increasing" | "decreasing";
 type ChordAnswer = "same" | "different";
-type MelodyAnswer = "positive" | "negative";
+type MelodyAnswer = "major" | "minor";
 type Answer = PitchAnswer | ChordAnswer | MelodyAnswer;
 
 type PitchQuestion = {
@@ -28,16 +29,11 @@ type ChordQuestion = {
 type MelodyQuestion = {
 	id: string;
 	section: "melodies";
-	song: string;
+	songTitle: string;
 	correctAnswer: MelodyAnswer;
 };
 
 type Question = PitchQuestion | ChordQuestion | MelodyQuestion;
-
-export type ReplayEvent = {
-	type: "automatic" | "hear-again";
-	elapsedMs: number;
-};
 
 export type UserResponse = {
 	question: Question;
@@ -49,6 +45,9 @@ export type UserResponse = {
 
 export type TestProps = {
 	onNext?: (results: UserResponse[]) => void;
+	showDownloadResults?: boolean;
+	onResults?: (results: UserResponse[]) => void;
+	completionTitle?: string;
 };
 
 function shuffle<T>(values: T[]) {
@@ -104,9 +103,9 @@ function createMelodyQuestions(): MelodyQuestion[] {
 		return {
 			id: `melody-${index + 1}-${song.title}`,
 			section: "melodies",
-			song: song.title,
-			correctAnswer: song.scale === "major" ? "positive" : "negative",
-		};
+			songTitle: song.title,
+			correctAnswer: song.scale === "major" ? "major" : "minor",
+		} satisfies MelodyQuestion;
 	});
 }
 
@@ -128,8 +127,8 @@ function optionsFor(question: Question): { value: Answer; label: string }[] {
 		];
 	}
 	return [
-		{ value: "positive", label: "Positive affect (major)" },
-		{ value: "negative", label: "Negative affect (minor)" },
+		{ value: "major", label: "Major (positive affect)" },
+		{ value: "minor", label: "Minor (negative affect)" },
 	];
 }
 
@@ -139,7 +138,7 @@ function sectionLabel(section: TestSection) {
 	return "Full melodies";
 }
 
-export function Test({ onNext }: TestProps) {
+export function Test({ onNext, showDownloadResults = true, onResults, completionTitle }: TestProps) {
 	const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
 	const [questions] = useState(createQuestions);
 	const [questionIndex, setQuestionIndex] = useState(0);
@@ -185,7 +184,7 @@ export function Test({ onNext }: TestProps) {
 			second.forEach((note, index) => oscillators.current.push(playTone(note, start + 0.6 + index * noteOffset, 0.55, oscillators.current)));
 			return;
 		}
-		let song = SONGS.find((s) => s.title === currentQuestion.song);
+		let song = SONGS.find((s) => s.title === currentQuestion.songTitle);
 		song?.notes.forEach((note) => {
 			const onset = start + Math.min(note.onset ?? 0, 14.5) * 0.5;
 			if (onset < start + 15) {
@@ -254,9 +253,25 @@ export function Test({ onNext }: TestProps) {
 		return (
 			<section className="page-section test-page">
 				<article className="test-card">
-					<p className="eyebrow">Baseline complete</p>
+					<p className="eyebrow">{completionTitle ?? "Baseline complete"}</p>
 					<h2>Thank you.</h2>
 					<p className="muted">{trials.length} responses have been recorded.</p>
+					<button
+						className="primary-button"
+						type="button"
+						onClick={() => {
+							if (showDownloadResults) {
+								downloadJson("test-results.json", {
+									exportedAt: new Date().toISOString(),
+									results: trials,
+								});
+							} else {
+								onResults?.(trials);
+							}
+						}}
+					>
+						{showDownloadResults ? "Download results (JSON)" : "Continue"}
+					</button>
 				</article>
 			</section>
 		);

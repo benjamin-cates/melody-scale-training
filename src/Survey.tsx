@@ -1,36 +1,36 @@
 import { useState } from "react";
 import { downloadJson } from "./AppRoutes";
 
-interface SurveyData {
+export interface SurveyData {
   exportedAt: string;
   surveyVersion: string;
   studyCondition: "cochlear_implant" | "normal_hearing" | "ineligible" | "undetermined";
   hearingProfile: {
-      studyEar: string;
-      leftEar: {
-          ciDetails?: CIEarDetails | undefined;
-          status: HearingStatus;
-      };
-      rightEar: {
-          ciDetails?: CIEarDetails | undefined;
-          status: HearingStatus;
-      };
-        additionalComments: string;
+    studyEar: string;
+    leftEar: {
+      ciDetails?: CIEarDetails | undefined;
+      status: HearingStatus;
+    };
+    rightEar: {
+      ciDetails?: CIEarDetails | undefined;
+      status: HearingStatus;
+    };
+    additionalComments: string;
   };
   participantInfo: {
-      currentAge: number | null;
-      gender: string;
-      colorBlindType: ColorBlindType;
+    currentAge: number | null;
+    gender: string;
+    colorBlindType: ColorBlindType;
   };
   musicalExperience: {
-      hasMusicalTraining: boolean;
-      instrument: string | null;
-      trainingStartAge: number | null;
-      trainingEndAge: number | null;
-      trainingTimingRelativeToHearingLoss: "before" | "after" | "spanned" | "unknown";
-      trainingAdditionalComments: string;
-      listeningFrequency: string;
-      genres: string[];
+    hasMusicalTraining: boolean;
+    instrument: string | null;
+    trainingStartAge: number | null;
+    trainingEndAge: number | null;
+    trainingTimingRelativeToHearingLoss: "before" | "after" | "spanned" | "unknown";
+    trainingAdditionalComments: string;
+    listeningFrequency: string;
+    genres: string[];
   }
 };
 
@@ -79,7 +79,13 @@ const MUSIC_GENRES = [
   "Ambient / Instrumental",
 ];
 
-export function Survey() {
+export function Survey({
+  showDownloadResults = true,
+  onResults,
+}: {
+  showDownloadResults?: boolean;
+  onResults?: (results: SurveyData) => void;
+} = {}) {
   const [saved, setSaved] = useState(false);
 
   // Hearing profile state
@@ -233,8 +239,12 @@ export function Survey() {
       },
     } satisfies SurveyData;
 
-    downloadJson("chromatone-survey.json", surveyData);
-    setSaved(true);
+    if (showDownloadResults) {
+      downloadJson("chromatone-survey.json", surveyData);
+      setSaved(true);
+    } else {
+      onResults?.(surveyData);
+    }
   };
 
   const renderCIEarFields = (
@@ -705,7 +715,7 @@ export function Survey() {
         </fieldset>
 
         <button className="primary-button" type="submit">
-          Download survey JSON
+          {showDownloadResults ? "Download survey JSON" : "Continue"}
         </button>
 
         {saved && (

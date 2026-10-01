@@ -17,6 +17,7 @@ import { ChordLearner } from "./ChordLearner";
 import { MelodyLearner } from "./MelodyLearner";
 import { Test } from "./Test";
 import { Explorer } from "./Explorer";
+import { Experiment } from "./Experiment";
 import { Vocoder } from "./audio/VocoderBiquad";
 
 export function downloadJson(filename: string, data: unknown) {
@@ -31,9 +32,9 @@ export function downloadJson(filename: string, data: unknown) {
   URL.revokeObjectURL(url);
 }
 
-type Route = "explorer" | "survey" | "note_learner" | "chord_learner" | "melody_learner" | "test" | "note-test";
+type Route = "explorer" | "survey" | "note_learner" | "chord_learner" | "melody_learner" | "test" | "note-test" | "experiment";
 
-const ROUTES: { id: Route; label: string }[] = [
+const ROUTES: { id: Exclude<Route, "experiment">; label: string }[] = [
   { id: "explorer", label: "Explorer" },
   { id: "survey", label: "Survey" },
   { id: "note_learner", label: "Note Learner" },
@@ -44,6 +45,7 @@ const ROUTES: { id: Route; label: string }[] = [
 
 function getRoute(): Route {
   const value = window.location.hash.replace(/^#\/?/, "") as Route;
+  if (value === "experiment") return value;
   return ROUTES.some((route) => route.id === value) ? value : "explorer";
 }
 
@@ -55,27 +57,29 @@ export function downloadFormJson(filename: string, form: HTMLFormElement) {
 function Layout({ route, children }: { route: Route; children: ReactNode }) {
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <a className="brand-link" href="#/explorer">
-          <img className="brand-logo" src={logoUrl} alt="Logo" />
-          <span>
-            <b>Melody scale training</b>
-          </span>
-        </a>
-        <nav className="route-nav" aria-label="Main navigation">
-          {ROUTES.map((item) => (
-            <a
-              className={route === item.id ? "active" : ""}
-              href={`#/${item.id}`}
-              key={item.id}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-      </header>
+      {route !== "experiment" && (
+        <header className="topbar">
+          <a className="brand-link" href="#/explorer">
+            <img className="brand-logo" src={logoUrl} alt="Logo" />
+            <span>
+              <b>Melody scale training</b>
+            </span>
+          </a>
+          <nav className="route-nav" aria-label="Main navigation">
+            {ROUTES.map((item) => (
+              <a
+                className={route === item.id ? "active" : ""}
+                href={`#/${item.id}`}
+                key={item.id}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </header>
+      )}
       {children}
-      {route !== "survey" && <Vocoder />}
+      {route !== "survey" && route !== "experiment" && <Vocoder />}
     </main>
   );
 }
@@ -88,7 +92,9 @@ export function AppRoutes() {
     return () => window.removeEventListener("hashchange", update);
   }, []);
   const page =
-    route === "survey" ? (
+    route === "experiment" ? (
+      <Experiment />
+    ) : route === "survey" ? (
       <Survey />
     ) : route === "note_learner" ? (
       <NoteLearner />

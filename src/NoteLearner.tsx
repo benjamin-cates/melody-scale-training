@@ -19,20 +19,17 @@ type LessonStep =
 
 type PitchTrial = {
   id: string;
-  gap: number;
-  startNote: number;
+  firstNote: number;
   secondNote: number;
-  direction: Direction;
 };
 
 type TrialResult = {
   trialId: string;
   gap: number;
-  startNote: number;
+  firstNote: number;
   secondNote: number;
   correctAnswer: Direction;
   answer: Direction;
-  isCorrect: boolean;
 };
 
 const STEPS: { id: LessonStep; label: string }[] = [
@@ -61,12 +58,12 @@ function shuffle<T>(values: T[]) {
 function createPitchTrials(gap: number): PitchTrial[] {
   return shuffle(
     NOTE_NAMES.flatMap((_, pitchClass) => {
-      const startNote = MIDDLE_C + pitchClass;
+      const firstNote = MIDDLE_C + pitchClass;
       return (["increasing", "decreasing"] as const).map((direction) => ({
         id: `${gap}-${pitchClass}-${direction}`,
         gap,
-        startNote,
-        secondNote: startNote + (direction === "increasing" ? gap : -gap),
+        firstNote,
+        secondNote: firstNote + (direction === "increasing" ? gap : -gap),
         direction,
       }));
     }),
@@ -77,12 +74,12 @@ function createExampleTrials(): PitchTrial[] {
   return shuffle(
     ([4, 2, 1] as const).flatMap((gap) =>
       (["increasing", "decreasing"] as const).map((direction) => {
-        const startNote = MIDDLE_C + Math.floor(Math.random() * 12);
+        const firstNote = MIDDLE_C + Math.floor(Math.random() * 12);
         return {
           id: `example-${gap}-${direction}`,
           gap,
-          startNote,
-          secondNote: startNote + (direction === "increasing" ? gap : -gap),
+          firstNote,
+          secondNote: firstNote + (direction === "increasing" ? gap : -gap),
           direction,
         };
       }),
@@ -153,12 +150,11 @@ function useSemitoneTest(trials: PitchTrial[]) {
       ...previous,
       {
         trialId: trial.id,
-        gap: trial.gap,
-        startNote: trial.startNote,
+        gap: Math.abs(trial.secondNote - trial.firstNote),
+        firstNote: trial.firstNote,
         secondNote: trial.secondNote,
-        correctAnswer: trial.direction,
+        correctAnswer: trial.secondNote > trial.firstNote ? "increasing" : "decreasing",
         answer,
-        isCorrect: answer === trial.direction,
       },
     ]);
     setAnswer(null);
@@ -181,10 +177,18 @@ function NoteVisual({ guidance, activeNote, notes }: { guidance: GuidanceMode; a
   );
 }
 
-export function NoteLearner() {
+export function NoteLearner({
+  guidanceMode,
+  showDownloadResults = true,
+  onResults,
+}: {
+  guidanceMode?: GuidanceMode;
+  showDownloadResults?: boolean;
+  onResults?: (results: Record<string, unknown>) => void;
+} = {}) {
   const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
   const [stepIndex, setStepIndex] = useState(0);
-  const [guidance, setGuidance] = useState<GuidanceMode>("visual");
+  const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
   const [playgroundStart, setPlaygroundStart] = useState(0);
   const [playgroundInterval, setPlaygroundInterval] = useState(4);
   const [exampleTrials] = useState(createExampleTrials);
@@ -208,14 +212,14 @@ export function NoteLearner() {
 
   useEffect(() => {
     if (step !== "examples" || !exampleTrial) return;
-    player.play([exampleTrial.startNote, exampleTrial.secondNote]);
+    player.play([exampleTrial.firstNote, exampleTrial.secondNote]);
     setExampleGuess(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, exampleIndex]);
 
   useEffect(() => {
     if (!activeTest?.trial) return;
-    player.play([activeTest.trial.startNote, activeTest.trial.secondNote]);
+    player.play([activeTest.trial.firstNote, activeTest.trial.secondNote]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, test4.index, test2.index, test1.index]);
 
@@ -267,7 +271,7 @@ export function NoteLearner() {
           the octave is split equally into twelve equal steps. A sharp moves one step higher. A
           flat moves one step lower. The Middle C serves as a reference pitch.
         </p>
-        {guidanceToggle}
+        {!guidanceMode && guidanceToggle}
         <p className="lesson-body">
           {guidance === "visual"
             ? "Pitches are arranged on a continuous spiral. Each full turn represents one octave. Moving clockwise indicates a higher pitch; moving counter-clockwise indicates a lower pitch. Outermost layers represent lower octaves, spiraling inward to higher octaves."
@@ -316,7 +320,7 @@ export function NoteLearner() {
         </>
       );
     }
-    const correctLabel = exampleTrial.direction === "increasing" ? "Increasing" : "Decreasing";
+    const correctLabel = exampleTrial.secondNote > exampleTrial.firstNote ? "Increasing" : "Decreasing";
     return (
       <>
         <p>
@@ -325,7 +329,7 @@ export function NoteLearner() {
         <NoteVisual
           guidance={guidance}
           activeNote={player.activeNote}
-          notes={[exampleTrial.startNote, exampleTrial.secondNote]}
+          notes={[exampleTrial.firstNote, exampleTrial.secondNote]}
         />
         <p className="sequence-status" aria-live="polite">
           Answer: this sequence goes {correctLabel}. Click the matching button below.
@@ -342,7 +346,7 @@ export function NoteLearner() {
                 checked={exampleGuess === direction}
                 onChange={() => {
                   setExampleGuess(direction);
-                  if (direction === exampleTrial.direction) {
+                  if (direction === (exampleTrial.secondNote > exampleTrial.firstNote ? "increasing" : "decreasing")) {
                     window.setTimeout(() => setExampleIndex((value) => value + 1), 500);
                   }
                 }}
@@ -351,14 +355,14 @@ export function NoteLearner() {
             </label>
           ))}
         </div>
-        {exampleGuess && exampleGuess !== exampleTrial.direction && (
+        {exampleGuess && exampleGuess !== (exampleTrial.secondNote > exampleTrial.firstNote ? "increasing" : "decreasing") && (
           <p className="sequence-status">Try clicking {correctLabel} instead.</p>
         )}
         <div className="test-actions">
           <button
             className="secondary-button"
             type="button"
-            onClick={() => player.play([exampleTrial.startNote, exampleTrial.secondNote])}
+            onClick={() => player.play([exampleTrial.firstNote, exampleTrial.secondNote])}
           >
             Hear again
           </button>
@@ -428,7 +432,7 @@ export function NoteLearner() {
 
   function renderTest(gap: number, test: ReturnType<typeof useSemitoneTest>, sectionLabel: string, trialCount: number) {
     if (test.isDone) {
-      const correctCount = test.results.filter((result) => result.isCorrect).length;
+      const correctCount = test.results.filter((result) => result.correctAnswer === result.answer).length;
       return (
         <>
           <h2>{sectionLabel} complete</h2>
@@ -440,7 +444,7 @@ export function NoteLearner() {
     }
     const { trial } = test;
     if (!trial) return null;
-    const isAnswerCorrect = test.answer === trial.direction;
+    const isAnswerCorrect = test.answer === (trial.secondNote > trial.firstNote ? "increasing" : "decreasing");
     return (
       <>
         <div className="test-art" aria-hidden="true">
@@ -455,7 +459,7 @@ export function NoteLearner() {
             ? "Listen, then choose Up or Down"
             : isAnswerCorrect
               ? "Correct"
-              : `Not quite. The correct answer is ${trial.direction === "increasing" ? "Increasing" : "Decreasing"}.`}
+              : `Not quite. The correct answer is ${trial.secondNote > trial.firstNote ? "Increasing" : "Decreasing"}.`}
         </p>
         <div className="choice-row test-answer-options" role="radiogroup" aria-label="Direction">
           {(["increasing", "decreasing"] as const).map((direction) => (
@@ -478,7 +482,7 @@ export function NoteLearner() {
           <button
             className="secondary-button"
             type="button"
-            onClick={() => player.play([trial.startNote, trial.secondNote])}
+            onClick={() => player.play([trial.firstNote, trial.secondNote])}
           >
             Hear again
           </button>
@@ -498,9 +502,9 @@ export function NoteLearner() {
 
   function renderComplete() {
     const totalCorrect =
-      test4.results.filter((r) => r.isCorrect).length +
-      test2.results.filter((r) => r.isCorrect).length +
-      test1.results.filter((r) => r.isCorrect).length;
+      test4.results.filter((r) => r.correctAnswer === r.answer).length +
+      test2.results.filter((r) => r.correctAnswer === r.answer).length +
+      test1.results.filter((r) => r.correctAnswer === r.answer).length;
     const totalTrials = test4.results.length + test2.results.length + test1.results.length;
     return (
       <>
@@ -510,24 +514,29 @@ export function NoteLearner() {
           all three tests.
         </p>
         <ul className="lesson-body">
-          <li>4-semitone test: {test4.results.filter((r) => r.isCorrect).length} / {test4.results.length}</li>
-          <li>2-semitone test: {test2.results.filter((r) => r.isCorrect).length} / {test2.results.length}</li>
-          <li>1-semitone test: {test1.results.filter((r) => r.isCorrect).length} / {test1.results.length}</li>
+          <li>4-semitone test: {test4.results.filter((r) => r.correctAnswer === r.answer).length} / {test4.results.length}</li>
+          <li>2-semitone test: {test2.results.filter((r) => r.correctAnswer === r.answer).length} / {test2.results.length}</li>
+          <li>1-semitone test: {test1.results.filter((r) => r.correctAnswer === r.answer).length} / {test1.results.length}</li>
         </ul>
         <button
           className="primary-button"
           type="button"
-          onClick={() =>
-            downloadJson("notes-lesson-results.json", {
+          onClick={() => {
+            const results = {
               exportedAt: new Date().toISOString(),
               guidance,
               test4: test4.results,
               test2: test2.results,
               test1: test1.results,
-            })
-          }
+            };
+            if (showDownloadResults) {
+              downloadJson("notes-lesson-results.json", results);
+            } else {
+              onResults?.(results);
+            }
+          }}
         >
-          Download results (JSON)
+          {showDownloadResults ? "Download results (JSON)" : "Continue"}
         </button>
       </>
     );

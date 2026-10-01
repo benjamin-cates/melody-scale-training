@@ -123,7 +123,12 @@ function getIntensityColor(intensity: number): { background: string; shadow: str
   };
 }
 
-export function Vocoder() {
+type VocoderProps = {
+  forceEnabled?: boolean;
+  showControls?: boolean;
+};
+
+export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}) {
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
@@ -132,9 +137,10 @@ export function Vocoder() {
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const centers = useMemo(() => getCenterFrequencies(settings), [settings]);
+  const isEnabled = forceEnabled ?? enabled;
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!isEnabled) return;
     let cancelled = false;
     let graph: typeof audioRef.current = null;
     let animationFrameId: number | null = null;
@@ -217,7 +223,7 @@ export function Vocoder() {
               const { background, shadow } = getIntensityColor(levels[index]);
               box.style.backgroundColor = background;
               box.style.boxShadow = shadow;
-              box.textContent = `${Math.floor(rms*10000)/10000}`;
+              box.textContent = `${Math.floor(rms * 10000) / 10000}`;
             }
           }
           animationFrameId = window.requestAnimationFrame(updateMeter);
@@ -261,16 +267,18 @@ export function Vocoder() {
       }
       if (audioRef.current === current) audioRef.current = null;
     };
-  }, [centers, enabled, settings.slope]);
+  }, [centers, isEnabled, settings.slope]);
 
   function updateSettings(patch: Partial<VocoderSettings>) {
     setSettings((current) => ({ ...current, ...patch }));
   }
 
+  if (!showControls) return null;
+
   return (
     <aside className={`vocoder ${open ? "is-open" : ""}`} aria-label="Cochlear implant vocoder">
       <button className="vocoder-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        <span className={`vocoder-status ${enabled ? "is-live" : ""}`} />
+        <span className={`vocoder-status ${isEnabled ? "is-live" : ""}`} />
         Cochlear vocoder
         <b>{open ? "-" : "+"}</b>
       </button>
@@ -279,13 +287,13 @@ export function Vocoder() {
           <div className="vocoder-panel-body">
             <p className="vocoder-intro">Live four- or eight-channel noise vocoder</p>
             <button
-              className={`vocoder-power ${enabled ? "is-on" : ""}`}
+              className={`vocoder-power ${isEnabled ? "is-on" : ""}`}
               onClick={() => {
                 setError("");
                 setEnabled((value) => !value);
               }}
             >
-              {enabled ? "Stop vocoder" : "Start vocoder"}
+              {isEnabled ? "Stop vocoder" : "Start vocoder"}
             </button>
             <label className="vocoder-field">
               <span>Channels <output>{settings.channels}</output></span>

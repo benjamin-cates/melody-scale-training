@@ -10,15 +10,18 @@ type LessonStep = "intro" | "examples" | "test" | "complete";
 type MelodyTrial = {
   id: string;
   song: Song;
-  correctAnswer: Scale;
+  correctAnswer: "major" | "minor";
 };
 
 type MelodyResult = {
   trialId: string;
   songTitle: string;
-  correctAnswer: Scale;
-  answer: Scale;
+  correctAnswer: "major" | "minor";
+  answer: "major" | "minor";
   isCorrect: boolean;
+  startedAt: string;
+  timeElapsedMs: number;
+  replayEvents: number[];
 };
 
 const STEPS: { id: LessonStep; label: string }[] = [
@@ -138,10 +141,25 @@ function useMelodyTest(trials: MelodyTrial[]) {
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState<Scale | null>(null);
   const [results, setResults] = useState<MelodyResult[]>([]);
+  const questionStartedAt = useRef(new Date());
+  const replayEvents = useRef<number[]>([]);
   const trial = trials[index];
+
+  const beginTrial = () => {
+    questionStartedAt.current = new Date();
+    replayEvents.current = [0];
+  };
+
+  const recordReplay = () => {
+    replayEvents.current = [
+      ...replayEvents.current,
+      Date.now() - questionStartedAt.current.getTime(),
+    ];
+  };
 
   const submit = () => {
     if (!trial || answer === null) return;
+    const submittedAt = new Date();
     setResults((previous) => [
       ...previous,
       {
@@ -150,13 +168,16 @@ function useMelodyTest(trials: MelodyTrial[]) {
         correctAnswer: trial.correctAnswer,
         answer,
         isCorrect: answer === trial.correctAnswer,
+        startedAt: questionStartedAt.current.toISOString(),
+        timeElapsedMs: submittedAt.getTime() - questionStartedAt.current.getTime(),
+        replayEvents: [...replayEvents.current],
       },
     ]);
     setAnswer(null);
     setIndex((value) => value + 1);
   };
 
-  return { trial, index, answer, setAnswer, results, submit, isDone: !trial };
+  return { trial, index, answer, setAnswer, results, beginTrial, recordReplay, submit, isDone: !trial };
 }
 
 function MelodyVisual({
@@ -170,7 +191,7 @@ function MelodyVisual({
   activeNotes: SongNote[];
   revealKey: boolean;
 }) {
-  if (guidance === "auditory" && !revealKey) {
+  if (guidance === "auditory") {
     return null;
   }
   return (
@@ -184,10 +205,18 @@ function MelodyVisual({
   );
 }
 
-export function MelodyLearner() {
+export function MelodyLearner({
+  guidanceMode,
+  showDownloadResults = true,
+  onResults,
+}: {
+  guidanceMode?: GuidanceMode;
+  showDownloadResults?: boolean;
+  onResults?: (results: Record<string, unknown>) => void;
+} = {}) {
   const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
   const [stepIndex, setStepIndex] = useState(0);
-  const [guidance, setGuidance] = useState<GuidanceMode>("visual");
+  const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
   const [exampleTrials] = useState(createExampleTrials);
   const [testTrials] = useState(createTestTrials);
   const [exampleIndex, setExampleIndex] = useState(0);
@@ -217,6 +246,7 @@ export function MelodyLearner() {
   useEffect(() => {
     if (step !== "test" || !test.trial) return;
     setTestFinished(false);
+    test.beginTrial();
     player.play(test.trial.song, () => setTestFinished(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, test.index]);
@@ -268,7 +298,7 @@ export function MelodyLearner() {
           anchor. Some music in this lesson has a modified key: focus on the relationships between
           the notes rather than the tempo when guessing major or minor.
         </p>
-        {guidanceToggle}
+        {!guidanceMode && guidanceToggle}
         <p className="lesson-body">
           {guidance === "visual"
             ? "The key is shown by the notes outlined in gold, and the central tonic note is outlined in white. Click below to preview each major and minor key."
@@ -284,7 +314,7 @@ export function MelodyLearner() {
               onClick={() => {
                 const song = previewSong(scale);
                 setPreviewScale(scale);
-                if (song) previewPlayer.play(song, () => {});
+                if (song) previewPlayer.play(song, () => { });
               }}
             >
               ▶ Preview C {scale}
@@ -428,6 +458,7 @@ export function MelodyLearner() {
             className="secondary-button"
             type="button"
             onClick={() => {
+              test.recordReplay();
               setTestFinished(false);
               player.play(trial.song, () => setTestFinished(true));
             }}
@@ -460,15 +491,20 @@ export function MelodyLearner() {
         <button
           className="primary-button"
           type="button"
-          onClick={() =>
-            downloadJson("melodies-lesson-results.json", {
+          onClick={() => {
+            const results = {
               exportedAt: new Date().toISOString(),
               guidance,
               test: test.results,
-            })
-          }
+            };
+            if (showDownloadResults) {
+              downloadJson("melodies-lesson-results.json", results);
+            } else {
+              onResults?.(results);
+            }
+          }}
         >
-          Download results (JSON)
+          {showDownloadResults ? "Download results (JSON)" : "Continue"}
         </button>
       </>
     );

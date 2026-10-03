@@ -179,10 +179,12 @@ function NoteVisual({ guidance, activeNote, notes }: { guidance: GuidanceMode; a
 
 export function NoteLearner({
   guidanceMode,
+  instructionOnly = false,
   showDownloadResults = true,
   onResults,
 }: {
   guidanceMode?: GuidanceMode;
+  instructionOnly?: boolean;
   showDownloadResults?: boolean;
   onResults?: (results: Record<string, unknown>) => void;
 } = {}) {
@@ -539,6 +541,27 @@ export function NoteLearner({
           {showDownloadResults ? "Download results (JSON)" : "Continue"}
         </button>
       </>
+    );
+  }
+
+  if (instructionOnly) {
+    return (
+      <section className="page-section learner-page">
+        <div className="lesson-track">
+          <article className="lesson-card">
+            {renderIntro()}
+            <div className="lesson-actions continue-only">
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => onResults?.({ completedAt: new Date().toISOString(), guidance })}
+              >
+                Continue to interleaved practice
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
     );
   }
 

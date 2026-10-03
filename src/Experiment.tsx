@@ -3,12 +3,12 @@ import { ChordLearner } from "./ChordLearner";
 import { MelodyLearner } from "./MelodyLearner";
 import { NoteLearner } from "./NoteLearner";
 import { Survey, type SurveyData } from "./Survey";
-import { Test } from "./Test";
+import { createPracticeQuestions, Test } from "./Test";
 import { downloadJson } from "./AppRoutes";
 import { Vocoder } from "./audio/VocoderBiquad";
 
 type ExperimentGroup = "audio" | "visual";
-type ExperimentStep = "welcome" | "survey" | "listening-instructions" | "baseline" | "notes" | "chords" | "melodies" | "post-test" | "complete";
+type ExperimentStep = "welcome" | "survey" | "listening-instructions" | "baseline" | "notes" | "chords" | "melodies" | "practice" | "post-test" | "complete";
 type ResultKey = Exclude<ExperimentStep, "welcome" | "listening-instructions" | "complete">;
 type PauseEvent = {
     section: ExperimentStep;
@@ -39,7 +39,7 @@ type ExperimentSession = {
     stepIndex: number;
 };
 
-const RESULT_KEYS: ResultKey[] = ["survey", "baseline", "notes", "chords", "melodies", "post-test"];
+const RESULT_KEYS: ResultKey[] = ["survey", "baseline", "notes", "chords", "melodies", "practice", "post-test"];
 const PAUSE_SECTIONS: ExperimentStep[] = ["welcome", "listening-instructions", ...RESULT_KEYS];
 
 const STEPS: { id: ExperimentStep; label: string }[] = [
@@ -50,6 +50,7 @@ const STEPS: { id: ExperimentStep; label: string }[] = [
     { id: "notes", label: "Notes lesson" },
     { id: "chords", label: "Chords lesson" },
     { id: "melodies", label: "Melodies lesson" },
+    { id: "practice", label: "Interleaved practice" },
     { id: "post-test", label: "Final test" },
     { id: "complete", label: "Complete" },
 ];
@@ -79,6 +80,11 @@ const AGENDA = [
         title: "Melodies Lesson",
         duration: "17 minutes",
         description: "A 2AFC task to guess major or minor melodies.",
+    },
+    {
+        title: "Interleaved Practice",
+        duration: "After the lessons",
+        description: "Mixed pitch, chord, and melody questions for practice across the lesson topics.",
     },
     {
         title: "Post-test",
@@ -327,6 +333,15 @@ export function Experiment() {
 
     const experimentControls = (
         <div className="experiment-controls">
+            {isDebug && step === "survey" && (
+                <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => recordResults("survey", { skipped: true, skippedAt: new Date().toISOString() })}
+                >
+                    Skip survey
+                </button>
+            )}
             {!results.timing.pausedAt && step !== "complete" && (
                 <button className="secondary-button" type="button" onClick={pauseExperiment}>
                     Pause experiment
@@ -535,6 +550,7 @@ export function Experiment() {
             {step === "notes" && (
                 <NoteLearner
                     guidanceMode={guidanceMode}
+                    instructionOnly
                     showDownloadResults={false}
                     onResults={(value) => recordResults("notes", value)}
                 />
@@ -542,6 +558,7 @@ export function Experiment() {
             {step === "chords" && (
                 <ChordLearner
                     guidanceMode={guidanceMode}
+                    instructionOnly
                     showDownloadResults={false}
                     onResults={(value) => recordResults("chords", value)}
                 />
@@ -549,8 +566,19 @@ export function Experiment() {
             {step === "melodies" && (
                 <MelodyLearner
                     guidanceMode={guidanceMode}
+                    instructionOnly
                     showDownloadResults={false}
                     onResults={(value) => recordResults("melodies", value)}
+                />
+            )}
+            {step === "practice" && (
+                <Test
+                    key="interleaved-practice"
+                    questions={createPracticeQuestions(group)}
+                    giveAnswerFeedback
+                    completionTitle="Interleaved practice complete"
+                    showDownloadResults={false}
+                    onResults={(value) => recordResults("practice", value)}
                 />
             )}
             {step === "post-test" && (

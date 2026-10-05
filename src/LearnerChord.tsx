@@ -1,58 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { downloadJson } from "./AppRoutes";
 import { getAudioContext, noteLabel, playTone } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
 
 type GuidanceMode = "visual" | "auditory";
-type PlaybackMode = "arpeggio" | "block";
-type Answer = "same" | "different";
-
-type LessonStep =
-  | "intro"
-  | "examples-arpeggio"
-  | "examples-melodic"
-  | "playground"
-  | "test-arpeggio"
-  | "test-melodic"
-  | "complete";
+type PlaybackMode = "arpeggio" | "melody";
 
 type ChordTrial = {
   id: string;
   root: number;
   chordType: 3 | 4 | 7;
-};
-
-type DiscriminationTrial = {
-  id: string;
-  root: number;
-  comparisonType: 3 | 4 | 7;
-  correctAnswer: Answer;
   mode: PlaybackMode;
 };
-
-type DiscriminationResult = {
-  trialId: string;
-  root: number;
-  mode: PlaybackMode;
-  comparisonType: 3 | 4 | 7;
-  correctAnswer: Answer;
-  answer: Answer;
-  isCorrect: boolean;
-  startedAt: string;
-  timeElapsedMs: number;
-  replayEvents: number[];
-};
-
-const STEPS: { id: LessonStep; label: string }[] = [
-  { id: "intro", label: "Introduction" },
-  { id: "examples-arpeggio", label: "Arpeggio examples" },
-  { id: "examples-melodic", label: "Melodic examples" },
-  { id: "playground", label: "Playground" },
-  { id: "test-arpeggio", label: "Arpeggio test" },
-  { id: "test-melodic", label: "Melodic test" },
-  { id: "complete", label: "Complete" },
-];
 
 const MIDDLE_C = 39;
 
@@ -64,40 +23,20 @@ const CHORD_DEFS: Record<3 | 4 | 7, { label: string; interval: number; mood: str
   7: { label: "Perfect fifth", interval: 7, mood: "open and neutral" },
 };
 
-function shuffle<T>(values: T[]) {
-  const shuffled = [...values];
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-  }
-  return shuffled;
-}
-
 function chordNotes(root: number, chordType: 3 | 4 | 7) {
   const rootNote = MIDDLE_C + root;
   return [rootNote, rootNote + chordType];
 }
 
-function createExampleTrials(): ChordTrial[] {
-  return shuffle(
-    CHORD_TYPES.flatMap((chordType) => [0, 1].map((repetition) => ({
-      id: `${chordType}-${repetition}`,
-      root: Math.floor(Math.random() * 12),
-      chordType,
-    }))),
-  );
-}
-
-function createDiscriminationTrials(mode: PlaybackMode): DiscriminationTrial[] {
-  return shuffle(
-    ([3, 4, 7] as const).flatMap((comparisonType) => [0, 1, 2].map((repetition) => ({
-      id: `${comparisonType}-${repetition}`,
-      root: Math.floor(Math.random() * 12),
-      comparisonType,
-      correctAnswer: (comparisonType === 4 ? "same" : "different") as Answer,
-      mode,
-    }))),
-  );
+function createExampleTrial(): ChordTrial {
+  const chordType = CHORD_TYPES[Math.floor(Math.random() * CHORD_TYPES.length)];
+  const mode = Math.random() < 0.5 ? "arpeggio" : "melody";
+  return {
+    id: `chord-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    root: Math.floor(Math.random() * 12),
+    chordType,
+    mode,
+  };
 }
 
 function useChordPlayer() {
@@ -121,7 +60,7 @@ function useChordPlayer() {
   };
 
   const scheduleChord = (notes: number[], chordStart: number, mode: PlaybackMode) => {
-    const noteDuration = mode === "arpeggio" ? 0.45 : 1.1;
+    const noteDuration = mode === "arpeggio" ? 0.45 : 0.7;
     const step = mode === "arpeggio" ? noteDuration - 0.05 : 0;
     notes.forEach((note, index) => {
       const noteStart = chordStart + index * step;
@@ -140,91 +79,25 @@ function useChordPlayer() {
     timers.current.push(window.setTimeout(() => setIsPlaying(false), span * 1000 + 150));
   };
 
-  const playPair = (firstNotes: number[], secondNotes: number[], mode: PlaybackMode) => {
-    stop();
-    const context = getAudioContext();
-    void context.resume();
-    const start = context.currentTime + 0.05;
-    setIsPlaying(true);
-    const firstSpan = scheduleChord(firstNotes, start, mode);
-    const secondStart = start + firstSpan + 0.4;
-    const secondSpan = scheduleChord(secondNotes, secondStart, mode);
-    const totalMs = (secondStart - context.currentTime + secondSpan) * 1000 + 150;
-    timers.current.push(window.setTimeout(() => setIsPlaying(false), totalMs));
-  };
-
   useEffect(() => stop, []);
 
-  return { playChord, playPair, isPlaying, stop };
-}
-
-function useDiscriminationTest(trials: DiscriminationTrial[]) {
-  const [index, setIndex] = useState(0);
-  const [answer, setAnswer] = useState<Answer | null>(null);
-  const [results, setResults] = useState<DiscriminationResult[]>([]);
-  const questionStartedAt = useRef(new Date());
-  const replayEvents = useRef<number[]>([]);
-  const trial = trials[index];
-
-  const beginTrial = () => {
-    questionStartedAt.current = new Date();
-    replayEvents.current = [0];
-  };
-
-  const recordReplay = () => {
-    replayEvents.current = [
-      ...replayEvents.current,
-      Date.now() - questionStartedAt.current.getTime(),
-    ];
-  };
-
-  const submit = () => {
-    if (!trial || answer === null) return;
-    const submittedAt = new Date();
-    setResults((previous) => [
-      ...previous,
-      {
-        trialId: trial.id,
-        root: trial.root,
-        comparisonType: trial.comparisonType,
-        correctAnswer: trial.correctAnswer,
-        mode: trial.mode,
-        answer,
-        isCorrect: answer === trial.correctAnswer,
-        startedAt: questionStartedAt.current.toISOString(),
-        timeElapsedMs: submittedAt.getTime() - questionStartedAt.current.getTime(),
-        replayEvents: [...replayEvents.current],
-      },
-    ]);
-    setAnswer(null);
-    setIndex((value) => value + 1);
-  };
-
-  return { trial, index, answer, setAnswer, results, beginTrial, recordReplay, submit, isDone: !trial };
+  return { playChord, isPlaying, stop };
 }
 
 function ChordVisual({
   guidance,
   root,
   chordType,
+  revealChordType = true,
 }: {
   guidance: GuidanceMode;
   root: number;
   chordType: 3 | 4 | 7 | null;
+  revealChordType?: boolean;
 }) {
   const notes = chordType ? chordNotes(root, chordType) : [MIDDLE_C + root];
   if (guidance === "auditory") {
-    const def = chordType ? CHORD_DEFS[chordType] : null;
-    return (
-      <div className="lesson-body" aria-live="polite">
-        <p>Root note: {noteLabel(MIDDLE_C + root)}</p>
-        {def && (
-          <p>
-            Chord: {def.label} ({noteLabel(notes[0])} to {noteLabel(notes[1])}, {def.interval} semitones)
-          </p>
-        )}
-      </div>
-    );
+    return null;
   }
   return (
     <Chromatone
@@ -241,92 +114,33 @@ function ChordVisual({
 export function LearnerChord({
   guidanceMode,
   instructionOnly = false,
-  showDownloadResults = true,
   onResults,
 }: {
   guidanceMode?: GuidanceMode;
   instructionOnly?: boolean;
-  showDownloadResults?: boolean;
   onResults?: (results: Record<string, unknown>) => void;
 } = {}) {
-  const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
-  const [stepIndex, setStepIndex] = useState(0);
   const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
   const [playgroundRoot, setPlaygroundRoot] = useState(0);
   const [playgroundType, setPlaygroundType] = useState<3 | 4 | 7>(3);
-  const [exampleArpeggioTrials] = useState(createExampleTrials);
-  const [exampleMelodicTrials] = useState(createExampleTrials);
-  const [exampleArpeggioIndex, setExampleArpeggioIndex] = useState(0);
-  const [exampleMelodicIndex, setExampleMelodicIndex] = useState(0);
-  const [exampleArpeggioGuess, setExampleArpeggioGuess] = useState<3 | 4 | 7 | null>(null);
-  const [exampleMelodicGuess, setExampleMelodicGuess] = useState<3 | 4 | 7 | null>(null);
-  const [testArpeggioTrials] = useState(() => createDiscriminationTrials("arpeggio"));
-  const [testMelodicTrials] = useState(() => createDiscriminationTrials("block"));
+  const [playgroundMode, setPlaygroundMode] = useState<PlaybackMode>("melody");
+  const [exampleTrial, setExampleTrial] = useState(createExampleTrial);
+  const [exampleGuess, setExampleGuess] = useState<3 | 4 | 7 | null>(null);
+  const [visualChord, setVisualChord] = useState({
+    root: 0,
+    chordType: 3 as 3 | 4 | 7,
+    revealChordType: true,
+  });
 
   const player = useChordPlayer();
-  const testArpeggio = useDiscriminationTest(testArpeggioTrials);
-  const testMelodic = useDiscriminationTest(testMelodicTrials);
-
-  const step = STEPS[stepIndex].id;
-  const exampleArpeggioTrial = exampleArpeggioTrials[exampleArpeggioIndex];
-  const exampleMelodicTrial = exampleMelodicTrials[exampleMelodicIndex];
-
-  const goBack = () => setStepIndex((value) => Math.max(value - 1, 0));
-  const goNext = () => setStepIndex((value) => Math.min(value + 1, STEPS.length - 1));
 
   useEffect(() => {
-    if (step !== "examples-arpeggio" || !exampleArpeggioTrial) return;
-    player.playChord(chordNotes(exampleArpeggioTrial.root, exampleArpeggioTrial.chordType), "arpeggio");
-    setExampleArpeggioGuess(null);
+    if (instructionOnly) return;
+    setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.chordType, revealChordType: false });
+    player.playChord(chordNotes(exampleTrial.root, exampleTrial.chordType), exampleTrial.mode);
+    setExampleGuess(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, exampleArpeggioIndex]);
-
-  useEffect(() => {
-    if (step !== "examples-melodic" || !exampleMelodicTrial) return;
-    player.playChord(chordNotes(exampleMelodicTrial.root, exampleMelodicTrial.chordType), "block");
-    setExampleMelodicGuess(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, exampleMelodicIndex]);
-
-  useEffect(() => {
-    if (step !== "test-arpeggio" || !testArpeggio.trial) return;
-    const { root, comparisonType } = testArpeggio.trial;
-    testArpeggio.beginTrial();
-    player.playPair(chordNotes(root, 3), chordNotes(root, comparisonType), "arpeggio");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, testArpeggio.index]);
-
-  useEffect(() => {
-    if (step !== "test-melodic" || !testMelodic.trial) return;
-    const { root, comparisonType } = testMelodic.trial;
-    testMelodic.beginTrial();
-    player.playPair(chordNotes(root, 3), chordNotes(root, comparisonType), "block");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, testMelodic.index]);
-
-  useEffect(() => {
-    if (isDebug) return;
-    if (step === "examples-arpeggio" && !exampleArpeggioTrial) {
-      setStepIndex((value) => Math.min(value + 1, STEPS.length - 1));
-      return;
-    }
-    if (step === "examples-melodic" && !exampleMelodicTrial) {
-      setStepIndex((value) => Math.min(value + 1, STEPS.length - 1));
-      return;
-    }
-    if ((step === "test-arpeggio" && testArpeggio.isDone) || (step === "test-melodic" && testMelodic.isDone)) {
-      setStepIndex((value) => Math.min(value + 1, STEPS.length - 1));
-    }
-  }, [
-    isDebug,
-    step,
-    exampleArpeggioIndex,
-    exampleMelodicIndex,
-    testArpeggio.isDone,
-    testMelodic.isDone,
-    exampleArpeggioTrial,
-    exampleMelodicTrial,
-  ]);
+  }, [instructionOnly, exampleTrial]);
 
   const guidanceToggle = (
     <div className="choice-row" role="radiogroup" aria-label="Guidance style">
@@ -360,70 +174,56 @@ export function LearnerChord({
           will focus on three core intervals built from a root note. The major third has an
           interval size of 4 steps above the root and sounds {CHORD_DEFS[4].mood}. The minor
           third has an interval size of 3 steps and sounds {CHORD_DEFS[3].mood}. The perfect
-          fifth has a gap of 7 steps and sounds {CHORD_DEFS[7].mood}. The root note, Middle
-          C for now, is highlighted below.
+          fifth has a gap of 7 steps and sounds {CHORD_DEFS[7].mood}.
         </p>
         {!guidanceMode && guidanceToggle}
         <p className="lesson-body">
           {guidance === "visual"
-            ? "Chords are shown as connected notes on the spiral. The white outline marks the root note. The perfect fifth line is purple, the major third line is yellow (representing happiness), and the minor third line is blue (representing sadness). Classify each chord correctly."
-            : "The names of the notes, the name of the chord, and the separation distance will be shown on the screen. Classify each chord correctly."}
+            ? "Chords are shown as connected notes on the spiral. The white outline marks the root note. The perfect fifth line is purple, the major third line is yellow, and the minor third line is blue."
+            : "The names of the notes, the chord type, and the separation distance are shown on the screen."}
         </p>
-        <ChordVisual guidance={guidance} root={0} chordType={null} />
-        <div className="test-actions">
-          {CHORD_TYPES.map((chordType) => (
-            <button
-              className="secondary-button"
-              key={chordType}
-              type="button"
-              onClick={() => player.playChord(chordNotes(0, chordType), "block")}
-            >
-              ▶ Hear a {CHORD_DEFS[chordType].label.toLowerCase()}
-            </button>
-          ))}
-        </div>
       </>
     );
   }
 
-  function renderExamples(
-    mode: PlaybackMode,
-    trial: ChordTrial | undefined,
-    guess: 3 | 4 | 7 | null,
-    setGuess: (value: 3 | 4 | 7 | null) => void,
-    index: number,
-    total: number,
-    onAdvance: () => void,
-  ) {
-    if (!trial) {
-      return (
-        <>
-          <h2>Examples complete</h2>
-          <p className="lesson-body">You are ready to try the playground and the tests.</p>
-        </>
-      );
-    }
-    const correctDef = CHORD_DEFS[trial.chordType];
+  function renderExamples() {
+    const correctDef = CHORD_DEFS[exampleTrial.chordType];
     return (
       <>
-        <p className="lesson-body">
-          Listen to the {mode === "arpeggio" ? "arpeggiated" : "melodic"} chord and identify it.
-        </p>
-        <ChordVisual guidance={guidance} root={trial.root} chordType={trial.chordType} />
-        <p className="sequence-status" aria-live="polite">
-          Answer: this is a {correctDef.label}. Click the matching button below.
-        </p>
-        <div className="choice-row">
+        <div className="example-prompt-row">
+          <p className="sequence-status" aria-live="polite">
+            {exampleGuess === null
+              ? "Listen, then choose an interval."
+              : exampleGuess === exampleTrial.chordType
+                ? `Correct: ${correctDef.label}.`
+                : "Not quite. Try another interval."}
+          </p>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => {
+              setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.chordType, revealChordType: false });
+              player.playChord(chordNotes(exampleTrial.root, exampleTrial.chordType), exampleTrial.mode);
+            }}
+          >
+            Hear example again
+          </button>
+        </div>
+        <div className="choice-row" role="radiogroup" aria-label="Chord interval">
           {CHORD_TYPES.map((chordType) => (
-            <label className={guess === chordType ? "selected" : ""} key={chordType}>
+            <label
+              className={`${exampleGuess === chordType ? "selected" : ""}${exampleGuess === exampleTrial.chordType ? " locked" : ""}`}
+              key={chordType}
+            >
               <input
                 type="radio"
-                name={`example-${mode}-answer`}
-                checked={guess === chordType}
+                name="chord-example-answer"
+                checked={exampleGuess === chordType}
+                disabled={exampleGuess === exampleTrial.chordType}
                 onChange={() => {
-                  setGuess(chordType);
-                  if (chordType === trial.chordType) {
-                    window.setTimeout(onAdvance, 500);
+                  setExampleGuess(chordType);
+                  if (chordType === exampleTrial.chordType) {
+                    window.setTimeout(() => setExampleTrial(createExampleTrial()), 500);
                   }
                 }}
               />
@@ -431,191 +231,75 @@ export function LearnerChord({
             </label>
           ))}
         </div>
-        {guess && guess !== trial.chordType && (
-          <p className="sequence-status">Try clicking {correctDef.label} instead.</p>
-        )}
-        <div className="test-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => player.playChord(chordNotes(trial.root, trial.chordType), mode)}
-          >
-            Hear again
-          </button>
-          <span className="test-progress" aria-label="Example progress">
-            {index + 1} / {total}
-          </span>
-        </div>
       </>
     );
   }
 
   function renderPlayground() {
-    const notes = chordNotes(playgroundRoot, playgroundType);
-    return (
-      <>
-        <h2>Playground</h2>
-        <p className="lesson-body">
-          Choose a root note and a chord type, then play it as a block chord to explore how each
-          of the 36 chords sounds and looks.
-        </p>
-        <div className="explorer-picker-group">
-          <span className="explorer-picker-label">Root note</span>
-          <div className="explorer-button-row" aria-label="Root note">
-            {NOTE_NAMES.map((name, pitchClass) => (
-              <button
-                className={playgroundRoot === pitchClass ? "explorer-picker-button is-selected" : "explorer-picker-button"}
-                key={name}
-                type="button"
-                onClick={() => setPlaygroundRoot(pitchClass)}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="explorer-picker-group">
-          <span className="explorer-picker-label">Chord type</span>
-          <div className="explorer-button-row" aria-label="Chord type">
-            {CHORD_TYPES.map((chordType) => (
-              <button
-                className={playgroundType === chordType ? "explorer-picker-button is-selected" : "explorer-picker-button"}
-                key={chordType}
-                type="button"
-                onClick={() => setPlaygroundType(chordType)}
-              >
-                {CHORD_DEFS[chordType].label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <ChordVisual guidance={guidance} root={playgroundRoot} chordType={playgroundType} />
-        <div className="test-actions">
-          <button className="primary-button" type="button" onClick={() => player.playChord(notes, "block")}>
-            ▶ Play block chord
-          </button>
-        </div>
-      </>
-    );
-  }
-
-  function renderTest(
-    mode: PlaybackMode,
-    test: ReturnType<typeof useDiscriminationTest>,
-    sectionLabel: string,
-    trialCount: number,
-  ) {
-    if (test.isDone) {
-      const correctCount = test.results.filter((result) => result.isCorrect).length;
-      return (
-        <>
-          <h2>{sectionLabel} complete</h2>
-          <p className="lesson-body">
-            You answered {correctCount} of {test.results.length} correctly.
-          </p>
-        </>
-      );
-    }
-    const { trial } = test;
-    if (!trial) return null;
-    const isAnswerCorrect = test.answer === trial.correctAnswer;
     return (
       <>
         <p className="lesson-body">
-          A major third plays first, followed by a second chord with the same root note. Decide
-          whether the second chord is the Same as a major third or Different.
+          Choose a root note and a chord. Play each chord as a melody or an arpeggio.
         </p>
-        <div className="test-art" aria-hidden="true">
-          <span className="test-orbit" />
-          <span>♪</span>
-        </div>
-        <p
-          className={`sequence-status${test.answer === null ? "" : isAnswerCorrect ? " is-correct" : " is-incorrect"}`}
-          aria-live="polite"
-        >
-          {test.answer === null
-            ? "Listen, then choose Same or Different"
-            : isAnswerCorrect
-              ? "Correct"
-              : `Not quite. The correct answer is ${trial.correctAnswer === "same" ? "Same" : "Different"}.`}
-        </p>
-        <div className="choice-row test-answer-options" role="radiogroup" aria-label="Same or different">
-          {(["same", "different"] as const).map((answer) => (
-            <label
-              className={`${test.answer === answer ? "selected" : ""}${test.answer !== null ? " locked" : ""}`}
-              key={answer}
-            >
-              <input
-                type="radio"
-                name={`test-${mode}-${test.index}`}
-                checked={test.answer === answer}
-                disabled={test.answer !== null}
-                onChange={() => test.setAnswer(answer)}
-              />
-              {answer === "same" ? "Same" : "Different"}
-            </label>
-          ))}
-        </div>
-        <div className="test-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => {
-              test.recordReplay();
-              player.playPair(chordNotes(trial.root, 4), chordNotes(trial.root, trial.comparisonType), mode);
-            }}
-          >
-            Hear again
-          </button>
-          <div className="test-progress" aria-label="Test progress">
-            <span>{test.index + 1} / {trialCount}</span>
-            <span className="test-progress-track">
-              <span style={{ width: `${((test.index + 1) / trialCount) * 100}%` }} />
-            </span>
+        <div className={`note-practice-layout chord-practice-layout${guidance === "visual" ? " has-visualizer" : ""}`}>
+          <div className="note-practice-picker-panel">
+            <h3 className="note-practice-picker-title">Playground</h3>
+            <div className={`note-practice-pickers chord-playground-pickers${guidance === "visual" ? " has-visualizer" : ""}`}>
+              <div className="explorer-picker-group">
+                <span className="explorer-picker-label">Root</span>
+                <div className="explorer-button-row chord-root-row" aria-label="Root note">
+                  {NOTE_NAMES.map((name, pitchClass) => (
+                    <button
+                      className={playgroundRoot === pitchClass ? "explorer-picker-button is-selected" : "explorer-picker-button"}
+                      key={name}
+                      type="button"
+                      onClick={() => {
+                        setPlaygroundRoot(pitchClass);
+                        setVisualChord({ root: pitchClass, chordType: playgroundType, revealChordType: true });
+                      }}
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="chord-mode-categories">
+                {(["melody", "arpeggio"] as const).map((mode) => (
+                  <section className="chord-mode-category" key={mode}>
+                    <span className="explorer-picker-label">
+                      {mode === "melody" ? "Chord" : "Arpeggio"}
+                    </span>
+                    <div className="explorer-button-row chord-mode-button-row" aria-label={`${mode} chord types`}>
+                      {CHORD_TYPES.map((chordType) => (
+                        <button
+                          className={"explorer-picker-button"}
+                          key={chordType}
+                          type="button"
+                          onClick={() => {
+                            setPlaygroundType(chordType);
+                            setPlaygroundMode(mode);
+                            setVisualChord({ root: playgroundRoot, chordType, revealChordType: true });
+                            player.playChord(chordNotes(playgroundRoot, chordType), mode);
+                          }}
+                        >
+                          {CHORD_DEFS[chordType].label}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </div>
           </div>
-          <button className="primary-button" type="button" disabled={test.answer === null} onClick={test.submit}>
-            Next
-          </button>
+          <div className="note-practice-visualizer">
+            <ChordVisual
+              guidance={guidance}
+              root={visualChord.root}
+              chordType={visualChord.chordType}
+              revealChordType={visualChord.revealChordType}
+            />
+          </div>
         </div>
-      </>
-    );
-  }
-
-  function renderComplete() {
-    const totalCorrect =
-      testArpeggio.results.filter((r) => r.isCorrect).length +
-      testMelodic.results.filter((r) => r.isCorrect).length;
-    const totalTrials = testArpeggio.results.length + testMelodic.results.length;
-    return (
-      <>
-        <h2>Lesson complete</h2>
-        <p className="lesson-body">
-          You answered {totalCorrect} of {totalTrials} chord discrimination questions correctly
-          across both tests.
-        </p>
-        <ul className="lesson-body">
-          <li>Arpeggio test: {testArpeggio.results.filter((r) => r.isCorrect).length} / {testArpeggio.results.length}</li>
-          <li>Melodic test: {testMelodic.results.filter((r) => r.isCorrect).length} / {testMelodic.results.length}</li>
-        </ul>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={() => {
-            const results = {
-              exportedAt: new Date().toISOString(),
-              guidance,
-              testArpeggio: testArpeggio.results,
-              testMelodic: testMelodic.results,
-            };
-            if (showDownloadResults) {
-              downloadJson("chords-lesson-results.json", results);
-            } else {
-              onResults?.(results);
-            }
-          }}
-        >
-          {showDownloadResults ? "Download results (JSON)" : "Continue"}
-        </button>
       </>
     );
   }
@@ -641,67 +325,14 @@ export function LearnerChord({
     );
   }
 
-  const canGoBack = step !== "complete";
-  const showContinue =
-    step !== "complete" && (isDebug || step === "intro" || step === "playground");
   return (
     <section className="page-section learner-page">
       <div className="lesson-track">
-        <div className="lesson-progress">
-          <span>{STEPS[stepIndex].label} • Step {stepIndex + 1} of {STEPS.length}</span>
-          <div>
-            {STEPS.map((item, index) => (
-              <button
-                aria-label={item.label}
-                className={index < stepIndex ? "done" : index === stepIndex ? "current" : ""}
-                disabled={index > stepIndex}
-                key={item.id}
-                onClick={() => index <= stepIndex && setStepIndex(index)}
-                type="button"
-              />
-            ))}
-          </div>
-        </div>
         <article className="lesson-card">
-          {step === "intro" && renderIntro()}
-          {step === "examples-arpeggio" &&
-            renderExamples(
-              "arpeggio",
-              exampleArpeggioTrial,
-              exampleArpeggioGuess,
-              setExampleArpeggioGuess,
-              exampleArpeggioIndex,
-              exampleArpeggioTrials.length,
-              () => setExampleArpeggioIndex((value) => value + 1),
-            )}
-          {step === "examples-melodic" &&
-            renderExamples(
-              "block",
-              exampleMelodicTrial,
-              exampleMelodicGuess,
-              setExampleMelodicGuess,
-              exampleMelodicIndex,
-              exampleMelodicTrials.length,
-              () => setExampleMelodicIndex((value) => value + 1),
-            )}
-          {step === "playground" && renderPlayground()}
-          {step === "test-arpeggio" && renderTest("arpeggio", testArpeggio, "Arpeggio test", testArpeggioTrials.length)}
-          {step === "test-melodic" && renderTest("block", testMelodic, "Melodic test", testMelodicTrials.length)}
-          {step === "complete" && renderComplete()}
-          {(isDebug || showContinue) && (
-            <div className={showContinue && !isDebug ? "lesson-actions continue-only" : "lesson-actions"}>
-              {isDebug && (
-                <button className="secondary-button" type="button" disabled={!canGoBack} onClick={goBack}>
-                  Back
-                </button>
-              )}
-              {showContinue && (
-                <button className="primary-button" type="button" onClick={goNext}>
-                  Continue
-                </button>
-              )}
-            </div>
-          )}
+          {renderIntro()}
+          {renderPlayground()}
+          <h2>Examples</h2>
+          {renderExamples()}
         </article>
       </div>
     </section>

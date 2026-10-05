@@ -58,6 +58,111 @@
   margin-top: 0;
   padding-top: 0;
 }
+.note-practice-layout.has-visualizer {
+  display: grid;
+  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1.25fr);
+  align-items: center;
+}
+.chord-practice-layout.has-visualizer {
+  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1.25fr);
+}
+.chord-playground-pickers.has-visualizer {
+  grid-template-columns: minmax(0, 4rem) minmax(0, 9rem);
+  align-items: start;
+  gap: 0.375rem;
+}
+.chord-playground-pickers.has-visualizer .explorer-button-row {
+  gap: 5px;
+}
+.chord-playground-pickers.has-visualizer .chord-root-row {
+  flex-direction: column;
+}
+.chord-playground-pickers.has-visualizer
+  .chord-root-row
+  .explorer-picker-button {
+  width: 4rem;
+}
+.chord-mode-categories {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+.chord-playground-pickers.has-visualizer .chord-mode-categories {
+  grid-template-columns: minmax(0, 1fr);
+}
+.chord-mode-category {
+  min-width: 0;
+}
+.chord-mode-category:not(.has-visualizer *) {
+  padding-top: 0.7rem !important;
+  border-top: none !important;
+  margin: 0 !important;
+}
+.chord-mode-category + .chord-mode-category {
+  border-top: 1px solid #506067;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+.chord-mode-category .note-practice-picker-title {
+  margin: 0 0 5px;
+  font-size: 12px;
+}
+.chord-playground-pickers.has-visualizer .chord-mode-button-row {
+  flex-direction: column;
+}
+.chord-playground-pickers.has-visualizer
+  .chord-mode-button-row
+  .explorer-picker-button {
+  width: 100%;
+}
+.chord-mode-button-row .explorer-picker-button {
+  white-space: normal;
+  line-height: 1.25;
+}
+.note-practice-picker-panel {
+  border: 1px solid #506067;
+  padding: 0.5rem;
+}
+.note-practice-picker-title {
+  margin: 0 0 12px;
+  color: #c2cbc6;
+  font-size: 14px;
+  font-weight: 400;
+}
+.note-practice-pickers.has-visualizer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 4rem));
+  gap: 0.5rem;
+}
+.note-practice-pickers.has-visualizer
+  .explorer-picker-group
+  + .explorer-picker-group {
+  margin-top: 0;
+}
+.note-practice-pickers.has-visualizer .explorer-button-row {
+  flex-direction: column;
+}
+.note-practice-pickers.has-visualizer .explorer-picker-button {
+  width: 4rem;
+}
+.note-practice-visualizer .chromatone {
+  margin-top: 0;
+  padding-top: 0;
+}
+.example-prompt-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.example-prompt-row .sequence-status {
+  flex: 1;
+  margin: 0;
+  text-align: left;
+}
+.example-prompt-row .secondary-button {
+  flex-shrink: 0;
+}
 .lesson-card .player-controls {
   margin-top: 20px;
 }
@@ -78,6 +183,15 @@
   }
   .lesson-card h2 {
     font-size: 30px;
+  }
+  .note-practice-layout.has-visualizer {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .example-prompt-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
   .lesson-progress {
     align-items: flex-start;

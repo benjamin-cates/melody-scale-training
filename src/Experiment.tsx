@@ -551,7 +551,6 @@ export function Experiment() {
                 <LearnerNote
                     guidanceMode={guidanceMode}
                     instructionOnly
-                    showDownloadResults={false}
                     onResults={(value) => recordResults("notes", value)}
                 />
             )}
@@ -559,7 +558,6 @@ export function Experiment() {
                 <LearnerChord
                     guidanceMode={guidanceMode}
                     instructionOnly
-                    showDownloadResults={false}
                     onResults={(value) => recordResults("chords", value)}
                 />
             )}

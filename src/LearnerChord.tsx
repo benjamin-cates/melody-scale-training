@@ -238,7 +238,7 @@ function ChordVisual({
   );
 }
 
-export function ChordLearner({
+export function LearnerChord({
   guidanceMode,
   instructionOnly = false,
   showDownloadResults = true,

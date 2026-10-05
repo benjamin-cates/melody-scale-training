@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { ChordLearner } from "./ChordLearner";
-import { MelodyLearner } from "./MelodyLearner";
-import { NoteLearner } from "./NoteLearner";
+import { LearnerChord } from "./LearnerChord";
+import { LearnerMelody } from "./LearnerMelody";
+import { LearnerNote } from "./LearnerNote";
 import { Survey, type SurveyData } from "./Survey";
 import { createPracticeQuestions, Test } from "./Test";
 import { downloadJson } from "./AppRoutes";
@@ -548,7 +548,7 @@ export function Experiment() {
                 />
             )}
             {step === "notes" && (
-                <NoteLearner
+                <LearnerNote
                     guidanceMode={guidanceMode}
                     instructionOnly
                     showDownloadResults={false}
@@ -556,7 +556,7 @@ export function Experiment() {
                 />
             )}
             {step === "chords" && (
-                <ChordLearner
+                <LearnerChord
                     guidanceMode={guidanceMode}
                     instructionOnly
                     showDownloadResults={false}
@@ -564,7 +564,7 @@ export function Experiment() {
                 />
             )}
             {step === "melodies" && (
-                <MelodyLearner
+                <LearnerMelody
                     guidanceMode={guidanceMode}
                     instructionOnly
                     showDownloadResults={false}

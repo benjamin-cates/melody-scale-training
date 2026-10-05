@@ -177,7 +177,7 @@ function NoteVisual({ guidance, activeNote, notes }: { guidance: GuidanceMode; a
   );
 }
 
-export function NoteLearner({
+export function LearnerNote({
   guidanceMode,
   instructionOnly = false,
   showDownloadResults = true,

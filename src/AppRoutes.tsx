@@ -12,9 +12,9 @@ import "./style/vocoder.css"
 import logoUrl from "./logo.svg";
 import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
-import { NoteLearner } from "./NoteLearner";
-import { ChordLearner } from "./ChordLearner";
-import { MelodyLearner } from "./MelodyLearner";
+import { LearnerNote } from "./LearnerNote";
+import { LearnerChord } from "./LearnerChord";
+import { LearnerMelody } from "./LearnerMelody";
 import { Test } from "./Test";
 import { Explorer } from "./Explorer";
 import { Experiment } from "./Experiment";
@@ -97,11 +97,11 @@ export function AppRoutes() {
     ) : route === "survey" ? (
       <Survey />
     ) : route === "note_learner" ? (
-      <NoteLearner />
+      <LearnerNote />
     ) : route === "chord_learner" ? (
-      <ChordLearner />
+      <LearnerChord />
     ) : route === "melody_learner" ? (
-      <MelodyLearner />
+      <LearnerMelody />
     ) : route === "test" ? (
       <Test />
     ) : (

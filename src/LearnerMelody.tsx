@@ -205,7 +205,7 @@ function MelodyVisual({
   );
 }
 
-export function MelodyLearner({
+export function LearnerMelody({
   guidanceMode,
   instructionOnly = false,
   showDownloadResults = true,

@@ -43,6 +43,7 @@ function useChordPlayer() {
   const oscillators = useRef<OscillatorNode[]>([]);
   const timers = useRef<number[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [activeNotes, setActiveNotes] = useState<number[]>([]);
 
   const stop = () => {
     oscillators.current.forEach((oscillator) => {
@@ -57,14 +58,25 @@ function useChordPlayer() {
     timers.current.forEach((timer) => window.clearTimeout(timer));
     timers.current = [];
     setIsPlaying(false);
+    setActiveNotes([]);
   };
 
-  const scheduleChord = (notes: number[], chordStart: number, mode: PlaybackMode) => {
+  const scheduleChord = (notes: number[], chordStart: number, currentTime: number, mode: PlaybackMode) => {
     const noteDuration = mode === "arpeggio" ? 0.45 : 0.7;
     const step = mode === "arpeggio" ? noteDuration - 0.05 : 0;
     notes.forEach((note, index) => {
       const noteStart = chordStart + index * step;
       oscillators.current.push(playTone(note, noteStart, noteDuration, oscillators.current));
+      const startDelay = Math.max((noteStart - currentTime) * 1000, 0);
+      const endDelay = Math.max((noteStart + noteDuration - currentTime) * 1000, 0);
+      timers.current.push(window.setTimeout(
+        () => setActiveNotes((active) => active.includes(note) ? active : [...active, note]),
+        startDelay,
+      ));
+      timers.current.push(window.setTimeout(
+        () => setActiveNotes((active) => active.filter((activeNote) => activeNote !== note)),
+        endDelay,
+      ));
     });
     return (notes.length - 1) * step + noteDuration;
   };
@@ -75,34 +87,35 @@ function useChordPlayer() {
     void context.resume();
     const start = context.currentTime + 0.05;
     setIsPlaying(true);
-    const span = scheduleChord(notes, start, mode);
+    const span = scheduleChord(notes, start, context.currentTime, mode);
     timers.current.push(window.setTimeout(() => setIsPlaying(false), span * 1000 + 150));
   };
 
   useEffect(() => stop, []);
 
-  return { playChord, isPlaying, stop };
+  return { playChord, isPlaying, activeNotes, stop };
 }
 
 function ChordVisual({
   guidance,
   root,
   chordType,
+  activeNotes,
   revealChordType = true,
 }: {
   guidance: GuidanceMode;
   root: number;
   chordType: 3 | 4 | 7 | null;
+  activeNotes: number[];
   revealChordType?: boolean;
 }) {
-  const notes = chordType ? chordNotes(root, chordType) : [MIDDLE_C + root];
   if (guidance === "auditory") {
     return null;
   }
   return (
     <Chromatone
-      activeNotes={[{ noteIndices: notes, duration: 1 }]}
-      song={chordType ? { title: "", subtitle: "", category: "Custom", key: "", tonic: root, scale: "major", notes: [] } : undefined}
+      activeNotes={activeNotes.length > 0 ? [{ noteIndices: activeNotes, duration: 1 }] : []}
+      tonic={chordType ? root : undefined}
       showKey={false}
       showNotes
       emphasizeTonic
@@ -296,6 +309,7 @@ export function LearnerChord({
               guidance={guidance}
               root={visualChord.root}
               chordType={visualChord.chordType}
+              activeNotes={player.activeNotes}
               revealChordType={visualChord.revealChordType}
             />
           </div>

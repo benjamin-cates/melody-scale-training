@@ -21,13 +21,17 @@
   animation: key-banner-fade 0.2s ease-in;
 }
 .chromatone-active-key-banner .active-key-label {
-  font: 10px "Trebuchet MS", sans-serif;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #98a5a4;
 }
 .chromatone-active-key-banner .active-key-value {
-  font: 16px "Trebuchet MS", sans-serif;
+  font:
+    16px "Trebuchet MS",
+    sans-serif;
   color: #f2c84b;
   font-weight: bold;
   text-transform: capitalize;
@@ -72,9 +76,32 @@
 .chromatone-chord-lines .perfect-fifth {
   stroke: #a875d6;
 }
+.chromatone-chord-lines .is-flashing {
+  animation: chord-relationship-flash 600ms ease-out both;
+}
+@keyframes chord-relationship-flash {
+  from {
+    opacity: 1;
+    stroke-width: 6;
+  }
+  to {
+    opacity: 0.25;
+    stroke-width: 3;
+  }
+}
+.chromatone-note-direction {
+  color: #ffffff;
+  stroke: #ffffff;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 2px #202b30);
+}
 .chromatone-labels text {
   fill: #b9c2be;
-  font: 13px "Trebuchet MS", sans-serif;
+  font:
+    13px "Trebuchet MS",
+    sans-serif;
 }
 .chromatone-labels text.is-focus {
   fill: #ef8a5b;
@@ -89,7 +116,9 @@
   border-bottom: 1px solid #506067;
   padding: 16px 0 10px;
   color: #98a5a4;
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
   letter-spacing: 0.05em;
 }
 .custom-toolbar-left {
@@ -112,7 +141,9 @@
   border: 1px solid #506067;
   color: #ffffff;
   padding: 5px 8px;
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
   cursor: pointer;
 }
 .custom-toolbar-key-selector select:focus {
@@ -155,7 +186,9 @@
   color: #48c5a2;
   padding: 10px 14px;
   cursor: pointer;
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -182,7 +215,9 @@
   gap: 10px;
 }
 .chord-builder-summary {
-  font: 12px "Trebuchet MS", sans-serif;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
   color: #cdd5d4;
 }
 .chord-builder-summary strong {
@@ -200,7 +235,9 @@
   border: 1px solid #506067;
   color: #ffffff;
   padding: 6px 10px;
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
 }
 .chord-name-input:focus {
   outline: none;
@@ -212,7 +249,9 @@
   color: #d8e2df;
   padding: 6px 12px;
   cursor: pointer;
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -248,7 +287,9 @@
   padding-top: 10px;
 }
 .saved-chords-heading {
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #98a5a4;
@@ -272,7 +313,9 @@
   color: #ffffff;
   padding: 6px 8px;
   cursor: pointer;
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
@@ -308,7 +351,9 @@
   color: #ef8a5b;
   padding: 10px 14px;
   cursor: pointer;
-  font: 11px "Trebuchet MS", sans-serif;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

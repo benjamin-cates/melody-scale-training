@@ -550,21 +550,18 @@ export function Experiment() {
             {step === "notes" && (
                 <LearnerNote
                     guidanceMode={guidanceMode}
-                    instructionOnly
                     onResults={(value) => recordResults("notes", value)}
                 />
             )}
             {step === "chords" && (
                 <LearnerChord
                     guidanceMode={guidanceMode}
-                    instructionOnly
                     onResults={(value) => recordResults("chords", value)}
                 />
             )}
             {step === "melodies" && (
                 <LearnerMelody
                     guidanceMode={guidanceMode}
-                    instructionOnly
                     showDownloadResults={false}
                     onResults={(value) => recordResults("melodies", value)}
                 />

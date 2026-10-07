@@ -196,7 +196,8 @@ function MelodyVisual({
   }
   return (
     <Chromatone
-      song={song}
+      keyLabel={song.key}
+      tonic={song.tonic}
       activeNotes={activeNotes}
       showKey={revealKey}
       showNotes
@@ -414,7 +415,8 @@ export function LearnerMelody({
         <p className="lesson-body">Listen to this melody, then decide whether it is major or minor.</p>
         {guidance === "visual" ? (
           <Chromatone
-            song={trial.song}
+            keyLabel={trial.song.key}
+            tonic={trial.song.tonic}
             activeNotes={player.activeNotes}
             showKey={false}
             showNotes

@@ -55,21 +55,6 @@ function optionsFor(question: Question): { value: Answer; label: string }[] {
     ];
 }
 
-function getQuestionSong(question: Question, melodySong?: Song): Song | undefined {
-    if (melodySong) return melodySong;
-    if (question.rootNote === undefined) return undefined;
-    const tonic = ((question.rootNote + 21) % 12 + 12) % 12;
-    return {
-        title: "",
-        subtitle: "",
-        category: "Tests",
-        key: `${NOTE_NAMES[tonic]} major`,
-        tonic,
-        scale: "major",
-        notes: [],
-    };
-}
-
 type PlaybackEvent = {
     noteIndices: number[];
     onset: number;
@@ -206,13 +191,22 @@ export function TestQuestion({
         : undefined;
     const showVisual = question.guidance === "visual" || question.guidance === "visual-enhanced";
     const showEnhancedVisual = question.guidance === "visual-enhanced";
-    const questionSong = getQuestionSong(question, melodySong);
+    const questionTonic = melodySong?.tonic ?? (
+        question.rootNote === undefined
+            ? undefined
+            : ((question.rootNote + 21) % 12 + 12) % 12
+    );
+    const questionKeyLabel = melodySong?.key ?? (
+        questionTonic === undefined ? undefined : `${NOTE_NAMES[questionTonic]} major`
+    );
     const visualFeedback = showVisual ? (
         <Chromatone
-            song={showEnhancedVisual ? questionSong : undefined}
+            keyLabel={showEnhancedVisual ? questionKeyLabel : undefined}
+            tonic={showEnhancedVisual ? questionTonic : undefined}
             activeNotes={activeNotes}
             showKey={showEnhancedVisual}
             showNotes
+            showNoteDirection={showEnhancedVisual}
             showChordLines={showEnhancedVisual ? "tonic-only" : "none"}
             emphasizeTonic={showEnhancedVisual}
         />

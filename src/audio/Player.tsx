@@ -23,7 +23,8 @@ export function Player({
     <div className={`song-player ${className}`}>
       {showNotes && (
         <Chromatone
-          song={song}
+          keyLabel={song.key}
+          tonic={song.tonic}
           activeNotes={playback.activeNotes}
           showKey={showKey}
           showNotes={showNotes}

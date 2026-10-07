@@ -95,6 +95,7 @@ function NoteVisual({ guidance, activeNote }: { guidance: GuidanceMode; activeNo
       activeNotes={activeNote !== null ? [{ noteIndices: [activeNote], duration: 1 }] : []}
       showKey={false}
       showNotes
+      showNoteDirection
     />
   );
 }

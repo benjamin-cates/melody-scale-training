@@ -65,7 +65,7 @@ function getPlaybackEvents(question: Question, melodySong?: Song): PlaybackEvent
     if (question.type === "pitch") {
         return [
             { noteIndices: [question.rootNote!], onset: 0, duration: 0.7 },
-            { noteIndices: [question.secondNote!], onset: 0.95, duration: 0.7 },
+            { noteIndices: [question.secondNote!], onset: 0.6, duration: 0.7 },
         ];
     }
     if (question.type === "chord") {
@@ -204,9 +204,9 @@ export function TestQuestion({
             keyLabel={showEnhancedVisual ? questionKeyLabel : undefined}
             tonic={showEnhancedVisual ? questionTonic : undefined}
             activeNotes={activeNotes}
-            showKey={showEnhancedVisual}
+            showKey={showEnhancedVisual && question.type === "melody"}
             showNotes
-            showNoteDirection={showEnhancedVisual}
+            showNoteDirection={showEnhancedVisual && question.type === "pitch"}
             showChordLines={showEnhancedVisual ? "tonic-only" : "none"}
             emphasizeTonic={showEnhancedVisual}
         />

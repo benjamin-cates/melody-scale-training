@@ -497,7 +497,7 @@ export function LearnerMelody({
           type="button"
           onClick={() => {
             const results = {
-              exportedAt: new Date().toISOString(),
+              completedAt: new Date().toISOString(),
               guidance,
               test: test.results,
             };

@@ -13,6 +13,15 @@ type ChordTrial = {
   mode: PlaybackMode;
 };
 
+type ChordTrialResult = {
+  trialId: string;
+  root: number;
+  mode: PlaybackMode;
+  correctAnswer: 3 | 4 | 7;
+  answer: 3 | 4 | 7;
+  replayEvents: number[];
+};
+
 const MIDDLE_C = 39;
 
 const CHORD_TYPES: (3 | 4 | 7)[] = [3, 4, 7];
@@ -139,6 +148,9 @@ export function LearnerChord({
   const [playgroundMode, setPlaygroundMode] = useState<PlaybackMode>("melody");
   const [exampleTrial, setExampleTrial] = useState(createExampleTrial);
   const [exampleGuess, setExampleGuess] = useState<3 | 4 | 7 | null>(null);
+  const [exampleResults, setExampleResults] = useState<ChordTrialResult[]>([]);
+  const exampleStartedAt = useRef(Date.now());
+  const exampleReplayEvents = useRef<number[]>([0]);
   const [visualChord, setVisualChord] = useState({
     root: 0,
     chordType: 3 as 3 | 4 | 7,
@@ -149,6 +161,8 @@ export function LearnerChord({
 
   useEffect(() => {
     if (instructionOnly) return;
+    exampleStartedAt.current = Date.now();
+    exampleReplayEvents.current = [0];
     setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.chordType, revealChordType: false });
     player.playChord(chordNotes(exampleTrial.root, exampleTrial.chordType), exampleTrial.mode);
     setExampleGuess(null);
@@ -215,6 +229,10 @@ export function LearnerChord({
             className="secondary-button"
             type="button"
             onClick={() => {
+              exampleReplayEvents.current = [
+                ...exampleReplayEvents.current,
+                Date.now() - exampleStartedAt.current,
+              ];
               setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.chordType, revealChordType: false });
               player.playChord(chordNotes(exampleTrial.root, exampleTrial.chordType), exampleTrial.mode);
             }}
@@ -235,6 +253,17 @@ export function LearnerChord({
                 disabled={exampleGuess === exampleTrial.chordType}
                 onChange={() => {
                   setExampleGuess(chordType);
+                  setExampleResults((previous) => [
+                    ...previous,
+                    {
+                      trialId: exampleTrial.id,
+                      root: exampleTrial.root,
+                      mode: exampleTrial.mode,
+                      correctAnswer: exampleTrial.chordType,
+                      answer: chordType,
+                      replayEvents: [...exampleReplayEvents.current],
+                    },
+                  ]);
                   if (chordType === exampleTrial.chordType) {
                     window.setTimeout(() => setExampleTrial(createExampleTrial()), 500);
                   }
@@ -318,27 +347,6 @@ export function LearnerChord({
     );
   }
 
-  if (instructionOnly) {
-    return (
-      <section className="page-section learner-page">
-        <div className="lesson-track">
-          <article className="lesson-card">
-            {renderIntro()}
-            <div className="lesson-actions continue-only">
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() => onResults?.({ completedAt: new Date().toISOString(), guidance })}
-              >
-                Continue to interleaved practice
-              </button>
-            </div>
-          </article>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="page-section learner-page">
       <div className="lesson-track">
@@ -347,6 +355,23 @@ export function LearnerChord({
           {renderPlayground()}
           <h2>Examples</h2>
           {renderExamples()}
+          {onResults && (
+            <div className="lesson-actions continue-only">
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() =>
+                  onResults({
+                    completedAt: new Date().toISOString(),
+                    guidance,
+                    examples: exampleResults,
+                  })
+                }
+              >
+                Continue
+              </button>
+            </div>
+          )}
         </article>
       </div>
     </section>

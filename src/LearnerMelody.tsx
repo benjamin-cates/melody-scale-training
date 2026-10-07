@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { downloadJson } from "./AppRoutes";
 import { getAudioBus, getAudioContext } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
+import { PianoView } from "./audio/PianoView";
 import { SONGS, type Scale, type Song, type SongNote } from "./audio/music";
 
 type GuidanceMode = "visual" | "auditory";
-type LessonStep = "intro" | "examples" | "test" | "complete";
 
 type MelodyTrial = {
   id: string;
@@ -24,13 +24,6 @@ type MelodyResult = {
   replayEvents: number[];
 };
 
-const STEPS: { id: LessonStep; label: string }[] = [
-  { id: "intro", label: "Introduction" },
-  { id: "examples", label: "Melody examples" },
-  { id: "test", label: "Testing" },
-  { id: "complete", label: "Complete" },
-];
-
 const TEMPO = 104;
 
 function shuffle<T>(values: T[]) {
@@ -42,28 +35,40 @@ function shuffle<T>(values: T[]) {
   return shuffled;
 }
 
-// Peaceful/Sad clips include a "(modified)" opposite-mode variant of each melody.
-// Half the pool (even alphabetical positions) is reserved for this lesson so it
-// mostly avoids overlapping with the songs the baseline/post-test draws from.
-function getLessonSongPool() {
-  const affectSongs = SONGS.filter((song) => song.category === "Peaceful" || song.category === "Sad");
-  const sorted = [...affectSongs].sort((left, right) => left.title.localeCompare(right.title));
-  return sorted.filter((_, index) => index % 2 === 0);
+type MelodySongPair = {
+  id: string;
+  label: string;
+  songs: Song[];
+};
+
+function getLessonSongPairs(): MelodySongPair[] {
+  let songNumber = 0;
+  return (["Sad", "Peaceful"] as const).flatMap((category) => {
+    const originals = SONGS
+      .filter((song) => song.category === category && !song.title.endsWith(" (modified)"))
+      .slice(0, 2);
+    return originals.flatMap((song) => {
+      const sourceId = song.title.split(" (")[0];
+      const modifiedSong = SONGS.find(
+        (candidate) => candidate.category === category && candidate.title === `${sourceId} (modified)`,
+      );
+      if (!modifiedSong) return [];
+      songNumber += 1;
+      return [{
+        id: `song-${songNumber}`,
+        label: `Song ${songNumber}`,
+        songs: [song, modifiedSong],
+      }];
+    });
+  });
 }
 
-function createExampleTrials(): MelodyTrial[] {
-  const pool = shuffle(getLessonSongPool());
-  return pool.slice(0, 8).map((song, index) => ({
-    id: `example-${index}-${song.title}`,
-    song,
-    correctAnswer: song.scale,
-  }));
-}
+const LESSON_SONG_PAIRS = getLessonSongPairs();
+const LESSON_SONGS = LESSON_SONG_PAIRS.flatMap((pair) => pair.songs);
 
-function createTestTrials(): MelodyTrial[] {
-  const pool = shuffle(getLessonSongPool());
-  return pool.slice(8, 24).map((song, index) => ({
-    id: `test-${index}-${song.title}`,
+function createExampleTrials(songs: Song[]): MelodyTrial[] {
+  return shuffle(songs).map((song, index) => ({
+    id: `example-${Date.now()}-${index}-${song.title}`,
     song,
     correctAnswer: song.scale,
   }));
@@ -91,6 +96,7 @@ function useMelodyPlayer() {
       window.clearTimeout(timer.current);
       timer.current = null;
     }
+    setActiveNotes([]);
     setIsPlaying(false);
   };
 
@@ -137,71 +143,26 @@ function useMelodyPlayer() {
   return { play, stop, activeNotes, isPlaying };
 }
 
-function useMelodyTest(trials: MelodyTrial[]) {
-  const [index, setIndex] = useState(0);
-  const [answer, setAnswer] = useState<Scale | null>(null);
-  const [results, setResults] = useState<MelodyResult[]>([]);
-  const questionStartedAt = useRef(new Date());
-  const replayEvents = useRef<number[]>([]);
-  const trial = trials[index];
-
-  const beginTrial = () => {
-    questionStartedAt.current = new Date();
-    replayEvents.current = [0];
-  };
-
-  const recordReplay = () => {
-    replayEvents.current = [
-      ...replayEvents.current,
-      Date.now() - questionStartedAt.current.getTime(),
-    ];
-  };
-
-  const submit = () => {
-    if (!trial || answer === null) return;
-    const submittedAt = new Date();
-    setResults((previous) => [
-      ...previous,
-      {
-        trialId: trial.id,
-        songTitle: trial.song.title,
-        correctAnswer: trial.correctAnswer,
-        answer,
-        isCorrect: answer === trial.correctAnswer,
-        startedAt: questionStartedAt.current.toISOString(),
-        timeElapsedMs: submittedAt.getTime() - questionStartedAt.current.getTime(),
-        replayEvents: [...replayEvents.current],
-      },
-    ]);
-    setAnswer(null);
-    setIndex((value) => value + 1);
-  };
-
-  return { trial, index, answer, setAnswer, results, beginTrial, recordReplay, submit, isDone: !trial };
-}
-
 function MelodyVisual({
   guidance,
   song,
   activeNotes,
-  revealKey,
 }: {
   guidance: GuidanceMode;
   song: Song;
   activeNotes: SongNote[];
-  revealKey: boolean;
 }) {
   if (guidance === "auditory") {
-    return null;
+    return <PianoView tonic={song.tonic} mode={song.scale} />;
   }
   return (
     <Chromatone
       keyLabel={song.key}
       tonic={song.tonic}
       activeNotes={activeNotes}
-      showKey={revealKey}
+      showKey
       showNotes
-      showChordLines={revealKey ? "tonic-only" : "none"}
+      showChordLines="tonic-only"
     />
   );
 }
@@ -217,53 +178,74 @@ export function LearnerMelody({
   showDownloadResults?: boolean;
   onResults?: (results: Record<string, unknown>) => void;
 } = {}) {
-  const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
-  const [stepIndex, setStepIndex] = useState(0);
   const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
-  const [exampleTrials] = useState(createExampleTrials);
-  const [testTrials] = useState(createTestTrials);
+  const [exampleTrials] = useState(() => createExampleTrials(LESSON_SONGS));
   const [exampleIndex, setExampleIndex] = useState(0);
   const [exampleGuess, setExampleGuess] = useState<Scale | null>(null);
   const [exampleFinished, setExampleFinished] = useState(false);
-  const [testFinished, setTestFinished] = useState(false);
-  const [previewScale, setPreviewScale] = useState<Scale>("major");
+  const [exampleResults, setExampleResults] = useState<MelodyResult[]>([]);
+  const [visualizerSong, setVisualizerSong] = useState(LESSON_SONGS[0]);
+  const [playbackSource, setPlaybackSource] = useState<"example" | "playground" | "stopped">("stopped");
+  const questionStartedAt = useRef(new Date());
+  const replayEvents = useRef<number[]>([]);
 
   const player = useMelodyPlayer();
-  const previewPlayer = useMelodyPlayer();
-  const test = useMelodyTest(testTrials);
-
-  const step = STEPS[stepIndex].id;
   const exampleTrial = exampleTrials[exampleIndex];
 
-  const goBack = () => setStepIndex((value) => Math.max(value - 1, 0));
-  const goNext = () => setStepIndex((value) => Math.min(value + 1, STEPS.length - 1));
-
   useEffect(() => {
-    if (step !== "examples" || !exampleTrial) return;
+    if (instructionOnly || !exampleTrial) return;
     setExampleGuess(null);
     setExampleFinished(false);
+    questionStartedAt.current = new Date();
+    replayEvents.current = [0];
+    setVisualizerSong(exampleTrial.song);
+    setPlaybackSource("example");
     player.play(exampleTrial.song, () => setExampleFinished(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, exampleIndex]);
+  }, [instructionOnly, exampleTrial]);
 
-  useEffect(() => {
-    if (step !== "test" || !test.trial) return;
-    setTestFinished(false);
-    test.beginTrial();
-    player.play(test.trial.song, () => setTestFinished(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, test.index]);
+  function playPlaygroundSong(song: Song) {
+    setVisualizerSong(song);
+    setPlaybackSource("playground");
+    setExampleFinished(false);
+    player.play(song, () => { });
+  }
 
-  useEffect(() => {
-    if (isDebug) return;
-    if (step === "examples" && !exampleTrial) {
-      setStepIndex((value) => Math.min(value + 1, STEPS.length - 1));
-      return;
+  function answerExample(answer: Scale) {
+    if (!exampleTrial || !exampleFinished || exampleGuess === exampleTrial.correctAnswer) return;
+    setExampleGuess(answer);
+    const submittedAt = new Date();
+    setExampleResults((previous) => [
+      ...previous,
+      {
+        trialId: exampleTrial.id,
+        songTitle: exampleTrial.song.title,
+        correctAnswer: exampleTrial.correctAnswer,
+        answer,
+        isCorrect: answer === exampleTrial.correctAnswer,
+        startedAt: questionStartedAt.current.toISOString(),
+        timeElapsedMs: submittedAt.getTime() - questionStartedAt.current.getTime(),
+        replayEvents: [...replayEvents.current],
+      },
+    ]);
+    if (answer === exampleTrial.correctAnswer) {
+      window.setTimeout(() => setExampleIndex((index) => index + 1), 500);
     }
-    if (step === "test" && test.isDone) {
-      setStepIndex((value) => Math.min(value + 1, STEPS.length - 1));
+  }
+
+  function completeExamples() {
+    const results = {
+      completedAt: new Date().toISOString(),
+      guidance,
+      songs: LESSON_SONGS.map((song) => song.title),
+      examples: exampleResults,
+    };
+    if (showDownloadResults) {
+      downloadJson("melodies-lesson-results.json", results);
+    } else {
+      onResults?.(results);
     }
-  }, [isDebug, step, exampleTrial, test.isDone]);
+  }
 
   const guidanceToggle = (
     <div className="choice-row" role="radiogroup" aria-label="Guidance style">
@@ -289,7 +271,6 @@ export function LearnerMelody({
   );
 
   function renderIntro() {
-    const previewSong = (scale: Scale) => SONGS.find((song) => song.category === "Scales" && song.key === `C ${scale}`);
     return (
       <>
         <h2>Melodies in major and minor</h2>
@@ -304,274 +285,153 @@ export function LearnerMelody({
         {!guidanceMode && guidanceToggle}
         <p className="lesson-body">
           {guidance === "visual"
-            ? "The key is shown by the notes outlined in gold, and the central tonic note is outlined in white. Click below to preview each major and minor key."
-            : "This shows which of the notes on the spiral are in each key. Click below to preview each major and minor key."}
+            ? "The key is shown by notes outlined in gold, and the tonic is outlined in white."
+            : "Listen to melodies in both major and minor keys, then identify each mode."}
         </p>
-        <div className="test-actions">
-          {(["major", "minor"] as const).map((scale) => (
+      </>
+    );
+  }
+
+  function renderPlayground() {
+    return (
+      <>
+        <p className="lesson-body">Play each song here, or answer the shuffled examples below.</p>
+        <div className="melody-playground-layout">
+          <div className="note-practice-picker-panel">
+            <h3 className="note-practice-picker-title">Playground</h3>
+            {LESSON_SONG_PAIRS.map(({ id, label, songs }) => (
+              <div className="explorer-picker-group melody-song-group" key={id}>
+                <span className="explorer-picker-label">{label}</span>
+                <div className="explorer-button-row melody-song-options" aria-label={`${label} songs`}>
+                  {songs.map((song) => (
+                    <button
+                      aria-pressed={playbackSource === "playground" && player.isPlaying && visualizerSong.title === song.title}
+                      className={`explorer-picker-button${playbackSource === "playground" && player.isPlaying && visualizerSong.title === song.title ? " is-selected" : ""}`}
+                      key={song.title}
+                      onClick={() => playPlaygroundSong(song)}
+                      type="button"
+                    >
+                      {label} {song.scale === "major" ? "Major" : "Minor"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="melody-playground-visualizer">
             <button
-              className="secondary-button"
-              key={scale}
-              type="button"
-              disabled={!previewSong(scale)}
+              className="secondary-button melody-stop-button"
+              disabled={!player.isPlaying}
               onClick={() => {
-                const song = previewSong(scale);
-                setPreviewScale(scale);
-                if (song) previewPlayer.play(song, () => { });
+                player.stop();
+                setPlaybackSource("stopped");
+                if (playbackSource === "example") setExampleFinished(true);
               }}
+              type="button"
             >
-              ▶ Preview C {scale}
+              Stop
             </button>
-          ))}
+            <MelodyVisual
+              guidance={guidance}
+              song={visualizerSong}
+              activeNotes={player.activeNotes}
+            />
+          </div>
         </div>
-        {previewSong(previewScale) && (
-          <MelodyVisual
-            guidance={guidance}
-            song={previewSong(previewScale)!}
-            activeNotes={previewPlayer.activeNotes}
-            revealKey
-          />
-        )}
       </>
     );
   }
 
   function renderExamples() {
     if (!exampleTrial) {
+      const correctCount = exampleResults.filter((result) => result.isCorrect).length;
       return (
         <>
           <h2>Examples complete</h2>
-          <p className="lesson-body">You are ready for the test.</p>
+          <p className="lesson-body">You answered {correctCount} of {exampleResults.length} attempts correctly.</p>
+          <button className="primary-button" onClick={completeExamples} type="button">
+            {showDownloadResults ? "Download results (JSON)" : "Continue"}
+          </button>
         </>
       );
     }
+
     const correctLabel = exampleTrial.correctAnswer === "major" ? "Major" : "Minor";
     return (
       <>
         <p className="lesson-body">
-          Listen to this melody. This song is in a {correctLabel.toLowerCase()} key. Click the
-          matching button once the melody finishes.
+          Listen to the song, then decide whether it is major or minor.
         </p>
-        <h3>{exampleTrial.song.title}</h3>
-        <MelodyVisual guidance={guidance} song={exampleTrial.song} activeNotes={player.activeNotes} revealKey />
-        <div className="choice-row">
+        <div className="example-prompt-row">
+          <p className="sequence-status" aria-live="polite">
+            {!exampleFinished
+              ? "Listen to the melody"
+              : exampleGuess === null
+                ? "Choose Major or Minor"
+                : exampleGuess === exampleTrial.correctAnswer
+                  ? `Correct: ${correctLabel}.`
+                  : "Not quite. Listen again or try the other answer."}
+          </p>
+          <div className="test-actions">
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => {
+                replayEvents.current = [
+                  ...replayEvents.current,
+                  Date.now() - questionStartedAt.current.getTime(),
+                ];
+                setVisualizerSong(exampleTrial.song);
+                setPlaybackSource("example");
+                setExampleGuess(null);
+                setExampleFinished(false);
+                player.play(exampleTrial.song, () => setExampleFinished(true));
+              }}
+            >
+              Hear again
+            </button>
+          </div>
+        </div>
+        <div className="choice-row test-answer-options" role="radiogroup" aria-label="Major or minor">
           {(["major", "minor"] as const).map((scale) => (
-            <label className={exampleGuess === scale ? "selected" : ""} key={scale}>
+            <label className={`${exampleGuess === scale ? "selected" : ""}${exampleGuess === exampleTrial.correctAnswer ? " locked" : ""}`} key={scale}>
               <input
                 type="radio"
                 name="example-answer"
                 checked={exampleGuess === scale}
-                disabled={!exampleFinished}
-                onChange={() => {
-                  setExampleGuess(scale);
-                  if (scale === exampleTrial.correctAnswer) {
-                    window.setTimeout(() => setExampleIndex((value) => value + 1), 500);
-                  }
-                }}
+                disabled={!exampleFinished || exampleGuess === exampleTrial.correctAnswer}
+                onChange={() => answerExample(scale)}
               />
               {scale === "major" ? "Major" : "Minor"}
             </label>
           ))}
         </div>
-        {exampleGuess && exampleGuess !== exampleTrial.correctAnswer && (
-          <p className="sequence-status">Try clicking {correctLabel} instead.</p>
-        )}
-        <div className="test-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => {
-              setExampleFinished(false);
-              player.play(exampleTrial.song, () => setExampleFinished(true));
-            }}
-          >
-            Hear again
-          </button>
-          <span className="test-progress" aria-label="Example progress">
-            {exampleIndex + 1} / {exampleTrials.length}
-          </span>
-        </div>
       </>
     );
   }
 
-  function renderTest() {
-    if (test.isDone) {
-      const correctCount = test.results.filter((result) => result.isCorrect).length;
-      return (
-        <>
-          <h2>Testing complete</h2>
-          <p className="lesson-body">
-            You answered {correctCount} of {test.results.length} correctly.
-          </p>
-        </>
-      );
-    }
-    const { trial } = test;
-    if (!trial) return null;
-    const isAnswerCorrect = test.answer === trial.correctAnswer;
-    return (
-      <>
-        <p className="lesson-body">Listen to this melody, then decide whether it is major or minor.</p>
-        {guidance === "visual" ? (
-          <Chromatone
-            keyLabel={trial.song.key}
-            tonic={trial.song.tonic}
-            activeNotes={player.activeNotes}
-            showKey={false}
-            showNotes
-            showChordLines="none"
-          />
-        ) : (
-          <div className="test-art" aria-hidden="true">
-            <span className="test-orbit" />
-            <span>♪</span>
-          </div>
-        )}
-        <p
-          className={`sequence-status${test.answer === null ? "" : isAnswerCorrect ? " is-correct" : " is-incorrect"}`}
-          aria-live="polite"
-        >
-          {!testFinished
-            ? "Listen to the melody"
-            : test.answer === null
-              ? "Choose Major or Minor"
-              : isAnswerCorrect
-                ? "Correct"
-                : `Not quite. The correct answer is ${trial.correctAnswer === "major" ? "Major" : "Minor"}.`}
-        </p>
-        <div className="choice-row test-answer-options" role="radiogroup" aria-label="Major or minor">
-          {(["major", "minor"] as const).map((scale) => (
-            <label
-              className={`${test.answer === scale ? "selected" : ""}${test.answer !== null ? " locked" : ""}`}
-              key={scale}
-            >
-              <input
-                type="radio"
-                name={`test-${test.index}`}
-                checked={test.answer === scale}
-                disabled={test.answer !== null || !testFinished}
-                onChange={() => test.setAnswer(scale)}
-              />
-              {scale === "major" ? "Major" : "Minor"}
-            </label>
-          ))}
-        </div>
-        <div className="test-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => {
-              test.recordReplay();
-              setTestFinished(false);
-              player.play(trial.song, () => setTestFinished(true));
-            }}
-          >
-            Hear again
-          </button>
-          <div className="test-progress" aria-label="Test progress">
-            <span>{test.index + 1} / {testTrials.length}</span>
-            <span className="test-progress-track">
-              <span style={{ width: `${((test.index + 1) / testTrials.length) * 100}%` }} />
-            </span>
-          </div>
-          <button className="primary-button" type="button" disabled={test.answer === null} onClick={test.submit}>
-            Next
-          </button>
-        </div>
-      </>
-    );
-  }
-
-  function renderComplete() {
-    const correctCount = test.results.filter((result) => result.isCorrect).length;
-    return (
-      <>
-        <h2>Lesson complete</h2>
-        <p className="lesson-body">
-          You answered {correctCount} of {test.results.length} melody classification questions
-          correctly.
-        </p>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={() => {
-            const results = {
-              completedAt: new Date().toISOString(),
-              guidance,
-              test: test.results,
-            };
-            if (showDownloadResults) {
-              downloadJson("melodies-lesson-results.json", results);
-            } else {
-              onResults?.(results);
-            }
-          }}
-        >
-          {showDownloadResults ? "Download results (JSON)" : "Continue"}
-        </button>
-      </>
-    );
-  }
-
-  if (instructionOnly) {
-    return (
-      <section className="page-section learner-page">
-        <div className="lesson-track">
-          <article className="lesson-card">
-            {renderIntro()}
+  return (
+    <section className="page-section learner-page">
+      <div className="lesson-track">
+        <article className="lesson-card">
+          {renderIntro()}
+          {renderPlayground()}
+          {renderExamples()}
+          {onResults && (
             <div className="lesson-actions continue-only">
               <button
                 className="primary-button"
                 type="button"
-                onClick={() => onResults?.({ completedAt: new Date().toISOString(), guidance })}
+                onClick={() =>
+                  onResults({
+                    completedAt: new Date().toISOString(),
+                    guidance,
+                    examples: exampleResults,
+                  })
+                }
               >
-                Continue to interleaved practice
+                Continue
               </button>
-            </div>
-          </article>
-        </div>
-      </section>
-    );
-  }
-
-  const canGoBack = step !== "complete";
-  const showContinue = step !== "complete" && (isDebug || step === "intro");
-  return (
-    <section className="page-section learner-page">
-      <div className="lesson-track">
-        <div className="lesson-progress">
-          <span>{STEPS[stepIndex].label} • Step {stepIndex + 1} of {STEPS.length}</span>
-          <div>
-            {STEPS.map((item, index) => (
-              <button
-                aria-label={item.label}
-                className={index < stepIndex ? "done" : index === stepIndex ? "current" : ""}
-                disabled={index > stepIndex}
-                key={item.id}
-                onClick={() => index <= stepIndex && setStepIndex(index)}
-                type="button"
-              />
-            ))}
-          </div>
-        </div>
-        <article className="lesson-card">
-          {step === "intro" && renderIntro()}
-          {step === "examples" && renderExamples()}
-          {step === "test" && renderTest()}
-          {step === "complete" && renderComplete()}
-          {(isDebug || showContinue) && (
-            <div className={showContinue && !isDebug ? "lesson-actions continue-only" : "lesson-actions"}>
-              {isDebug && (
-                <button className="secondary-button" type="button" disabled={!canGoBack} onClick={goBack}>
-                  Back
-                </button>
-              )}
-              {showContinue && (
-                <button className="primary-button" type="button" onClick={goNext}>
-                  Continue
-                </button>
-              )}
             </div>
           )}
         </article>

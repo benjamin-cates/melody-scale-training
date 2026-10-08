@@ -18,7 +18,7 @@ export function getAudioBus() {
 }
 
 
-export function playTone(note: number, start: number, duration: number, oscillators: OscillatorNode[]): OscillatorNode {
+export function playTone(note: number, start: number, duration: number): OscillatorNode {
   const context = getAudioContext();
   const oscillator = context.createOscillator();
   const gain = context.createGain();
@@ -33,7 +33,7 @@ export function playTone(note: number, start: number, duration: number, oscillat
   return oscillator;
 }
 export function noteLabel(noteIndex: number) {
-    const pitchClass = (((noteIndex + 21) % 12) + 12) % 12;
-    const octave = Math.floor((noteIndex + 21) / 12) - 1;
-    return `${NOTE_NAMES[pitchClass]}${octave}`;
+  const pitchClass = (((noteIndex + 21) % 12) + 12) % 12;
+  const octave = Math.floor((noteIndex + 21) / 12) - 1;
+  return `${NOTE_NAMES[pitchClass]}${octave}`;
 }

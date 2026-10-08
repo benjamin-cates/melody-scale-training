@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { downloadJson } from "./AppRoutes";
 import { SONGS } from "./audio/music";
 import { TestQuestion, type Question, type UserResponse } from "./TestQuestion";
@@ -6,6 +6,7 @@ import { TestQuestion, type Question, type UserResponse } from "./TestQuestion";
 export type { Question, UserResponse } from "./TestQuestion";
 
 export type TestProps = {
+	children?: ReactNode;
 	onNext?: (results: UserResponse[]) => void;
 	showDownloadResults?: boolean;
 	onResults?: (results: UserResponse[]) => void;
@@ -118,6 +119,7 @@ function sectionLabel(type: Question["type"]) {
 }
 
 export function Test({
+	children,
 	onNext,
 	showDownloadResults = true,
 	onResults,
@@ -127,6 +129,7 @@ export function Test({
 }: TestProps) {
 	const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
 	const [questions] = useState(() => suppliedQuestions ?? createBaselineQuestions());
+	const [hasStarted, setHasStarted] = useState(!children);
 	const [questionIndex, setQuestionIndex] = useState(0);
 	const [trials, setTrials] = useState<UserResponse[]>([]);
 	const question = questions[questionIndex];
@@ -145,6 +148,19 @@ export function Test({
 		setTrials(allTrials);
 		setQuestionIndex((index) => index + 1);
 	};
+
+	if (!hasStarted) {
+		return (
+			<section className="page-section test-page">
+				<article className="test-card">
+					{children}
+					<button className="primary-button" type="button" onClick={() => setHasStarted(true)}>
+						Continue
+					</button>
+				</article>
+			</section>
+		);
+	}
 
 	if (isComplete) {
 		return (

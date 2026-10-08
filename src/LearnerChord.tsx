@@ -75,7 +75,7 @@ function useChordPlayer() {
     const step = mode === "arpeggio" ? noteDuration - 0.05 : 0;
     notes.forEach((note, index) => {
       const noteStart = chordStart + index * step;
-      oscillators.current.push(playTone(note, noteStart, noteDuration, oscillators.current));
+      oscillators.current.push(playTone(note, noteStart, noteDuration));
       const startDelay = Math.max((noteStart - currentTime) * 1000, 0);
       const endDelay = Math.max((noteStart + noteDuration - currentTime) * 1000, 0);
       timers.current.push(window.setTimeout(

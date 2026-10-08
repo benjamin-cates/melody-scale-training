@@ -30,12 +30,12 @@ export type Song = {
 
 export const NOTE_NAMES = [
   "C",
-  "C♯",
+  "D♭",
   "D",
   "E♭",
   "E",
   "F",
-  "F♯",
+  "F♭",
   "G",
   "A♭",
   "A",
@@ -385,12 +385,12 @@ export const SONGS: Song[] = [
     const notes = [0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
       { noteIndices: [tonic + MAJOR_INTERVALS[value % 7] + (value === 7 ? 12 : 0) + 27], duration: 1 }
     ));
-    return { 
-      title: `${noteName} Major`, 
-      subtitle: "Ascending and descending melody", 
+    return {
+      title: `${noteName} Major`,
+      subtitle: "Ascending and descending melody",
       category: "Scales",
-      key: `${noteName} major`, 
-      tonic, 
+      key: `${noteName} major`,
+      tonic,
       scale: "major",
       notes
     } satisfies Song;
@@ -399,12 +399,12 @@ export const SONGS: Song[] = [
     const notes = [0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0].map(value => (
       { noteIndices: [tonic + MINOR_INTERVALS[value % 7] + (value === 7 ? 12 : 0) + 27], duration: 1 }
     ));
-    return { 
-      title: `${noteName} Minor`, 
-      subtitle: "Ascending and descending melody", 
+    return {
+      title: `${noteName} Minor`,
+      subtitle: "Ascending and descending melody",
       category: "Scales",
-      key: `${noteName} minor`, 
-      tonic, 
+      key: `${noteName} minor`,
+      tonic,
       scale: "minor",
       notes
     } satisfies Song;

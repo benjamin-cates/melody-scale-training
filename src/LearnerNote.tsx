@@ -68,7 +68,7 @@ function usePitchPlayer() {
     setIsPlaying(true);
     notes.forEach((note, index) => {
       const noteStart = start + index * (noteDuration + gap);
-      oscillators.current.push(playTone(note, noteStart, noteDuration, oscillators.current));
+      oscillators.current.push(playTone(note, noteStart, noteDuration));
       const delayMs = Math.max((noteStart - context.currentTime) * 1000, 0);
       timers.current.push(window.setTimeout(() => setActiveNote(note), delayMs));
     });
@@ -153,19 +153,22 @@ export function LearnerNote({
       <>
         <h2>Rising and falling tones</h2>
         <p className="lesson-body">
-          This lesson will teach you to recognize rising and falling tones through practice. An
-          octave is a step meaning to double or half the frequency. In the western music system,
-          the octave is split equally into twelve equal steps. A sharp moves one step higher. A
-          flat moves one step lower. The Middle C serves as a reference pitch.
+          This lesson will teach you to recognize rising and falling notes through practice. An
+          <b>octave</b> is a step meaning to double or half the frequency. In the western music system,
+          the octave is split equally into <b>twelve equal steps</b>, named the following: C, D♭, D, E♭, E, F, G♭, G, A♭, A, B♭, and B. The Middle C serves as a reference pitch and is in the fourth octave.
         </p>
         {!guidanceMode && guidanceToggle}
+        {guidance === "visual"
+          ? <>
+            <p className="lesson-body">The <b>Spiral Chromagram</b> below shows notes on a continuous spiral. Each full turn represents one octave. Outermost layers represent lower octaves, spiraling inward to higher octaves.</p>
+            <ul className="note-direction-key">
+              <li><span className="note-direction-icon" aria-hidden="true">↻</span>Clockwise → increasing pitch</li>
+              <li><span className="note-direction-icon" aria-hidden="true">↺</span>Counter-clockwise → decreasing pitch</li>
+            </ul>
+          </>
+          : <p className="lesson-body">Notes use octave numbers (e.g. C<sub>4</sub> for Middle C, C<sub>5</sub> for one octave higher). Higher numbers indicate higher frequencies.</p>}
         <p className="lesson-body">
-          {guidance === "visual"
-            ? "Pitches are arranged on a continuous spiral. Each full turn represents one octave. Moving clockwise indicates a higher pitch; moving counter-clockwise indicates a lower pitch. Outermost layers represent lower octaves, spiraling inward to higher octaves."
-            : "Notes use octave numbers (e.g. C4 for Middle C, C5 for one octave higher). Higher numbers indicate higher frequencies."}
-        </p>
-        <p className="lesson-body">
-          Identify whether each two-note sequence is increasing or decreasing in pitch.
+          The goal is to learn to identify whether two-note sequences are <b>increasing or decreasing in pitch</b> (rising or falling tones). Try a few on the playground and test yourself with the examples. <b>Select a starting note, then click an interval size.</b>
         </p>
       </>
     );
@@ -175,10 +178,6 @@ export function LearnerNote({
     return (
       <>
         {renderDescription()}
-        <p className="lesson-body">
-          Choose a starting note and an interval, then play the sequence to explore how each step
-          sounds and looks.
-        </p>
         <div className={`note-practice-layout${guidance === "visual" ? " has-visualizer" : ""}`}>
           <div className="note-practice-picker-panel">
             <h3 className="note-practice-picker-title">Playground</h3>

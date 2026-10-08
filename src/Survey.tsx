@@ -428,6 +428,8 @@ export function Survey({
   return (
     <section className="page-section narrow">
       <form className="data-form" onSubmit={submit}>
+        <h1>Survey</h1>
+        <p className="lesson-body">Please fill out this survey about your hearing profile and musical background. This information will be used to calculate statistics about the study population and determine which study group you are placed in. Information entered here will be remain <b>anonymized</b>.</p>
         <fieldset>
           <legend>Hearing Profile</legend>
 

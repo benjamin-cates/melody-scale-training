@@ -44,11 +44,37 @@
   font-size: 39px;
   margin: 10px 0 18px;
 }
-.lesson-body {
-  max-width: 520px;
+.lesson-body,
+li {
   color: #c2cbc6;
   font-size: 17px;
   line-height: 1.65;
+}
+.volume-adjustment {
+  margin: 18px 0;
+}
+.volume-adjustment .lesson-body {
+  margin: 0 0 10px;
+}
+.note-direction-key {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.note-direction-key li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.note-direction-icon {
+  width: 1.25rem;
+  color: #f2c84b;
+  font-family: monospace;
+  font-size: 1.4em;
+  position: relative;
+  top: -0.1em;
+  line-height: 1;
+  text-align: center;
 }
 .lesson-key {
   color: #ef8a5b;

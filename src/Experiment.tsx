@@ -6,6 +6,7 @@ import { Survey, type SurveyData } from "./Survey";
 import { createPracticeQuestions, Test } from "./Test";
 import { downloadJson } from "./AppRoutes";
 import { Vocoder } from "./audio/VocoderBiquad";
+import { VolumeAdjustment } from "./VolumeAdjustment";
 
 type ExperimentGroup = "audio" | "visual";
 type ExperimentStep = "welcome" | "survey" | "listening-instructions" | "baseline" | "notes" | "chords" | "melodies" | "practice" | "post-test" | "complete";
@@ -59,42 +60,37 @@ const AGENDA = [
     {
         title: "Survey",
         duration: "3 minutes",
-        description: "Establishes current CI factors, demographics, and musical background.",
+        description: "Describe current hearing status, demographics, and musical background.",
     },
     {
         title: "Baseline",
         duration: "10 minutes",
-        description: "Tests pitch tasks that will be taught in the procedure to establish a baseline.",
+        description: "Test melody and pitch skills to establish a baseline.",
     },
     {
         title: "Notes Lesson",
-        duration: "10 minutes",
-        description: "Teaches different rising and falling note structures.",
+        duration: "3 minutes",
+        description: "Learn rising and falling note structures.",
     },
     {
-        title: "Diatonic Chords Lesson",
-        duration: "10 minutes",
-        description: "Teaches simple chords: major third, minor third, and perfect fifth.",
+        title: "Chords Lesson",
+        duration: "3 minutes",
+        description: "Learn simple chords: major third, minor third, and perfect fifth.",
     },
     {
         title: "Melodies Lesson",
-        duration: "17 minutes",
-        description: "A 2AFC task to guess major or minor melodies.",
+        duration: "3 minutes",
+        description: "Learn simple major and minor melodies.",
     },
     {
         title: "Interleaved Practice",
-        duration: "After the lessons",
-        description: "Mixed pitch, chord, and melody questions for practice across the lesson topics.",
+        duration: "25 minutes",
+        description: "Practice mixed pitch, chord, and melody questions across the lesson topics.",
     },
     {
         title: "Post-test",
         duration: "10 minutes",
-        description: "Tests how pitch-task performance changed after the lessons.",
-    },
-    {
-        title: "Retention test",
-        duration: "10 minutes, a few days later",
-        description: "Tests how much pitch understanding was retained compared with baseline.",
+        description: "Test how performance changed after the lessons.",
     },
 ];
 
@@ -396,11 +392,7 @@ export function Experiment() {
                 {experimentControls}
                 <section className="page-section narrow">
                     <article className="lesson-card">
-                        <p className="eyebrow">Study session</p>
                         <h1>Welcome</h1>
-                        <p className="lesson-body">
-                            This study includes an initial test, three lessons, a post-test, and a delayed retention test.
-                        </p>
                         <ol className="lesson-body">
                             {AGENDA.map((item) => (
                                 <li key={item.title}>
@@ -429,24 +421,25 @@ export function Experiment() {
                 {experimentControls}
                 <section className="page-section narrow">
                     <article className="lesson-card">
-                        <p className="eyebrow">Before the baseline</p>
                         <h1>Listening setup</h1>
                         <p className="lesson-body">
                             Please listen using: <strong>{listeningInfo?.hearingProfile.studyEar ?? "the ear assigned by your researcher"}</strong>.
                         </p>
                         {listeningInfo?.studyCondition === "normal_hearing" ? (
                             <p className="lesson-body">
-                                You are in the normal-hearing (NH) group. The vocoder is enabled for your session and will make the audio sound strange or unusual. This is expected; continue listening with your assigned ear.
+                                You are in the normal-hearing (NH) group. The vocoder is enabled for your session and will make the audio <em>sound strange or unusual</em>. This is expected.
                             </p>
                         ) : listeningInfo?.studyCondition === "cochlear_implant" ? (
                             <p className="lesson-body">
-                                You are in the cochlear-implant group. Listen with the indicated ear and use your cochlear implant as you normally do.
+                                You are in the cochlear-implant group. Listen with the indicated ear and use your cochlear implant as you normally do. Set the implant into music mode if possible.
                             </p>
                         ) : (
                             <p className="lesson-body">
                                 Your listening setup could not be determined from the survey. Please check with the researcher before continuing.
                             </p>
                         )}
+                        <VolumeAdjustment />
+
                         <button className="primary-button" type="button" onClick={continueToBaseline}>
                             Continue to baseline
                         </button>
@@ -545,7 +538,16 @@ export function Experiment() {
                     completionTitle="First test complete"
                     showDownloadResults={false}
                     onResults={(value) => recordResults("baseline", value)}
-                />
+                >
+                    <h2>Baseline test</h2>
+                    <p className="lesson-body">The following test will assess your baseline musical abilities. The test will be in three sections:</p>
+                    <ol className="lesson-body">
+                        <li><b>Pitch resolution</b>: Determine whether two notes are increasing or decreasing in pitch.</li>
+                        <li><b>Simple chords</b>: Identify whether two notes in a chord are the same or different.</li>
+                        <li><b>Full melodies</b>: Recognize the scale of a full melody as either major (positive) or minor (negative).</li>
+                    </ol>
+                    <p className="lesson-body">Do not worry if some of these terms are unfamiliar to you. The test is just here to control for already existing differences in musical understanding.</p>
+                </Test>
             )}
             {step === "notes" && (
                 <LearnerNote

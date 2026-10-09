@@ -153,22 +153,22 @@ export function LearnerNote({
       <>
         <h2>Rising and falling tones</h2>
         <p className="lesson-body">
-          This lesson will teach you to recognize rising and falling notes through practice. An
-          <b>octave</b> is a step meaning to double or half the frequency. In the western music system,
-          the octave is split equally into <b>twelve equal steps</b>, named the following: C, D♭, D, E♭, E, F, G♭, G, A♭, A, B♭, and B. The Middle C serves as a reference pitch and is in the fourth octave.
+          This lesson will teach you to recognize rising and falling tones through practice. An <b>octave</b> is
+          a step meaning to double or half the frequency. In the western music system,
+          the octave is split into <b>twelve equal steps/notes</b>: C, D♭, D, E♭, E, F, G♭, G, A♭, A, B♭, and B. The Middle C serves as a reference pitch and is in the fourth octave.
         </p>
         {!guidanceMode && guidanceToggle}
         {guidance === "visual"
           ? <>
             <p className="lesson-body">The <b>Spiral Chromagram</b> below shows notes on a continuous spiral. Each full turn represents one octave. Outermost layers represent lower octaves, spiraling inward to higher octaves.</p>
             <ul className="note-direction-key">
-              <li><span className="note-direction-icon" aria-hidden="true">↻</span>Clockwise → increasing pitch</li>
-              <li><span className="note-direction-icon" aria-hidden="true">↺</span>Counter-clockwise → decreasing pitch</li>
+              <li><span className="note-direction-icon" aria-hidden="true">↻</span>Clockwise → increasing pitch/rising tones</li>
+              <li><span className="note-direction-icon" aria-hidden="true">↺</span>Counter-clockwise → decreasing pitch/falling tones</li>
             </ul>
           </>
           : <p className="lesson-body">Notes use octave numbers (e.g. C<sub>4</sub> for Middle C, C<sub>5</sub> for one octave higher). Higher numbers indicate higher frequencies.</p>}
         <p className="lesson-body">
-          The goal is to learn to identify whether two-note sequences are <b>increasing or decreasing in pitch</b> (rising or falling tones). Try a few on the playground and test yourself with the examples. <b>Select a starting note, then click an interval size.</b>
+          The goal is to identify whether two-note sequences are <b>increasing or decreasing in pitch</b> (rising or falling tones). In the playground, choose a starting note and ending note, then play the selection before trying the examples. The interface to test yourself on examples is at the bottom of the page.
         </p>
       </>
     );
@@ -178,15 +178,16 @@ export function LearnerNote({
     return (
       <>
         {renderDescription()}
-        <div className={`note-practice-layout${guidance === "visual" ? " has-visualizer" : ""}`}>
+        <div className="note-practice-layout">
           <div className="note-practice-picker-panel">
-            <h3 className="note-practice-picker-title">Playground</h3>
-            <div className={`note-practice-pickers${guidance === "visual" ? " has-visualizer" : ""}`}>
-              <div className="explorer-picker-group">
-                <span className="explorer-picker-label">Note</span>
-                <div className="explorer-button-row" aria-label="Starting note">
+            <h3 className="note-practice-picker-title">Playground — Tone configuration</h3>
+            <div className="note-tone-configuration">
+              <div className="note-tone-row">
+                <span className="explorer-picker-label">Starting note:</span>
+                <div className="explorer-button-row note-tone-options" aria-label="Starting note">
                   {NOTE_NAMES.map((name, pitchClass) => (
                     <button
+                      aria-pressed={playgroundStart === pitchClass}
                       className={playgroundStart === pitchClass ? "explorer-picker-button is-selected" : "explorer-picker-button"}
                       key={name}
                       type="button"
@@ -197,28 +198,33 @@ export function LearnerNote({
                   ))}
                 </div>
               </div>
-              <div className="explorer-picker-group">
-                <span className="explorer-picker-label">Interval</span>
-                <div className="explorer-button-row" aria-label="Interval">
+              <div className="note-tone-row">
+                <span className="explorer-picker-label">Ending note:</span>
+                <div className="explorer-button-row note-tone-options" aria-label="Ending note">
                   {PLAYGROUND_INTERVALS.map((interval) => (
                     <button
-                      className={"explorer-picker-button"}
+                      aria-pressed={playgroundInterval === interval}
+                      className={playgroundInterval === interval ? "explorer-picker-button is-selected" : "explorer-picker-button"}
                       key={interval}
                       type="button"
-                      onClick={() => {
-                        setPlaygroundInterval(interval);
-                        player.play([
-                          MIDDLE_C + playgroundStart,
-                          MIDDLE_C + playgroundStart + interval,
-                        ]);
-                      }}
+                      onClick={() => setPlaygroundInterval(interval)}
                     >
-                      {interval > 0 ? `Up ${interval}` : `Down ${Math.abs(interval)}`}
+                      {interval > 0 ? `Rise by ${interval}` : `Fall by ${Math.abs(interval)}`}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
+            <button
+              className="primary-button note-play-selection"
+              type="button"
+              onClick={() => player.play([
+                MIDDLE_C + playgroundStart,
+                MIDDLE_C + playgroundStart + playgroundInterval,
+              ])}
+            >
+              Play selection
+            </button>
           </div>
           <div className="note-practice-visualizer">
             <NoteVisual

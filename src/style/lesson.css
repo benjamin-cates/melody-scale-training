@@ -76,6 +76,48 @@ li {
   line-height: 1;
   text-align: center;
 }
+.chord-interval-legend {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.chord-interval-legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.chord-interval-signal {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+.chord-interval-ring {
+  fill: none;
+  stroke: #506067;
+  stroke-width: 1;
+}
+.chord-interval-line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chord-interval-line.minor-third {
+  stroke: #8fd8ef;
+}
+.chord-interval-line.major-third {
+  stroke: #f2d447;
+}
+.chord-interval-line.perfect-fifth {
+  stroke: #a875d6;
+}
+.chord-interval-node {
+  fill: #f2f0e9;
+  stroke: #26353c;
+  stroke-width: 1;
+}
 .lesson-key {
   color: #ef8a5b;
   font-size: 21px;
@@ -84,10 +126,10 @@ li {
   margin-top: 0;
   padding-top: 0;
 }
-.note-practice-layout.has-visualizer {
+.note-practice-layout {
   display: grid;
-  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1.25fr);
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
 }
 .melody-playground-layout {
   display: grid;
@@ -198,62 +240,6 @@ li {
   cursor: default;
   opacity: 0.5;
 }
-.chord-practice-layout.has-visualizer {
-  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1.25fr);
-}
-.chord-playground-pickers.has-visualizer {
-  grid-template-columns: minmax(0, 4rem) minmax(0, 9rem);
-  align-items: start;
-  gap: 0.375rem;
-}
-.chord-playground-pickers.has-visualizer .explorer-button-row {
-  gap: 5px;
-}
-.chord-playground-pickers.has-visualizer .chord-root-row {
-  flex-direction: column;
-}
-.chord-playground-pickers.has-visualizer
-  .chord-root-row
-  .explorer-picker-button {
-  width: 4rem;
-}
-.chord-mode-categories {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-}
-.chord-playground-pickers.has-visualizer .chord-mode-categories {
-  grid-template-columns: minmax(0, 1fr);
-}
-.chord-mode-category {
-  min-width: 0;
-}
-.chord-mode-category:not(.has-visualizer *) {
-  padding-top: 0.7rem !important;
-  border-top: none !important;
-  margin: 0 !important;
-}
-.chord-mode-category + .chord-mode-category {
-  border-top: 1px solid #506067;
-  padding-top: 1rem;
-  margin-top: 1rem;
-}
-.chord-mode-category .note-practice-picker-title {
-  margin: 0 0 5px;
-  font-size: 12px;
-}
-.chord-playground-pickers.has-visualizer .chord-mode-button-row {
-  flex-direction: column;
-}
-.chord-playground-pickers.has-visualizer
-  .chord-mode-button-row
-  .explorer-picker-button {
-  width: 100%;
-}
-.chord-mode-button-row .explorer-picker-button {
-  white-space: normal;
-  line-height: 1.25;
-}
 .note-practice-picker-panel {
   border: 1px solid #506067;
   padding: 0.5rem;
@@ -263,6 +249,31 @@ li {
   color: #c2cbc6;
   font-size: 14px;
   font-weight: 400;
+}
+.note-tone-configuration-title {
+  margin: 0 0 12px;
+  color: #f2f0e9;
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.note-tone-row {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.note-tone-row + .note-tone-row {
+  margin-top: 12px;
+}
+.note-tone-row .explorer-picker-label {
+  margin: 0;
+}
+.note-tone-options {
+  gap: 6px;
+}
+.note-play-selection {
+  margin-top: 16px;
 }
 .note-practice-pickers.has-visualizer {
   display: grid;
@@ -319,9 +330,9 @@ li {
   .lesson-card h2 {
     font-size: 30px;
   }
-  .note-practice-layout.has-visualizer {
+  .note-tone-row {
     grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
+    gap: 7px;
   }
   .melody-playground-layout {
     grid-template-columns: minmax(0, 1fr);

@@ -9,16 +9,19 @@ type PlaybackMode = "arpeggio" | "melody";
 type ChordTrial = {
   id: string;
   root: number;
-  chordType: 3 | 4 | 7;
+  firstInterval: 4;
+  secondInterval: 3 | 4 | 7;
   mode: PlaybackMode;
 };
 
 type ChordTrialResult = {
   trialId: string;
   root: number;
+  firstInterval: 4;
+  secondInterval: 3 | 4 | 7;
   mode: PlaybackMode;
-  correctAnswer: 3 | 4 | 7;
-  answer: 3 | 4 | 7;
+  correctAnswer: "same" | "different";
+  answer: "same" | "different";
   replayEvents: number[];
 };
 
@@ -37,13 +40,39 @@ function chordNotes(root: number, chordType: 3 | 4 | 7) {
   return [rootNote, rootNote + chordType];
 }
 
+function ChordIntervalSignal({ chordType, angle }: { chordType: 3 | 4 | 7; angle: number }) {
+  const center = 18;
+  const radius = 14;
+  const endpointAngle = (-90 + angle) * Math.PI / 180;
+  const endpointX = center + Math.cos(endpointAngle) * radius;
+  const endpointY = center + Math.sin(endpointAngle) * radius;
+  const relationshipClass = chordType === 3
+    ? "minor-third"
+    : chordType === 4
+      ? "major-third"
+      : "perfect-fifth";
+
+  return (
+    <svg className="chord-interval-signal" viewBox="0 0 36 36" aria-hidden="true">
+      <circle className="chord-interval-ring" cx={center} cy={center} r={radius} />
+      <polyline
+        className={`chord-interval-line ${relationshipClass}`}
+        points={`${center},${center - radius} ${center},${center} ${endpointX},${endpointY}`}
+      />
+      <circle className="chord-interval-node" cx={center} cy={center - radius} r="2.5" />
+      <circle className="chord-interval-node" cx={endpointX} cy={endpointY} r="2.5" />
+    </svg>
+  );
+}
+
 function createExampleTrial(): ChordTrial {
-  const chordType = CHORD_TYPES[Math.floor(Math.random() * CHORD_TYPES.length)];
+  const secondInterval = CHORD_TYPES[Math.floor(Math.random() * CHORD_TYPES.length)];
   const mode = Math.random() < 0.5 ? "arpeggio" : "melody";
   return {
     id: `chord-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     root: Math.floor(Math.random() * 12),
-    chordType,
+    firstInterval: 4,
+    secondInterval,
     mode,
   };
 }
@@ -100,9 +129,26 @@ function useChordPlayer() {
     timers.current.push(window.setTimeout(() => setIsPlaying(false), span * 1000 + 150));
   };
 
+  const playChordPair = (first: number[], second: number[], mode: PlaybackMode) => {
+    stop();
+    const context = getAudioContext();
+    void context.resume();
+    const start = context.currentTime + 0.05;
+    setIsPlaying(true);
+    const firstSpan = scheduleChord(first, start, context.currentTime, mode);
+    const secondStart = start + firstSpan + 0.25;
+    const secondSpan = scheduleChord(second, secondStart, context.currentTime, mode);
+    timers.current.push(
+      window.setTimeout(
+        () => setIsPlaying(false),
+        Math.max(0, (secondStart + secondSpan - context.currentTime) * 1000) + 150,
+      ),
+    );
+  };
+
   useEffect(() => stop, []);
 
-  return { playChord, isPlaying, activeNotes, stop };
+  return { playChord, playChordPair, isPlaying, activeNotes, stop };
 }
 
 function ChordVisual({
@@ -147,7 +193,7 @@ export function LearnerChord({
   const [playgroundType, setPlaygroundType] = useState<3 | 4 | 7>(3);
   const [playgroundMode, setPlaygroundMode] = useState<PlaybackMode>("melody");
   const [exampleTrial, setExampleTrial] = useState(createExampleTrial);
-  const [exampleGuess, setExampleGuess] = useState<3 | 4 | 7 | null>(null);
+  const [exampleGuess, setExampleGuess] = useState<"same" | "different" | null>(null);
   const [exampleResults, setExampleResults] = useState<ChordTrialResult[]>([]);
   const exampleStartedAt = useRef(Date.now());
   const exampleReplayEvents = useRef<number[]>([0]);
@@ -163,8 +209,12 @@ export function LearnerChord({
     if (instructionOnly) return;
     exampleStartedAt.current = Date.now();
     exampleReplayEvents.current = [0];
-    setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.chordType, revealChordType: false });
-    player.playChord(chordNotes(exampleTrial.root, exampleTrial.chordType), exampleTrial.mode);
+    setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval, revealChordType: false });
+    player.playChordPair(
+      chordNotes(exampleTrial.root, exampleTrial.firstInterval),
+      chordNotes(exampleTrial.root, exampleTrial.secondInterval),
+      exampleTrial.mode,
+    );
     setExampleGuess(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instructionOnly, exampleTrial]);
@@ -198,32 +248,41 @@ export function LearnerChord({
         <h2>Simple chords</h2>
         <p className="lesson-body">
           A chord is a combination of notes played together or in rapid sequence (an arpeggio). We
-          will focus on three core intervals built from a root note. The major third has an
-          interval size of 4 steps above the root and sounds {CHORD_DEFS[4].mood}. The minor
-          third has an interval size of 3 steps and sounds {CHORD_DEFS[3].mood}. The perfect
-          fifth has a gap of 7 steps and sounds {CHORD_DEFS[7].mood}.
+          will focus on three core intervals built from a root note and one other note.
         </p>
+        {guidance === "visual" && <p className="lesson-body">Chords are visually represented on the spiral as <b>colored connections</b> between notes.</p>}
+
+        <ul className={guidance === "visual" ? "chord-interval-legend" : ""}>
+          <li>
+            {guidance === "visual" && <ChordIntervalSignal chordType={3} angle={90} />}
+            <span><b>Minor third:</b> gap of 3 steps, sounds {CHORD_DEFS[3].mood}.{guidance === "visual" ? " Colored blue." : ""}</span>
+          </li>
+          <li>
+            {guidance === "visual" && <ChordIntervalSignal chordType={4} angle={120} />}
+            <span><b>Major third:</b> gap of 4 steps, sounds {CHORD_DEFS[4].mood}.{guidance === "visual" ? " Colored yellow." : ""}</span>
+          </li>
+          <li>
+            {guidance === "visual" && <ChordIntervalSignal chordType={7} angle={210} />}
+            <span><b>Perfect fifth:</b> gap of 7 steps, sounds {CHORD_DEFS[7].mood}.{guidance === "visual" ? " Colored purple." : ""}</span>
+          </li>
+        </ul>
+
         {!guidanceMode && guidanceToggle}
-        <p className="lesson-body">
-          {guidance === "visual"
-            ? "Chords are shown as connected notes on the spiral. The white outline marks the root note. The perfect fifth line is purple, the major third line is yellow, and the minor third line is blue."
-            : "The names of the notes, the chord type, and the separation distance are shown on the screen."}
-        </p>
       </>
     );
   }
 
   function renderExamples() {
-    const correctDef = CHORD_DEFS[exampleTrial.chordType];
+    const correctAnswer = exampleTrial.firstInterval === exampleTrial.secondInterval ? "same" : "different";
     return (
       <>
         <div className="example-prompt-row">
           <p className="sequence-status" aria-live="polite">
             {exampleGuess === null
-              ? "Listen, then choose an interval."
-              : exampleGuess === exampleTrial.chordType
-                ? `Correct: ${correctDef.label}.`
-                : "Not quite. Try another interval."}
+              ? "Listen to both chords, then decide if they are the same or different."
+              : exampleGuess === correctAnswer
+                ? `Correct: ${correctAnswer}.`
+                : "Not quite. Listen again and try the other answer."}
           </p>
           <button
             className="secondary-button"
@@ -233,43 +292,49 @@ export function LearnerChord({
                 ...exampleReplayEvents.current,
                 Date.now() - exampleStartedAt.current,
               ];
-              setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.chordType, revealChordType: false });
-              player.playChord(chordNotes(exampleTrial.root, exampleTrial.chordType), exampleTrial.mode);
+              setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval, revealChordType: false });
+              player.playChordPair(
+                chordNotes(exampleTrial.root, exampleTrial.firstInterval),
+                chordNotes(exampleTrial.root, exampleTrial.secondInterval),
+                exampleTrial.mode,
+              );
             }}
           >
             Hear example again
           </button>
         </div>
-        <div className="choice-row" role="radiogroup" aria-label="Chord interval">
-          {CHORD_TYPES.map((chordType) => (
+        <div className="choice-row" role="radiogroup" aria-label="Same or different chords">
+          {(["same", "different"] as const).map((answer) => (
             <label
-              className={`${exampleGuess === chordType ? "selected" : ""}${exampleGuess === exampleTrial.chordType ? " locked" : ""}`}
-              key={chordType}
+              className={`${exampleGuess === answer ? "selected" : ""}${exampleGuess === correctAnswer ? " locked" : ""}`}
+              key={answer}
             >
               <input
                 type="radio"
                 name="chord-example-answer"
-                checked={exampleGuess === chordType}
-                disabled={exampleGuess === exampleTrial.chordType}
+                checked={exampleGuess === answer}
+                disabled={exampleGuess === correctAnswer}
                 onChange={() => {
-                  setExampleGuess(chordType);
+                  setExampleGuess(answer);
                   setExampleResults((previous) => [
                     ...previous,
                     {
                       trialId: exampleTrial.id,
                       root: exampleTrial.root,
+                      firstInterval: exampleTrial.firstInterval,
+                      secondInterval: exampleTrial.secondInterval,
                       mode: exampleTrial.mode,
-                      correctAnswer: exampleTrial.chordType,
-                      answer: chordType,
+                      correctAnswer,
+                      answer,
                       replayEvents: [...exampleReplayEvents.current],
                     },
                   ]);
-                  if (chordType === exampleTrial.chordType) {
+                  if (answer === correctAnswer) {
                     window.setTimeout(() => setExampleTrial(createExampleTrial()), 500);
                   }
                 }}
               />
-              {CHORD_DEFS[chordType].label}
+              {answer === "same" ? "Same" : "Different"}
             </label>
           ))}
         </div>
@@ -281,57 +346,71 @@ export function LearnerChord({
     return (
       <>
         <p className="lesson-body">
-          Choose a root note and a chord. Play each chord as a melody or an arpeggio.
+          Choose a starting note, interval, and presentation, then play the selection before trying the examples.
         </p>
-        <div className={`note-practice-layout chord-practice-layout${guidance === "visual" ? " has-visualizer" : ""}`}>
+        <div className="note-practice-layout chord-practice-layout">
           <div className="note-practice-picker-panel">
-            <h3 className="note-practice-picker-title">Playground</h3>
-            <div className={`note-practice-pickers chord-playground-pickers${guidance === "visual" ? " has-visualizer" : ""}`}>
-              <div className="explorer-picker-group">
-                <span className="explorer-picker-label">Root</span>
-                <div className="explorer-button-row chord-root-row" aria-label="Root note">
+            <h3 className="note-practice-picker-title">Playground — Tone configuration</h3>
+            <div className="note-tone-configuration">
+              <div className="note-tone-row">
+                <span className="explorer-picker-label">Starting note:</span>
+                <div className="explorer-button-row note-tone-options" aria-label="Root note">
                   {NOTE_NAMES.map((name, pitchClass) => (
                     <button
+                      aria-pressed={playgroundRoot === pitchClass}
                       className={playgroundRoot === pitchClass ? "explorer-picker-button is-selected" : "explorer-picker-button"}
                       key={name}
                       type="button"
-                      onClick={() => {
-                        setPlaygroundRoot(pitchClass);
-                        setVisualChord({ root: pitchClass, chordType: playgroundType, revealChordType: true });
-                      }}
+                      onClick={() => setPlaygroundRoot(pitchClass)}
                     >
                       {name}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="chord-mode-categories">
-                {(["melody", "arpeggio"] as const).map((mode) => (
-                  <section className="chord-mode-category" key={mode}>
-                    <span className="explorer-picker-label">
+              <div className="note-tone-row">
+                <span className="explorer-picker-label">Chord interval:</span>
+                <div className="explorer-button-row note-tone-options" aria-label="Chord interval">
+                  {CHORD_TYPES.map((chordType) => (
+                    <button
+                      aria-pressed={playgroundType === chordType}
+                      className={playgroundType === chordType ? "explorer-picker-button is-selected" : "explorer-picker-button"}
+                      key={chordType}
+                      type="button"
+                      onClick={() => setPlaygroundType(chordType)}
+                    >
+                      {CHORD_DEFS[chordType].label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="note-tone-row">
+                <span className="explorer-picker-label">Presentation:</span>
+                <div className="explorer-button-row note-tone-options" aria-label="Presentation">
+                  {(["melody", "arpeggio"] as const).map((mode) => (
+                    <button
+                      aria-pressed={playgroundMode === mode}
+                      className={playgroundMode === mode ? "explorer-picker-button is-selected" : "explorer-picker-button"}
+                      key={mode}
+                      type="button"
+                      onClick={() => setPlaygroundMode(mode)}
+                    >
                       {mode === "melody" ? "Chord" : "Arpeggio"}
-                    </span>
-                    <div className="explorer-button-row chord-mode-button-row" aria-label={`${mode} chord types`}>
-                      {CHORD_TYPES.map((chordType) => (
-                        <button
-                          className={"explorer-picker-button"}
-                          key={chordType}
-                          type="button"
-                          onClick={() => {
-                            setPlaygroundType(chordType);
-                            setPlaygroundMode(mode);
-                            setVisualChord({ root: playgroundRoot, chordType, revealChordType: true });
-                            player.playChord(chordNotes(playgroundRoot, chordType), mode);
-                          }}
-                        >
-                          {CHORD_DEFS[chordType].label}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                ))}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+            <button
+              className="primary-button note-play-selection"
+              type="button"
+              onClick={() => {
+                setVisualChord({ root: playgroundRoot, chordType: playgroundType, revealChordType: true });
+                player.playChord(chordNotes(playgroundRoot, playgroundType), playgroundMode);
+              }}
+            >
+              Play selection
+            </button>
           </div>
           <div className="note-practice-visualizer">
             <ChordVisual

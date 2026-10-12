@@ -234,6 +234,10 @@ export function Experiment() {
     const isDebug = new URLSearchParams(window.location.search).get("debug") === "true";
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [stepIndex]);
+
+    useEffect(() => {
         if (!group || step === "complete") return;
 
         const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
@@ -492,11 +496,9 @@ export function Experiment() {
                 {experimentControls}
                 <section className="page-section narrow">
                     <article className="lesson-card">
-                        <p className="eyebrow">Study session complete</p>
-                        <h1>Congratulations</h1>
+                        <h1>Thank you</h1>
                         <p className="lesson-body">
-                            You have finished the survey, lessons, and immediate tests. Please return in a few days
-                            for the retention test, and follow the researcher's instructions for what to do next.
+                            ___instructions___
                         </p>
                         <button
                             className="primary-button"
@@ -516,7 +518,7 @@ export function Experiment() {
 
     const progressIndex = RESULT_KEYS.indexOf(step as ResultKey) + 1;
     const progress = (
-        <p className="eyebrow">
+        <p className="eyebrow" style={{ "position": "absolute" }}>
             Experiment - Step {progressIndex} of {RESULT_KEYS.length}: {STEPS[stepIndex].label}
         </p>
     );
@@ -552,12 +554,16 @@ export function Experiment() {
             {step === "notes" && (
                 <LearnerNote
                     guidanceMode={guidanceMode}
+                    timer={180}
+                    pauseTimer={Boolean(results.timing.pausedAt)}
                     onResults={(value) => recordResults("notes", value)}
                 />
             )}
             {step === "chords" && (
                 <LearnerChord
                     guidanceMode={guidanceMode}
+                    timer={180}
+                    pauseTimer={Boolean(results.timing.pausedAt)}
                     onResults={(value) => recordResults("chords", value)}
                 />
             )}
@@ -565,6 +571,8 @@ export function Experiment() {
                 <LearnerMelody
                     guidanceMode={guidanceMode}
                     showDownloadResults={false}
+                    timer={180}
+                    pauseTimer={Boolean(results.timing.pausedAt)}
                     onResults={(value) => recordResults("melodies", value)}
                 />
             )}
@@ -576,7 +584,13 @@ export function Experiment() {
                     completionTitle="Interleaved practice complete"
                     showDownloadResults={false}
                     onResults={(value) => recordResults("practice", value)}
-                />
+                >
+                    <h2>Practice</h2>
+                    <p className="lesson-body">This practice session will switch between the concepts you learned in the three lessons.</p>
+                    {group === "visual" && (
+                        <p className="lesson-body">The first half of the practice will have enhanced visual cues. The second half will have simple visual cues.</p>
+                    )}
+                </Test>
             )}
             {step === "post-test" && (
                 <Test
@@ -584,7 +598,10 @@ export function Experiment() {
                     completionTitle="Final test complete"
                     showDownloadResults={false}
                     onResults={(value) => recordResults("post-test", value)}
-                />
+                >
+                    <h2>Post-test</h2>
+                    <p className="lesson-body">This final test will assess your musical abilities after completing the lessons and practice sessions.</p>
+                </Test>
             )}
             {pauseOverlay}
         </>

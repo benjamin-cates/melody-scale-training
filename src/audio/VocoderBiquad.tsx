@@ -24,6 +24,7 @@ function greenwoodFrequency(position: number) {
 }
 
 function getCenterFrequencies(settings: VocoderSettings): number[] {
+  // Space 4 or 8 channel centers across 100-6000 Hz using the Greenwood map.
   const minimum = 100;
   const maximum = 6000;
   const start = greenwoodPosition(minimum);
@@ -150,21 +151,18 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
         const context = getAudioContext();
         const bus = getAudioBus();
         const source = context.createGain();
-        const preEmphasis = context.createBiquadFilter();
-        preEmphasis.type = "highpass";
-        preEmphasis.frequency.value = 1200;
-        preEmphasis.Q.value = Math.SQRT1_2;
         if (cancelled) return;
         const edges = getBandEdges(centers, 100, 6000);
         const sum = context.createGain();
         const channelAnalysers: AnalyserNode[] = [];
         const analysisPowers: number[] = [];
-        const nodes: AudioNode[] = [source, preEmphasis, sum];
+        const nodes: AudioNode[] = [source, sum];
         bus.disconnect();
         bus.connect(source);
-        source.connect(preEmphasis);
+        // Split the input into Greenwood-spaced channel bands.
         edges.forEach(({ center, low, high }) => {
           const analysisFilters = makeBandPass(context, center, low, high, settings.slope);
+          // Half-wave rectify each band, then smooth its envelope with a fourth-order 500 Hz low-pass.
           const rectifier = context.createWaveShaper();
           rectifier.curve = Float32Array.from({ length: 1025 }, (_, index) =>
             Math.max(0, (index * 2) / 1024 - 1));
@@ -178,11 +176,12 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
           carrierLevel.gain.value = 1 / Math.sqrt(NOISE_SOURCE_POWER * getCascadePower(carrierFilters, context.sampleRate));
           const modulator = context.createGain();
           modulator.gain.value = 0;
-          analysisPowers.push(getCascadePower([preEmphasis, ...analysisFilters], context.sampleRate));
+          analysisPowers.push(getCascadePower(analysisFilters, context.sampleRate));
 
-          connectFilters(preEmphasis, analysisFilters);
+          connectFilters(source, analysisFilters);
           analysisFilters.at(-1)?.connect(rectifier);
           connectFilters(rectifier, envelopeFilters);
+          // Use the extracted envelope to amplitude-modulate broadband noise, then keep this channel's band.
           envelopeFilters.at(-1)?.connect(modulator.gain);
           envelopeFilters.at(-1)?.connect(channelAnalyser);
           carrier.connect(modulator);
@@ -193,6 +192,7 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
           nodes.push(...analysisFilters, rectifier, ...envelopeFilters, carrier, modulator, carrierLevel, ...carrierFilters, channelAnalyser);
           channelAnalysers.push(channelAnalyser);
         });
+        // Sum the filtered noise channels into the final output.
         sum.gain.value = 1 / Math.sqrt(0.5 * analysisPowers.reduce((total, power) => total + power, 0));
         sum.connect(context.destination);
         graph = { context, bus, nodes };
@@ -279,13 +279,13 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
     <aside className={`vocoder ${open ? "is-open" : ""}`} aria-label="Cochlear implant vocoder">
       <button className="vocoder-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
         <span className={`vocoder-status ${isEnabled ? "is-live" : ""}`} />
-        Cochlear vocoder
+        Vocoder
         <b>{open ? "-" : "+"}</b>
       </button>
       {open && (
         <div className="vocoder-panel">
           <div className="vocoder-panel-body">
-            <p className="vocoder-intro">Live four- or eight-channel noise vocoder</p>
+
             <button
               className={`vocoder-power ${isEnabled ? "is-on" : ""}`}
               onClick={() => {
@@ -304,7 +304,7 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
               <input type="range" min="-24" max="-12" step="12" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) as FilterSlope })} />
             </label>
             {error && <p className="vocoder-error">{error}</p>}
-            <p className="vocoder-note">100-6000 Hz Greenwood-spaced bands with 1200 Hz pre-emphasis and 500 Hz envelopes.</p>
+            <p className="vocoder-note">100-6000 Hz Greenwood-spaced bands with 500 Hz envelopes.</p>
           </div>
           <div className="vocoder-channel-meter" aria-label="Channel activity meter">
             {centers.map((center, index) => (

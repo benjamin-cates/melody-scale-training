@@ -1,28 +1,7 @@
 .test-card {
-  max-width: 710px;
   background: #26353c;
   color: #f2f0e9;
   padding: 34px 38px;
-  box-shadow: 13px 13px 0 #d1cec3;
-}
-.test-card.new-sequence {
-  animation: sequence-arrival 0.9s ease-out;
-}
-@keyframes sequence-arrival {
-  0% {
-    opacity: 1;
-    transform: translateY(0px);
-    box-shadow: 13px 13px 0 #d1cec3;
-  }
-
-  45% {
-    opacity: 1;
-    transform: translateY(5px);
-    box-shadow: 13px 13px 0 #ef8a5b;
-  }
-  100% {
-    box-shadow: 13px 13px 0 #d1cec3;
-  }
 }
 .test-meta {
   display: flex;
@@ -54,14 +33,22 @@
   animation: sequence-art 0.9s ease-out;
 }
 @keyframes sequence-art {
-  0%, 100% { transform: scale(1); }
-  35% { transform: scale(1.12); color: #f2c84b; }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.12);
+    color: #f2c84b;
+  }
 }
 .sequence-status {
   min-height: 17px;
   margin: 0 0 10px;
   color: #f2c84b;
-  font: 10px "Trebuchet MS", sans-serif;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
   letter-spacing: 0.14em;
   text-align: center;
   text-transform: uppercase;
@@ -81,14 +68,9 @@
     animation: none;
   }
 }
-.test-form {
-  border-top: 1px solid #506067;
-  margin-top: 26px;
-  padding-top: 26px;
-}
 .test-form fieldset {
   border: 0;
-  margin: 0 0 29px;
+  margin: 0 0 20px;
   padding: 0;
 }
 .test-form legend {
@@ -143,7 +125,9 @@
   padding: 14px;
   color: #b9c2be;
   text-align: center;
-  font: 15px "Trebuchet MS", sans-serif;
+  font:
+    15px "Trebuchet MS",
+    sans-serif;
 }
 .choice-row-note.selected {
   border-color: #ef8a5b;
@@ -157,7 +141,9 @@
 .confidence-fieldset legend {
   margin-bottom: 11px;
   color: #b9c2be;
-  font: 12px "Trebuchet MS", sans-serif;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
 }
 .confidence-options {
   display: flex;
@@ -171,7 +157,9 @@
   background: transparent;
   color: #b9c2be;
   cursor: pointer;
-  font: 13px "Trebuchet MS", sans-serif;
+  font:
+    13px "Trebuchet MS",
+    sans-serif;
 }
 .confidence-options button:hover,
 .confidence-options button.selected {
@@ -184,13 +172,17 @@
   min-height: 15px;
   margin-top: 8px;
   color: #98a5a4;
-  font: 10px "Trebuchet MS", sans-serif;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .test-actions {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
   gap: 24px;
 }
 .test-progress {
@@ -199,7 +191,9 @@
   gap: 11px;
   flex: 1;
   color: #98a5a4;
-  font: 10px "Trebuchet MS", sans-serif;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -218,7 +212,6 @@
 @media (max-width: 680px) {
   .test-card {
     padding: 25px 20px;
-    box-shadow: 8px 8px 0 #d1cec3;
   }
   .test-actions {
     align-items: stretch;

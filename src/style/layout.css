@@ -19,7 +19,9 @@
   top: 12px;
   right: 12px;
   z-index: 100;
-  background: #f2f0e9;
+}
+.experiment-controls button {
+  background: #e9e7df;
 }
 .experiment-pause-backdrop {
   position: fixed;
@@ -125,12 +127,8 @@
 .page-heading .intro-copy {
   margin-top: 0;
 }
-.narrow {
-  max-width: 860px;
-}
 .learner-page,
 .test-page {
-  max-width: 950px;
   margin: 0 auto;
 }
 .footer-note {

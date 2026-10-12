@@ -4,6 +4,7 @@ import { Chromatone } from "./audio/Chromatone";
 import { PianoView } from "./audio/PianoView";
 import { useSongPlayback } from "./audio/useSongPlayback";
 import { SONGS, type Scale, type Song, type SongNote } from "./audio/music";
+import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
 
 type GuidanceMode = "visual" | "auditory";
 
@@ -102,11 +103,15 @@ export function LearnerMelody({
   guidanceMode,
   instructionOnly = false,
   showDownloadResults = true,
+  timer,
+  pauseTimer = false,
   onResults,
 }: {
   guidanceMode?: GuidanceMode;
   instructionOnly?: boolean;
   showDownloadResults?: boolean;
+  timer?: number;
+  pauseTimer?: boolean;
   onResults?: (results: Record<string, unknown>) => void;
 } = {}) {
   const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
@@ -121,6 +126,7 @@ export function LearnerMelody({
   const [isPlaying, setIsPlaying] = useState(false);
   const questionStartedAt = useRef(new Date());
   const replayEvents = useRef<number[]>([]);
+  const remainingSeconds = useLessonTimer(timer, pauseTimer);
 
   const player = useSongPlayback(visualizerSong, TEMPO, isPlaying, {
     loop: false,
@@ -290,9 +296,13 @@ export function LearnerMelody({
         <>
           <h2>Examples complete</h2>
           <p className="lesson-body">You answered {correctCount} of {exampleResults.length} attempts correctly.</p>
-          <button className="primary-button" onClick={completeExamples} type="button">
+          <LessonContinue
+            timer={timer}
+            remainingSeconds={remainingSeconds}
+            onContinue={completeExamples}
+          >
             {showDownloadResults ? "Download results (JSON)" : "Continue"}
-          </button>
+          </LessonContinue>
         </>
       );
     }
@@ -364,10 +374,10 @@ export function LearnerMelody({
           {renderExamples()}
           {onResults && (
             <div className="lesson-actions continue-only">
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() =>
+              <LessonContinue
+                timer={timer}
+                remainingSeconds={remainingSeconds}
+                onContinue={() =>
                   onResults({
                     completedAt: new Date().toISOString(),
                     guidance,
@@ -376,7 +386,7 @@ export function LearnerMelody({
                 }
               >
                 Continue
-              </button>
+              </LessonContinue>
             </div>
           )}
         </article>

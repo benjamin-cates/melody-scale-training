@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getAudioContext, noteLabel, playTone } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
+import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
 
 type GuidanceMode = "visual" | "auditory";
 type PlaybackMode = "arpeggio" | "melody";
@@ -182,10 +183,14 @@ function ChordVisual({
 export function LearnerChord({
   guidanceMode,
   instructionOnly = false,
+  timer,
+  pauseTimer = false,
   onResults,
 }: {
   guidanceMode?: GuidanceMode;
   instructionOnly?: boolean;
+  timer?: number;
+  pauseTimer?: boolean;
   onResults?: (results: Record<string, unknown>) => void;
 } = {}) {
   const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
@@ -203,6 +208,7 @@ export function LearnerChord({
     chordType: 3 as 3 | 4 | 7,
     revealChordType: true,
   });
+  const remainingSeconds = useLessonTimer(timer, pauseTimer);
 
   const player = useChordPlayer();
 
@@ -436,10 +442,10 @@ export function LearnerChord({
           {renderExamples()}
           {onResults && (
             <div className="lesson-actions continue-only">
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() =>
+              <LessonContinue
+                timer={timer}
+                remainingSeconds={remainingSeconds}
+                onContinue={() =>
                   onResults({
                     completedAt: new Date().toISOString(),
                     guidance,
@@ -448,7 +454,7 @@ export function LearnerChord({
                 }
               >
                 Continue
-              </button>
+              </LessonContinue>
             </div>
           )}
         </article>

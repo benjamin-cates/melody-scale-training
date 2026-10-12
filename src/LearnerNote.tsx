@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getAudioBus, getAudioContext, noteLabel, playTone } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
+import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
 
 type GuidanceMode = "visual" | "auditory";
 type Direction = "increasing" | "decreasing";
@@ -103,10 +104,14 @@ function NoteVisual({ guidance, activeNote }: { guidance: GuidanceMode; activeNo
 export function LearnerNote({
   guidanceMode,
   instructionOnly = false,
+  timer,
+  pauseTimer = false,
   onResults,
 }: {
   guidanceMode?: GuidanceMode;
   instructionOnly?: boolean;
+  timer?: number;
+  pauseTimer?: boolean;
   onResults?: (results: Record<string, unknown>) => void;
 } = {}) {
   const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
@@ -116,6 +121,7 @@ export function LearnerNote({
   const [examplePlayed, setExamplePlayed] = useState(false);
   const [exampleGuess, setExampleGuess] = useState<Direction | null>(null);
   const [exampleResults, setExampleResults] = useState<TrialResult[]>([]);
+  const remainingSeconds = useLessonTimer(timer, pauseTimer);
 
   const player = usePitchPlayer();
 
@@ -294,10 +300,10 @@ export function LearnerNote({
         </div>
         {onResults && (
           <div className="lesson-actions continue-only">
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() =>
+            <LessonContinue
+              timer={timer}
+              remainingSeconds={remainingSeconds}
+              onContinue={() =>
                 onResults({
                   completedAt: new Date().toISOString(),
                   guidance,
@@ -306,7 +312,7 @@ export function LearnerNote({
               }
             >
               Continue
-            </button>
+            </LessonContinue>
           </div>
         )}
       </>
@@ -320,13 +326,13 @@ export function LearnerNote({
           <article className="lesson-card">
             {renderDescription()}
             <div className="lesson-actions continue-only">
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() => onResults?.({ completedAt: new Date().toISOString(), guidance })}
+              <LessonContinue
+                timer={timer}
+                remainingSeconds={remainingSeconds}
+                onContinue={() => onResults?.({ completedAt: new Date().toISOString(), guidance })}
               >
                 Continue to interleaved practice
-              </button>
+              </LessonContinue>
             </div>
           </article>
         </div>

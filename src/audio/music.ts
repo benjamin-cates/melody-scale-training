@@ -160,7 +160,7 @@ export const SONGS: Song[] = [
     ],
   },
   {
-    title: "Copper Rain",
+    title: "Simple triads",
     subtitle: "A three-note study in C major",
     category: "Exercises",
     key: "C major",
@@ -194,7 +194,7 @@ export const SONGS: Song[] = [
     ],
   },
   {
-    title: "Copper Rain (Minor)",
+    title: "Simple Triads (Minor)",
     subtitle: "The same shape, recast in C minor",
     category: "Exercises",
     key: "C minor",

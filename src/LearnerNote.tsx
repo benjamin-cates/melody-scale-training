@@ -113,6 +113,7 @@ export function LearnerNote({
   const [playgroundStart, setPlaygroundStart] = useState(0);
   const [playgroundInterval, setPlaygroundInterval] = useState(4);
   const [exampleTrial, setExampleTrial] = useState(createExampleTrial);
+  const [examplePlayed, setExamplePlayed] = useState(false);
   const [exampleGuess, setExampleGuess] = useState<Direction | null>(null);
   const [exampleResults, setExampleResults] = useState<TrialResult[]>([]);
 
@@ -120,7 +121,7 @@ export function LearnerNote({
 
   useEffect(() => {
     if (instructionOnly) return;
-    player.play([exampleTrial.firstNote, exampleTrial.secondNote]);
+    setExamplePlayed(false);
     setExampleGuess(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instructionOnly, exampleTrial]);
@@ -236,18 +237,23 @@ export function LearnerNote({
         <h2>Example questions</h2>
         <div className="example-prompt-row">
           <p className="sequence-status" aria-live="polite">
-            {exampleGuess === null
-              ? "Listen, then choose a direction."
-              : exampleGuess === (exampleTrial.secondNote > exampleTrial.firstNote ? "increasing" : "decreasing")
-                ? "Correct"
-                : "Not quite. Listen again and try the other direction."}
+            {!examplePlayed
+              ? "Press Hear example to listen, then choose a direction."
+              : exampleGuess === null
+                ? "Listen, then choose a direction."
+                : exampleGuess === (exampleTrial.secondNote > exampleTrial.firstNote ? "increasing" : "decreasing")
+                  ? "Correct"
+                  : "Not quite. Listen again and try the other direction."}
           </p>
           <button
             className="secondary-button"
             type="button"
-            onClick={() => player.play([exampleTrial.firstNote, exampleTrial.secondNote])}
+            onClick={() => {
+              setExamplePlayed(true);
+              player.play([exampleTrial.firstNote, exampleTrial.secondNote]);
+            }}
           >
-            Hear example
+            {examplePlayed ? "Hear again" : "Hear example"}
           </button>
         </div>
         <div className="choice-row" role="radiogroup" aria-label="Example direction">
@@ -262,7 +268,7 @@ export function LearnerNote({
                   type="radio"
                   name="example-answer"
                   checked={exampleGuess === direction}
-                  disabled={exampleGuess === correctDirection}
+                  disabled={!examplePlayed || exampleGuess === correctDirection}
                   onChange={() => {
                     setExampleGuess(direction);
                     setExampleResults((previous) => [

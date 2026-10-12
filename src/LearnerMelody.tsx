@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { downloadJson } from "./AppRoutes";
-import { getAudioBus, getAudioContext } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { PianoView } from "./audio/PianoView";
+import { useSongPlayback } from "./audio/useSongPlayback";
 import { SONGS, type Scale, type Song, type SongNote } from "./audio/music";
 
 type GuidanceMode = "visual" | "auditory";
@@ -74,75 +74,6 @@ function createExampleTrials(songs: Song[]): MelodyTrial[] {
   }));
 }
 
-function useMelodyPlayer() {
-  const audioContext = useRef<AudioContext | null>(null);
-  const oscillators = useRef<OscillatorNode[]>([]);
-  const timer = useRef<number | null>(null);
-  const onCompleteRef = useRef<(() => void) | null>(null);
-  const [activeNotes, setActiveNotes] = useState<SongNote[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const stop = () => {
-    oscillators.current.forEach((oscillator) => {
-      try {
-        oscillator.stop();
-      } catch {
-        /* already stopped */
-      }
-      oscillator.disconnect();
-    });
-    oscillators.current = [];
-    if (timer.current !== null) {
-      window.clearTimeout(timer.current);
-      timer.current = null;
-    }
-    setActiveNotes([]);
-    setIsPlaying(false);
-  };
-
-  const playFrom = (song: Song, position: number) => {
-    const note = song.notes[position];
-    if (!note) {
-      setActiveNotes([]);
-      setIsPlaying(false);
-      onCompleteRef.current?.();
-      return;
-    }
-    const beatDuration = 60000 / TEMPO;
-    const context = audioContext.current ?? getAudioContext();
-    audioContext.current = context;
-    const bus = getAudioBus();
-    void context.resume();
-    const duration = Math.max((note.duration * beatDuration) / 1000, 0.04);
-    note.noteIndices.forEach((noteIndex) => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = "triangle";
-      oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.3, context.currentTime + 0.025);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
-      oscillator.connect(gain).connect(bus);
-      oscillator.start();
-      oscillator.stop(context.currentTime + duration);
-      oscillators.current.push(oscillator);
-    });
-    setActiveNotes([note]);
-    timer.current = window.setTimeout(() => playFrom(song, position + 1), duration * 1000);
-  };
-
-  const play = (song: Song, onComplete: () => void) => {
-    stop();
-    onCompleteRef.current = onComplete;
-    setIsPlaying(true);
-    playFrom(song, 0);
-  };
-
-  useEffect(() => stop, []);
-
-  return { play, stop, activeNotes, isPlaying };
-}
-
 function MelodyVisual({
   guidance,
   song,
@@ -182,25 +113,34 @@ export function LearnerMelody({
   const [exampleTrials] = useState(() => createExampleTrials(LESSON_SONGS));
   const [exampleIndex, setExampleIndex] = useState(0);
   const [exampleGuess, setExampleGuess] = useState<Scale | null>(null);
+  const [examplePlayed, setExamplePlayed] = useState(false);
   const [exampleFinished, setExampleFinished] = useState(false);
   const [exampleResults, setExampleResults] = useState<MelodyResult[]>([]);
   const [visualizerSong, setVisualizerSong] = useState(LESSON_SONGS[0]);
   const [playbackSource, setPlaybackSource] = useState<"example" | "playground" | "stopped">("stopped");
+  const [isPlaying, setIsPlaying] = useState(false);
   const questionStartedAt = useRef(new Date());
   const replayEvents = useRef<number[]>([]);
 
-  const player = useMelodyPlayer();
+  const player = useSongPlayback(visualizerSong, TEMPO, isPlaying, {
+    loop: false,
+    onComplete: () => {
+      setIsPlaying(false);
+      if (playbackSource === "example") setExampleFinished(true);
+    },
+  });
   const exampleTrial = exampleTrials[exampleIndex];
 
   useEffect(() => {
     if (instructionOnly || !exampleTrial) return;
     setExampleGuess(null);
+    setExamplePlayed(false);
     setExampleFinished(false);
     questionStartedAt.current = new Date();
     replayEvents.current = [0];
     setVisualizerSong(exampleTrial.song);
     setPlaybackSource("example");
-    player.play(exampleTrial.song, () => setExampleFinished(true));
+    setIsPlaying(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instructionOnly, exampleTrial]);
 
@@ -208,7 +148,8 @@ export function LearnerMelody({
     setVisualizerSong(song);
     setPlaybackSource("playground");
     setExampleFinished(false);
-    player.play(song, () => { });
+    player.restart();
+    setIsPlaying(true);
   }
 
   function answerExample(answer: Scale) {
@@ -305,8 +246,8 @@ export function LearnerMelody({
                 <div className="explorer-button-row melody-song-options" aria-label={`${label} songs`}>
                   {songs.map((song) => (
                     <button
-                      aria-pressed={playbackSource === "playground" && player.isPlaying && visualizerSong.title === song.title}
-                      className={`explorer-picker-button${playbackSource === "playground" && player.isPlaying && visualizerSong.title === song.title ? " is-selected" : ""}`}
+                      aria-pressed={playbackSource === "playground" && isPlaying && visualizerSong.title === song.title}
+                      className={`explorer-picker-button${playbackSource === "playground" && isPlaying && visualizerSong.title === song.title ? " is-selected" : ""}`}
                       key={song.title}
                       onClick={() => playPlaygroundSong(song)}
                       type="button"
@@ -321,9 +262,9 @@ export function LearnerMelody({
           <div className="melody-playground-visualizer">
             <button
               className="secondary-button melody-stop-button"
-              disabled={!player.isPlaying}
+              disabled={!isPlaying}
               onClick={() => {
-                player.stop();
+                setIsPlaying(false);
                 setPlaybackSource("stopped");
                 if (playbackSource === "example") setExampleFinished(true);
               }}
@@ -359,36 +300,40 @@ export function LearnerMelody({
     const correctLabel = exampleTrial.correctAnswer === "major" ? "Major" : "Minor";
     return (
       <>
-        <p className="lesson-body">
-          Listen to the song, then decide whether it is major or minor.
-        </p>
+        <h2>Example questions</h2>
         <div className="example-prompt-row">
           <p className="sequence-status" aria-live="polite">
-            {!exampleFinished
-              ? "Listen to the melody"
-              : exampleGuess === null
-                ? "Choose Major or Minor"
-                : exampleGuess === exampleTrial.correctAnswer
-                  ? `Correct: ${correctLabel}.`
-                  : "Not quite. Listen again or try the other answer."}
+            {!examplePlayed
+              ? "Press Hear example to listen to the melody."
+              : !exampleFinished
+                ? "Listen to the melody"
+                : exampleGuess === null
+                  ? "Choose Major or Minor"
+                  : exampleGuess === exampleTrial.correctAnswer
+                    ? `Correct: ${correctLabel}.`
+                    : "Not quite. Listen again or try the other answer."}
           </p>
           <div className="test-actions">
             <button
               className="secondary-button"
               type="button"
               onClick={() => {
-                replayEvents.current = [
-                  ...replayEvents.current,
-                  Date.now() - questionStartedAt.current.getTime(),
-                ];
+                if (examplePlayed) {
+                  replayEvents.current = [
+                    ...replayEvents.current,
+                    Date.now() - questionStartedAt.current.getTime(),
+                  ];
+                }
+                setExamplePlayed(true);
                 setVisualizerSong(exampleTrial.song);
                 setPlaybackSource("example");
                 setExampleGuess(null);
                 setExampleFinished(false);
-                player.play(exampleTrial.song, () => setExampleFinished(true));
+                player.restart();
+                setIsPlaying(true);
               }}
             >
-              Hear again
+              {examplePlayed ? "Hear again" : "Hear example"}
             </button>
           </div>
         </div>

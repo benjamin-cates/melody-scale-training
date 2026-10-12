@@ -193,6 +193,7 @@ export function LearnerChord({
   const [playgroundType, setPlaygroundType] = useState<3 | 4 | 7>(3);
   const [playgroundMode, setPlaygroundMode] = useState<PlaybackMode>("melody");
   const [exampleTrial, setExampleTrial] = useState(createExampleTrial);
+  const [examplePlayed, setExamplePlayed] = useState(false);
   const [exampleGuess, setExampleGuess] = useState<"same" | "different" | null>(null);
   const [exampleResults, setExampleResults] = useState<ChordTrialResult[]>([]);
   const exampleStartedAt = useRef(Date.now());
@@ -209,12 +210,8 @@ export function LearnerChord({
     if (instructionOnly) return;
     exampleStartedAt.current = Date.now();
     exampleReplayEvents.current = [0];
+    setExamplePlayed(false);
     setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval, revealChordType: false });
-    player.playChordPair(
-      chordNotes(exampleTrial.root, exampleTrial.firstInterval),
-      chordNotes(exampleTrial.root, exampleTrial.secondInterval),
-      exampleTrial.mode,
-    );
     setExampleGuess(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instructionOnly, exampleTrial]);
@@ -278,11 +275,13 @@ export function LearnerChord({
       <>
         <div className="example-prompt-row">
           <p className="sequence-status" aria-live="polite">
-            {exampleGuess === null
-              ? "Listen to both chords, then decide if they are the same or different."
-              : exampleGuess === correctAnswer
-                ? `Correct: ${correctAnswer}.`
-                : "Not quite. Listen again and try the other answer."}
+            {!examplePlayed
+              ? "Press Hear example to listen to both chords."
+              : exampleGuess === null
+                ? "Listen to both chords, then decide if they are the same or different."
+                : exampleGuess === correctAnswer
+                  ? `Correct: ${correctAnswer}.`
+                  : "Not quite. Listen again and try the other answer."}
           </p>
           <button
             className="secondary-button"
@@ -290,8 +289,9 @@ export function LearnerChord({
             onClick={() => {
               exampleReplayEvents.current = [
                 ...exampleReplayEvents.current,
-                Date.now() - exampleStartedAt.current,
+                ...(examplePlayed ? [Date.now() - exampleStartedAt.current] : []),
               ];
+              setExamplePlayed(true);
               setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval, revealChordType: false });
               player.playChordPair(
                 chordNotes(exampleTrial.root, exampleTrial.firstInterval),
@@ -300,7 +300,7 @@ export function LearnerChord({
               );
             }}
           >
-            Hear example again
+            {examplePlayed ? "Hear again" : "Hear example"}
           </button>
         </div>
         <div className="choice-row" role="radiogroup" aria-label="Same or different chords">
@@ -313,7 +313,7 @@ export function LearnerChord({
                 type="radio"
                 name="chord-example-answer"
                 checked={exampleGuess === answer}
-                disabled={exampleGuess === correctAnswer}
+                disabled={!examplePlayed || exampleGuess === correctAnswer}
                 onChange={() => {
                   setExampleGuess(answer);
                   setExampleResults((previous) => [
@@ -432,7 +432,7 @@ export function LearnerChord({
         <article className="lesson-card">
           {renderIntro()}
           {renderPlayground()}
-          <h2>Examples</h2>
+          <h2>Example questions</h2>
           {renderExamples()}
           {onResults && (
             <div className="lesson-actions continue-only">

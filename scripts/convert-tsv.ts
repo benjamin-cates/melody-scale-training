@@ -1,21 +1,19 @@
 #!/usr/bin/env bun
 
-import { NOTE_NAMES } from "@/audio/music";
+import { encodeSongNotes } from "../src/audio/song-notes";
+import type { SongNote } from "../src/audio/music";
 
-type SongNote = {
-  noteIndices: number[];
-  duration: number;
-  onset: number;
-};
+const NOTE_NAMES = [
+  "C", "D♭", "D", "E♭", "E", "F", "F♭", "G", "A♭", "A", "B♭", "B",
+];
 
 type DetectedKey = {
-  key: string;
   tonic: number;
   scale: "major" | "minor";
 };
 
 type TsvClip = DetectedKey & {
-  notes: SongNote[];
+  compressedNotes: string;
   category: "Peaceful" | "Happy" | "Scary" | "Sad";
 };
 
@@ -158,7 +156,6 @@ function detectKey(notes: SongNote[], fileName: string): DetectedKey {
     .sort((left, right) => right.score - left.score)[0];
 
   return {
-    key: `${NOTE_NAMES[best.tonic]} ${scale}`,
     tonic: best.tonic,
     scale,
   };
@@ -211,12 +208,16 @@ async function convertDirectory(directory: string) {
     const notes = parseTsv(await Bun.file(`${directory}/${file}`).text());
     const stats = detectKey(notes, file);
     const category = categoryFromFileName(file);
-    clips[name + " (" + stats.key + ")"] = { notes, category, ...stats };
+    const keyLabel = NOTE_NAMES[stats.tonic] + " " + stats.scale;
+    clips[name + " (" + keyLabel + ")"] = {
+      compressedNotes: await encodeSongNotes(notes),
+      category,
+      ...stats,
+    };
 
     const modifiedScale = stats.scale === "major" ? "minor" : "major";
     clips[name + " (modified)"] = {
-      notes: convertMode(notes, stats),
-      key: `${NOTE_NAMES[stats.tonic]} ${modifiedScale}`,
+      compressedNotes: await encodeSongNotes(convertMode(notes, stats)),
       tonic: stats.tonic,
       scale: modifiedScale,
       category,
@@ -226,6 +227,6 @@ async function convertDirectory(directory: string) {
 }
 
 const clips = await convertDirectory(inputDirectory);
-const output = `// These musical excerpts are protected by copyright, belonging to Bernard Bouchard (Copyright, Bernard Bouchard, 1998). This material may be used for the purpose of publication and of communication with acknowledgment as property of the rightful author (Copyright, Bernard Bouchard, 1998).\nimport type { SongNote } from "./music";\n\ntype TsvClip = {\n  notes: SongNote[];\n  key: string;\n  tonic: number;\n  scale: "major" | "minor";\n  category: "Peaceful" | "Happy" | "Scary" | "Sad" | "Tests";\n};\n\nexport const TSV_CLIPS: Record<string, TsvClip> = ${JSON.stringify(clips, null, 2)} as const;\n`;
+const output = `// These musical excerpts are protected by copyright, belonging to Bernard Bouchard (Copyright, Bernard Bouchard, 1998). This material may be used for the purpose of publication and of communication with acknowledgment as property of the rightful author (Copyright, Bernard Bouchard, 1998).\n\ntype TsvClip = {\n  compressedNotes: string;\n  tonic: number;\n  scale: "major" | "minor";\n  category: "Peaceful" | "Happy" | "Scary" | "Sad" | "Tests";\n};\n\nexport const TSV_CLIPS: Record<string, TsvClip> = ${JSON.stringify(clips, null, 2)} as const;\n`;
 if (outputPath) await Bun.write(outputPath, output);
 else process.stdout.write(output);

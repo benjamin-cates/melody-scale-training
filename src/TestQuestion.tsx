@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getAudioContext, playTone } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
-import { NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
+import { getSongKey, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
 
 type PitchAnswer = "increasing" | "decreasing";
 type ChordAnswer = "same" | "different";
@@ -133,7 +133,7 @@ export function TestQuestion({
         events.forEach((event) => {
             event.noteIndices.forEach((noteIndex) => {
                 oscillators.current.push(
-                    playTone(noteIndex, start + event.onset, event.duration, oscillators.current),
+                    playTone(noteIndex, start + event.onset, event.duration),
                 );
             });
         });
@@ -196,7 +196,7 @@ export function TestQuestion({
             ? undefined
             : ((question.rootNote + 21) % 12 + 12) % 12
     );
-    const questionKeyLabel = melodySong?.key ?? (
+    const questionKeyLabel = melodySong ? getSongKey(melodySong) : (
         questionTonic === undefined ? undefined : `${NOTE_NAMES[questionTonic]} major`
     );
     const visualFeedback = showVisual ? (

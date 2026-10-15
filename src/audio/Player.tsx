@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Chromatone } from "./Chromatone";
 import { useSongPlayback } from "./useSongPlayback";
 import type { Song } from "./music";
+import { getSongKey } from "./music";
 
 export function Player({
   song,
@@ -23,7 +24,7 @@ export function Player({
     <div className={`song-player ${className}`}>
       {showNotes && (
         <Chromatone
-          keyLabel={song.key}
+          keyLabel={getSongKey(song)}
           tonic={song.tonic}
           activeNotes={playback.activeNotes}
           showKey={showKey}
@@ -54,7 +55,7 @@ export function Player({
         <div className="progress-text">
           <span>{playing ? "Playing" : "Ready"}</span>
           <b>
-            {String(playback.position < song.notes.length ? playback.position + 1 : 1).padStart(2, "0")} / {String(song.notes.length).padStart(2, "0")}
+            {String(playback.position < playback.notes.length ? playback.position + 1 : 1).padStart(2, "0")} / {String(playback.notes.length).padStart(2, "0")}
           </b>
         </div>
       </div>

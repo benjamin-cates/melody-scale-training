@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { NOTE_NAMES } from "./audio/music";
 import { downloadJson } from "./AppRoutes";
 import { Chromatone } from "./audio/Chromatone";
 import { PianoView } from "./audio/PianoView";
@@ -89,7 +90,7 @@ function MelodyVisual({
   }
   return (
     <Chromatone
-      keyLabel={song.key}
+      keyLabel={NOTE_NAMES[song.tonic] + " " + song.scale}
       tonic={song.tonic}
       activeNotes={activeNotes}
       showKey

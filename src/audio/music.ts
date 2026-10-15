@@ -1,5 +1,5 @@
-import { MIDI_CLIPS } from "./generated-midi";
-import { TSV_CLIPS } from "./generated-tsv";
+import { decodeSongNotes } from "./song-notes";
+export { decodeSongNotes, encodeSongNotes } from "./song-notes";
 
 export type Scale = "major" | "minor";
 export type SongCategory =
@@ -10,7 +10,8 @@ export type SongCategory =
   | "Sad"
   | "Exercises"
   | "Scales"
-  | "Tests";
+  | "Tests"
+  | "Essen";
 
 export type SongNote = {
   noteIndices: number[];
@@ -22,11 +23,27 @@ export type Song = {
   title: string;
   subtitle: string;
   category: SongCategory;
-  key: string;
+  subcategory?: string;
   tonic: number;
   scale: Scale;
-  notes: SongNote[];
+  notes?: SongNote[];
+  compressedNotes?: string;
 };
+
+export async function getSongNotes(song: Song): Promise<SongNote[]> {
+  if (song.notes) return song.notes;
+  if (song.compressedNotes) return decodeSongNotes(song.compressedNotes);
+  return [];
+}
+
+function getClipNoteStorage(clip: unknown): Pick<Song, "notes" | "compressedNotes"> {
+  if (typeof clip !== "object" || clip === null) return { notes: [] };
+  const value = clip as { notes?: SongNote[]; compressedNotes?: string };
+  if (typeof value.compressedNotes === "string") {
+    return { compressedNotes: value.compressedNotes };
+  }
+  return { notes: value.notes ?? [] };
+}
 
 export const NOTE_NAMES = [
   "C",
@@ -42,6 +59,11 @@ export const NOTE_NAMES = [
   "B♭",
   "B",
 ];
+
+export function getSongKey(song: Pick<Song, "tonic" | "scale">) {
+  return NOTE_NAMES[song.tonic] + " " + song.scale;
+}
+
 export const RAINBOW_COLORS = [
   "#ef5350",
   "#f4774b",
@@ -60,17 +82,27 @@ export const MAJOR_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
 export const MINOR_INTERVALS = [0, 2, 3, 5, 7, 8, 10];
 
 export function getNoteOnset(song: Song, position: number) {
-  const note = song.notes[position];
-  if (!note) return 0;
-  if (note.onset !== undefined) return note.onset;
-  return song.notes
-    .slice(0, position)
-    .reduce((onset, previousNote) => onset + previousNote.duration, 0);
+  const notes = song.notes ?? [];
+  if (!notes[position]) return 0;
+  let onset = 0;
+  for (let index = 0; index <= position; index++) {
+    const note = notes[index];
+    if (note.onset !== undefined) onset = note.onset;
+    else if (index > 0) onset += notes[index - 1].duration;
+  }
+  return onset;
 }
 
 export function getSongDuration(song: Song) {
-  const lastPosition = song.notes.length - 1;
-  return getNoteOnset(song, lastPosition) + song.notes[lastPosition].duration;
+  const notes = song.notes ?? [];
+  let onset = 0;
+  let duration = 0;
+  for (const note of notes) {
+    if (note.onset !== undefined) onset = note.onset;
+    duration = Math.max(duration, onset + note.duration);
+    onset += note.duration;
+  }
+  return duration;
 }
 
 const GREENSLEEVES_PHRASE: SongNote[] = [
@@ -89,50 +121,7 @@ const GREENSLEEVES_PHRASE: SongNote[] = [
   { noteIndices: [41], duration: 0.5 },
   { noteIndices: [53], duration: 0.5 },
   { noteIndices: [32, 53], duration: 1 },
-  { noteIndices: [36, 51], duration: 1 },
-  { noteIndices: [39, 46], duration: 0.5 },
-  { noteIndices: [48], duration: 0.5 },
-  { noteIndices: [27, 49], duration: 1 },
-  { noteIndices: [31, 46], duration: 1 },
-  { noteIndices: [34, 46], duration: 0.5 },
-  { noteIndices: [48], duration: 0.5 },
-  { noteIndices: [27, 49], duration: 1 },
-  { noteIndices: [31], duration: 1 },
-  { noteIndices: [34, 46], duration: 0.5 },
-  { noteIndices: [49], duration: 0.5 },
-  { noteIndices: [27, 55], duration: 0.5 },
   { noteIndices: [53], duration: 0.5 },
-  { noteIndices: [31, 51], duration: 1 },
-  { noteIndices: [34, 55], duration: 1 },
-  { noteIndices: [32, 56], duration: 1 },
-  { noteIndices: [36], duration: 1 },
-  { noteIndices: [39, 44], duration: 0.5 },
-  { noteIndices: [44], duration: 0.5 },
-  { noteIndices: [32, 56], duration: 1 },
-  { noteIndices: [37], duration: 1 },
-  { noteIndices: [41, 53], duration: 0.5 },
-  { noteIndices: [49], duration: 0.5 },
-  { noteIndices: [32, 51], duration: 1 },
-  { noteIndices: [36], duration: 1 },
-  { noteIndices: [39, 48], duration: 0.5 },
-  { noteIndices: [44], duration: 0.5 },
-  { noteIndices: [27, 49], duration: 1 },
-  { noteIndices: [31, 51], duration: 1 },
-  { noteIndices: [34, 53], duration: 1 },
-  { noteIndices: [32, 48], duration: 0.5 },
-  { noteIndices: [51], duration: 0.5 },
-  { noteIndices: [36], duration: 1 },
-  { noteIndices: [39, 44], duration: 0.5 },
-  { noteIndices: [44], duration: 0.5 },
-  { noteIndices: [32, 56], duration: 1 },
-  { noteIndices: [37], duration: 1 },
-  { noteIndices: [41, 53], duration: 0.5 },
-  { noteIndices: [49], duration: 0.5 },
-  { noteIndices: [32, 51], duration: 1 },
-  { noteIndices: [36], duration: 1 },
-  { noteIndices: [39, 48], duration: 0.5 },
-  { noteIndices: [44], duration: 0.5 },
-  { noteIndices: [27, 49], duration: 0.5 },
   { noteIndices: [51], duration: 0.25 },
   { noteIndices: [49], duration: 0.25 },
   { noteIndices: [31, 48], duration: 1 },
@@ -140,12 +129,14 @@ const GREENSLEEVES_PHRASE: SongNote[] = [
   { noteIndices: [32, 44], duration: 2 },
 ];
 
+import { ESSEN_CLIPS } from "./generated-essen";
+import { TSV_CLIPS } from "./generated-tsv";
+
 export const SONGS: Song[] = [
   {
     title: "Test duration",
     subtitle: "A simple test melody",
     category: "Tests",
-    key: "C major",
     tonic: 0,
     scale: "major",
     notes: [
@@ -163,7 +154,6 @@ export const SONGS: Song[] = [
     title: "Simple triads",
     subtitle: "A three-note study in C major",
     category: "Exercises",
-    key: "C major",
     tonic: 0,
     scale: "major",
     notes: [
@@ -184,7 +174,6 @@ export const SONGS: Song[] = [
     title: "Blank space bayybeee",
     subtitle: "A playful test melody",
     category: "Tests",
-    key: "C major",
     tonic: 0,
     scale: "major",
     notes: [
@@ -197,7 +186,6 @@ export const SONGS: Song[] = [
     title: "Simple Triads (Minor)",
     subtitle: "The same shape, recast in C minor",
     category: "Exercises",
-    key: "C minor",
     tonic: 0,
     scale: "minor",
     notes: [
@@ -218,7 +206,6 @@ export const SONGS: Song[] = [
     title: "Notes in order",
     subtitle: "A simple ascending melody",
     category: "Tests",
-    key: "C major",
     tonic: 0,
     scale: "major",
     notes: [
@@ -264,7 +251,6 @@ export const SONGS: Song[] = [
     title: "Feel the octaves",
     subtitle: "A simple melody with octaves",
     category: "Tests",
-    key: "C major",
     tonic: 0,
     scale: "major",
     notes: [
@@ -310,7 +296,6 @@ export const SONGS: Song[] = [
     title: "C Major Chords",
     subtitle: "The key-specific chords in order",
     category: "Exercises",
-    key: "C major",
     tonic: 0,
     scale: "major",
     notes: [
@@ -325,7 +310,6 @@ export const SONGS: Song[] = [
     title: "A Minor Chords",
     subtitle: "The key-specific chords",
     category: "Exercises",
-    key: "A minor",
     tonic: 9,
     scale: "minor",
     notes: [
@@ -340,7 +324,6 @@ export const SONGS: Song[] = [
     title: "Blue Hour",
     subtitle: "A suspended study in D minor",
     category: "Exercises",
-    key: "D minor",
     tonic: 2,
     scale: "minor",
     notes: [
@@ -358,7 +341,6 @@ export const SONGS: Song[] = [
     title: "Violet Current",
     subtitle: "A three-note study in E minor",
     category: "Exercises",
-    key: "E minor",
     tonic: 4,
     scale: "minor",
     notes: [
@@ -376,7 +358,6 @@ export const SONGS: Song[] = [
     title: "Greensleeves",
     subtitle: "Traditional melody in F major",
     category: "Exercises",
-    key: "F major",
     tonic: 5,
     scale: "major",
     notes: [...GREENSLEEVES_PHRASE, ...GREENSLEEVES_PHRASE],
@@ -389,7 +370,6 @@ export const SONGS: Song[] = [
       title: `${noteName} Major`,
       subtitle: "Ascending and descending melody",
       category: "Scales",
-      key: `${noteName} major`,
       tonic,
       scale: "major",
       notes
@@ -403,18 +383,30 @@ export const SONGS: Song[] = [
       title: `${noteName} Minor`,
       subtitle: "Ascending and descending melody",
       category: "Scales",
-      key: `${noteName} minor`,
       tonic,
       scale: "minor",
       notes
+    } satisfies Song;
+  }),
+  ...ESSEN_CLIPS.map((clip, index) => {
+    const scale = clip.scale === 0 ? "major" : clip.scale === 1 ? "minor" : undefined;
+    if (scale === undefined) throw new Error(`invalid Essen scale code: ${clip.scale}`);
+    const rangeStart = Math.floor(index / 50) * 50 + 1;
+    return {
+      title: clip.title,
+      subtitle: "Imported from Essen",
+      category: "Essen",
+      subcategory: `${rangeStart}-${rangeStart + 49}`,
+      tonic: clip.tonic,
+      scale,
+      compressedNotes: clip.compressedNotes,
     } satisfies Song;
   }),
   ...Object.entries(TSV_CLIPS).map(([title, clip]) => ({
     title,
     subtitle: "",
     category: clip.category,
-    notes: clip.notes,
-    key: clip.key,
+    ...getClipNoteStorage(clip),
     tonic: clip.tonic,
     scale: clip.scale,
   } satisfies Song)),
@@ -428,6 +420,7 @@ export const SONG_CATEGORIES = [
   "Happy",
   "Scary",
   "Sad",
+  "Essen",
   "Custom",
 ] as const;
 

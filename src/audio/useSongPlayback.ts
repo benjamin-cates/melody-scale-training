@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { getAudioBus, getAudioContext, playTone } from "./audio";
-import { getNoteOnset, getSongDuration, type Song, type SongNote } from "./music";
+import { getNoteOnset, getSongDuration, getSongNotes, type Song, type SongNote } from "./music";
+
+const EMPTY_NOTES: SongNote[] = [];
 
 export function useSongPlayback(
   song: Song,
@@ -12,6 +14,8 @@ export function useSongPlayback(
   const [position, setPosition] = useState(0);
   const [playbackRun, setPlaybackRun] = useState(0);
   const [activeNotes, setActiveNotes] = useState<SongNote[]>([]);
+  const [decoded, setDecoded] = useState<{ song: Song; notes: SongNote[] } | null>(null);
+  const notes = song.notes ?? (decoded?.song === song ? decoded.notes : EMPTY_NOTES);
   const audioContext = useRef<AudioContext | null>(null);
   const oscillators = useRef<OscillatorNode[]>([]);
   const onCompleteRef = useRef(onComplete);
@@ -36,16 +40,32 @@ export function useSongPlayback(
   }, [song]);
 
   useEffect(() => {
+    if (song.notes || !song.compressedNotes) return;
+    let cancelled = false;
+    void getSongNotes(song)
+      .then((resolvedNotes) => {
+        if (!cancelled) setDecoded({ song, notes: resolvedNotes });
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) console.error(`Unable to decode notes for ${song.title}`, error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [song]);
+
+  useEffect(() => {
     if (!enabled) {
       stop();
       setActiveNotes([]);
       if (!loop) setPosition(0);
       return;
     }
-    const currentNote = song.notes[position];
+    const currentNote = notes[position];
     if (!currentNote) {
       return;
     }
+    const playableSong: Song = { ...song, notes };
     const beatDuration = 60000 / tempo;
     const context = audioContext.current ?? getAudioContext();
     audioContext.current = context;
@@ -55,24 +75,24 @@ export function useSongPlayback(
       return playTone(noteIndex, context.currentTime, duration);
     });
     oscillators.current.push(...currentOscillators);
-    const currentOnset = getNoteOnset(song, position);
+    const currentOnset = getNoteOnset(playableSong, position);
     setActiveNotes(
-      song.notes.filter((note, notePosition) => {
-        const onset = getNoteOnset(song, notePosition);
+      notes.filter((note, notePosition) => {
+        const onset = getNoteOnset(playableSong, notePosition);
         return onset <= currentOnset && onset + note.duration > currentOnset;
       }),
     );
-    const isLastNote = position === song.notes.length - 1;
+    const isLastNote = position === notes.length - 1;
     const nextPosition = isLastNote ? 0 : position + 1;
-    const nextOnset = getNoteOnset(song, nextPosition);
+    const nextOnset = getNoteOnset(playableSong, nextPosition);
     const onsetDelta = isLastNote && loop
-      ? getSongDuration(song) - currentOnset
+      ? getSongDuration(playableSong) - currentOnset
       : isLastNote
-        ? song.notes[position].duration
+        ? getSongDuration(playableSong) - currentOnset
         : nextOnset - currentOnset;
     const timer = window.setTimeout(() => {
       if (isLastNote && !loop) {
-        setPosition(song.notes.length);
+        setPosition(notes.length);
         setActiveNotes([]);
         onCompleteRef.current?.();
       } else {
@@ -80,12 +100,12 @@ export function useSongPlayback(
       }
     }, onsetDelta * beatDuration);
     return () => window.clearTimeout(timer);
-  }, [enabled, loop, playbackRun, position, song, tempo]);
+  }, [enabled, loop, notes, playbackRun, position, song, tempo]);
 
   const restart = () => {
     setPosition(0);
     setPlaybackRun((run) => run + 1);
   };
 
-  return { position, activeNotes, stop, restart };
+  return { position, activeNotes, notes, stop, restart };
 }

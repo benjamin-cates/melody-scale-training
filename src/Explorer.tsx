@@ -1,17 +1,33 @@
 import { useState } from "react";
-import { SONG_CATEGORIES, SONGS, type SongCategory } from "./audio/music";
+import { getSongKey, SONG_CATEGORIES, SONGS, type SongCategory } from "./audio/music";
 import { Chromatone } from "./audio/Chromatone";
 import { Player } from "./audio/Player";
 
 export function Explorer() {
   const [category, setCategory] = useState<SongCategory>(SONG_CATEGORIES[0]);
+  const [subcategory, setSubcategory] = useState("Other");
   const songsInCategory = SONGS.filter((song) => song.category === category);
-  const [songTitle, setSongTitle] = useState(songsInCategory[0]?.title ?? "");
-  const song = songsInCategory.find((item) => item.title === songTitle) ?? songsInCategory[0];
+  const hasSubcategories = songsInCategory.some((song) => song.subcategory !== undefined);
+  const subcategories = [...new Set(songsInCategory.map((song) => song.subcategory ?? "Other"))];
+  const songsInSubcategory = hasSubcategories
+    ? songsInCategory.filter((song) => (song.subcategory ?? "Other") === subcategory)
+    : songsInCategory;
+  const [songTitle, setSongTitle] = useState(songsInSubcategory[0]?.title ?? "");
+  const song = songsInSubcategory.find((item) => item.title === songTitle) ?? songsInSubcategory[0] ?? songsInCategory[0] ?? SONGS[0];
 
   function selectCategory(nextCategory: SongCategory) {
+    const nextSongs = SONGS.filter((songItem) => songItem.category === nextCategory);
+    const nextSubcategory = [...new Set(nextSongs.map((songItem) => songItem.subcategory ?? "Other"))][0] ?? "Other";
     setCategory(nextCategory);
-    setSongTitle(SONGS.find((songItem) => songItem.category === nextCategory)?.title ?? "");
+    setSubcategory(nextSubcategory);
+    setSongTitle(nextSongs.find((songItem) => (songItem.subcategory ?? "Other") === nextSubcategory)?.title ?? "");
+  }
+
+  function selectSubcategory(nextSubcategory: string) {
+    setSubcategory(nextSubcategory);
+    setSongTitle(songsInCategory.find((songItem) =>
+      (songItem.subcategory ?? "Other") === nextSubcategory
+    )?.title ?? "");
   }
   return (
     <section className="page-section explorer-page">
@@ -33,21 +49,39 @@ export function Explorer() {
               ))}
             </div>
           </div>
+          {hasSubcategories && (
+            <div className="explorer-picker-group">
+              <span className="explorer-picker-label">Subcategory</span>
+              <div className="explorer-button-row" aria-label="Song subcategory">
+                {subcategories.map((item) => (
+                  <button
+                    className={item === subcategory ? "explorer-picker-button is-selected" : "explorer-picker-button"}
+                    key={item}
+                    type="button"
+                    aria-pressed={item === subcategory}
+                    onClick={() => selectSubcategory(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {category !== "Custom" && (
             <div className="explorer-picker-group">
               <span className="explorer-picker-label">Song</span>
               <div className="explorer-button-row" aria-label="Song selection">
-              {songsInCategory.map((item) => (
-                <button
-                  className={item.title === song.title ? "explorer-picker-button is-selected" : "explorer-picker-button"}
-                  key={item.title}
-                  type="button"
-                  aria-pressed={item.title === song.title}
-                  onClick={() => setSongTitle(item.title)}
-                >
-                  {item.title}
-                </button>
-              ))}
+                {songsInSubcategory.map((item) => (
+                  <button
+                    className={item.title === song.title ? "explorer-picker-button is-selected" : "explorer-picker-button"}
+                    key={item.title}
+                    type="button"
+                    aria-pressed={item.title === song.title}
+                    onClick={() => setSongTitle(item.title)}
+                  >
+                    {item.title}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -68,7 +102,7 @@ export function Explorer() {
             </div>
             <div className="key-readout">
               <span>Key</span>
-              <strong>{song.key}</strong>
+              <strong>{getSongKey(song)}</strong>
             </div>
           </div>
         )}

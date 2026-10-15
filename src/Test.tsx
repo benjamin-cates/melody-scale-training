@@ -94,11 +94,11 @@ function createPostTestQuestions(): Question[] {
 export function createPracticeQuestions(group: "audio" | "visual") {
 	let questions = shuffle([
 		// CHANGE COUNTS LATER
-		...createPitchQuestions(1, 12),
-		...createPitchQuestions(2, 12),
-		...createPitchQuestions(4, 12),
-		...createChordQuestions(36),
-		...createMelodyQuestions(12)
+		...createPitchQuestions(1, 32),
+		...createPitchQuestions(2, 32),
+		...createPitchQuestions(4, 32),
+		...createChordQuestions(96),
+		...createMelodyQuestions(36)
 	]);
 	if (group === "audio") {
 		questions.forEach(q => (q.guidance = "answer"));

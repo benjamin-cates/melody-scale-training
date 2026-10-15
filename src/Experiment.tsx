@@ -249,7 +249,7 @@ export function Experiment() {
     }, [group, step]);
 
     const clearSavedProgress = () => {
-        if (!group || !window.confirm("Clear this group's saved experiment and restart?")) return;
+        if (!group || !window.confirm("Reset this saved experiment and restart?")) return;
         try {
             window.localStorage.removeItem(storageKey(group));
         } catch {
@@ -259,7 +259,7 @@ export function Experiment() {
 
     const debugResetButton = group && isDebug ? (
         <button className="secondary-button" type="button" onClick={clearSavedProgress}>
-            Clear saved experiment
+            Reset experiment
         </button>
     ) : null;
 

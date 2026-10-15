@@ -4,6 +4,7 @@ import { downloadJson } from "./AppRoutes";
 export interface SurveyData {
   exportedAt: string;
   surveyVersion: string;
+  musicTheory: string;
   studyCondition: "cochlear_implant" | "normal_hearing" | "ineligible" | "undetermined";
   hearingProfile: {
     studyEar: string;
@@ -28,7 +29,6 @@ export interface SurveyData {
     trainingStartAge: number | null;
     trainingEndAge: number | null;
     trainingTimingRelativeToHearingLoss: "before" | "after" | "spanned" | "unknown";
-    trainingAdditionalComments: string;
     listeningFrequency: string;
     genres: string[];
   }
@@ -103,10 +103,10 @@ export function Survey({
   const [gender, setGender] = useState<string>("");
   const [genderOther, setGenderOther] = useState<string>("");
   const [hasMusicalTraining, setHasMusicalTraining] = useState<string>("");
+  const [musicTheory, setMusicTheory] = useState<string>("");
   const [instrument, setInstrument] = useState<string>("");
   const [trainingStartAge, setTrainingStartAge] = useState<string>("");
   const [trainingEndAge, setTrainingEndAge] = useState<string>("");
-  const [trainingAdditionalComments, setTrainingAdditionalComments] = useState<string>("");
   const [listenFrequency, setListenFrequency] = useState<string>("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [genreOther, setGenreOther] = useState<string>("");
@@ -209,6 +209,7 @@ export function Survey({
     const surveyData = {
       exportedAt: new Date().toISOString(),
       surveyVersion: "2.0",
+      musicTheory,
       studyCondition,
       hearingProfile: {
         studyEar,
@@ -233,7 +234,6 @@ export function Survey({
         trainingStartAge: hasMusicalTraining === "yes" && trainingStartAge ? Number(trainingStartAge) : null,
         trainingEndAge: hasMusicalTraining === "yes" && trainingEndAge ? Number(trainingEndAge) : null,
         trainingTimingRelativeToHearingLoss: trainingTimingCode,
-        trainingAdditionalComments,
         listeningFrequency: listenFrequency,
         genres: selectedGenres.concat(genreOther ? [`Other: ${genreOther}`] : []),
       },
@@ -599,6 +599,21 @@ export function Survey({
           <legend>Musical Experience</legend>
 
           <label>
+            Are you familiar with <b>all</b> of the following music theory terms: octave, major third, minor third, and perfect fifth?
+            <select
+              value={musicTheory}
+              onChange={(e) => setMusicTheory(e.target.value)}
+              required
+            >
+              <option value="" disabled>
+                Select one
+              </option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <label>
             Do you have a background of <b>musical training</b> beyond standard secondary school education?
             <select
               value={hasMusicalTraining}
@@ -653,20 +668,6 @@ export function Survey({
                   />
                 </label>
               </div>
-
-              <label>
-                Additional comments about your musical training
-                <span className="field-hint">
-                  If the above questions do not capture your musical training experience, please describe multiple periods of training, breaks, or how your training relates to the timeline of your hearing loss.
-                </span>
-                <textarea
-                  value={trainingAdditionalComments}
-                  onChange={(e) => setTrainingAdditionalComments(e.target.value)}
-                  rows={4}
-                  placeholder=""
-                />
-              </label>
-
             </>
           )}
 

@@ -4,7 +4,6 @@ import { downloadJson } from "./AppRoutes";
 export interface SurveyData {
   exportedAt: string;
   surveyVersion: string;
-  musicTheory: string;
   studyCondition: "cochlear_implant" | "normal_hearing" | "ineligible" | "undetermined";
   hearingProfile: {
     studyEar: string;
@@ -24,6 +23,7 @@ export interface SurveyData {
     colorBlindType: ColorBlindType;
   };
   musicalExperience: {
+    musicTheory: boolean;
     hasMusicalTraining: boolean;
     instrument: string | null;
     trainingStartAge: number | null;
@@ -209,7 +209,6 @@ export function Survey({
     const surveyData = {
       exportedAt: new Date().toISOString(),
       surveyVersion: "2.0",
-      musicTheory,
       studyCondition,
       hearingProfile: {
         studyEar,
@@ -229,6 +228,7 @@ export function Survey({
         colorBlindType: colorBlind,
       },
       musicalExperience: {
+        musicTheory: musicTheory === "yes",
         hasMusicalTraining: hasMusicalTraining === "yes",
         instrument: hasMusicalTraining === "yes" ? instrument : null,
         trainingStartAge: hasMusicalTraining === "yes" && trainingStartAge ? Number(trainingStartAge) : null,

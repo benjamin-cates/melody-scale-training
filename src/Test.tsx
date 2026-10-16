@@ -54,21 +54,44 @@ export function createChordQuestions(count: number): Question[] {
 	}));
 }
 
-export function createMelodyQuestions(count: number): Question[] {
-	const affectSongs = SONGS.filter(
-		(song) => song.category === "Peaceful" || song.category === "Sad",
-	);
-	let songs = affectSongs.length > 0 ? affectSongs : SONGS.filter((song) => song.category === "Scales");
-	songs = shuffle(songs);
-	return Array.from({ length: count }, (_, index) => {
-		const song = songs[index % songs.length];
-		return {
-			id: `melody-${index + 1}-${song.title}`,
-			type: "melody",
-			songTitle: song.title,
-			correctAnswer: song.scale === "major" ? "major" : "minor",
-		} satisfies Question;
-	});
+export function createMelodyQuestions(count: number, database?: "Peretz" | "Essen"): Question[] {
+	if(database === "Peretz") {
+		const affectSongs = SONGS.filter(
+			(song) => song.category === "Peaceful" || song.category === "Sad",
+		);
+		let songs = affectSongs.length > 0 ? affectSongs : SONGS.filter((song) => song.category === "Scales");
+		songs = shuffle(songs);
+		return Array.from({ length: count }, (_, index) => {
+			const song = songs[index % songs.length];
+			return {
+				id: `melody-${index + 1}-${song.title}`,
+				type: "melody",
+				songTitle: song.title,
+				correctAnswer: song.scale === "major" ? "major" : "minor",
+			} satisfies Question;
+		});
+	}
+	else if(database === "Essen") {
+		const essenSongs = SONGS.filter(
+			(song) => song.category === "Essen"
+		);
+		const indexes = shuffle(Array.from({ length: essenSongs.length }, (_, i) => i));
+		const major_minor = shuffle(Array.from({ length: count }, (_, i) => i % 2));
+		const songs = shuffle(essenSongs);
+		return Array.from({ length: count }, (_, index) => {
+			const song = songs[indexes[index % indexes.length]];
+			return {
+				id: `melody-${index + 1}-${song.title}`,
+				type: "melody",
+				songTitle: song.title + (major_minor[index] === 1 ? " (modified)": ""),
+				correctAnswer: major_minor[index] === 1 ? "minor" : "major",
+			} satisfies Question;
+		});
+	}
+	else {
+		return [];
+	}
+	
 }
 
 function createBaselineQuestions(): Question[] {
@@ -87,7 +110,7 @@ function createPostTestQuestions(): Question[] {
 		...createPitchQuestions(2, 12),
 		...createPitchQuestions(4, 12),
 		...createChordQuestions(36),
-		...createMelodyQuestions(12)
+		...createMelodyQuestions(12, "Peretz")
 	];
 }
 
@@ -98,7 +121,7 @@ export function createPracticeQuestions(group: "audio" | "visual") {
 		...createPitchQuestions(2, 32),
 		...createPitchQuestions(4, 32),
 		...createChordQuestions(96),
-		...createMelodyQuestions(36)
+		...createMelodyQuestions(36, "Essen")
 	]);
 	if (group === "audio") {
 		questions.forEach(q => (q.guidance = "answer"));

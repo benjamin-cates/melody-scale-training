@@ -1,4 +1,4 @@
-import { NOTE_NAMES } from "./music";
+import { NOTE_NAMES } from "./note-names.ts";
 
 export type SavedChord = {
   id: string;

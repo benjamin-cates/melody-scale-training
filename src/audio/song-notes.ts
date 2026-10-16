@@ -1,4 +1,4 @@
-import type { SongNote } from "./music";
+import type { Scale, SongNote } from "./music";
 
 const SONG_NOTES_FORMAT_PREFIX = "sn1:";
 
@@ -65,4 +65,32 @@ export async function decodeSongNotes(encoded: string): Promise<SongNote[]> {
             ...(entry[2] === null ? {} : { onset: entry[2] }),
         };
     });
+}
+
+export async function convertCompressedSongMode(
+    compressedNotes: string,
+    tonic: number,
+    scale: Scale,
+): Promise<string> {
+    if (!Number.isInteger(tonic) || tonic < 0 || tonic > 11) {
+        throw new Error("Tonic must be a pitch class from 0 to 11");
+    }
+
+    const alteredDegrees = scale === "major"
+        ? new Map([[4, 3], [9, 8], [11, 10]])
+        : new Map([[3, 4], [8, 9], [10, 11]]);
+    const notes = await decodeSongNotes(compressedNotes);
+    const convertedNotes = notes.map((note) => ({
+        ...note,
+        noteIndices: note.noteIndices.map((noteIndex) => {
+            const pitchClass = (noteIndex + 21) % 12;
+            const degree = (pitchClass - tonic + 12) % 12;
+            const convertedDegree = alteredDegrees.get(degree);
+            return convertedDegree === undefined
+                ? noteIndex
+                : noteIndex + convertedDegree - degree;
+        }),
+    }));
+
+    return encodeSongNotes(convertedNotes);
 }

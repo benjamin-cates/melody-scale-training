@@ -358,7 +358,7 @@ export function LearnerMelody({
                 disabled={!exampleFinished || exampleGuess === exampleTrial.correctAnswer}
                 onChange={() => answerExample(scale)}
               />
-              {scale === "major" ? "Major" : "Minor"}
+              {scale === "major" ? "Major (positive affect)" : "Minor (negative affect)"}
             </label>
           ))}
         </div>

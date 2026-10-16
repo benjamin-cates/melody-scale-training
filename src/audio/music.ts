@@ -1,5 +1,7 @@
-import { decodeSongNotes } from "./song-notes";
-export { decodeSongNotes, encodeSongNotes } from "./song-notes";
+import { convertCompressedSongMode, decodeSongNotes } from "./song-notes";
+import { NOTE_NAMES } from "./note-names.ts";
+export { convertCompressedSongMode, decodeSongNotes, encodeSongNotes } from "./song-notes";
+export { NOTE_NAMES } from "./note-names.ts";
 
 export type Scale = "major" | "minor";
 export type SongCategory =
@@ -11,7 +13,8 @@ export type SongCategory =
   | "Exercises"
   | "Scales"
   | "Tests"
-  | "Essen";
+  | "Essen"
+  | "Essen (modified)";
 
 export type SongNote = {
   noteIndices: number[];
@@ -27,13 +30,16 @@ export type Song = {
   tonic: number;
   scale: Scale;
   notes?: SongNote[];
-  compressedNotes?: string;
+  compressedNotes?: string | (() => Promise<string>);
 };
 
 export async function getSongNotes(song: Song): Promise<SongNote[]> {
   if (song.notes) return song.notes;
-  if (song.compressedNotes) return decodeSongNotes(song.compressedNotes);
-  return [];
+  if (!song.compressedNotes) return [];
+  const compressedNotes = typeof song.compressedNotes === "function"
+    ? await song.compressedNotes()
+    : song.compressedNotes;
+  return decodeSongNotes(compressedNotes);
 }
 
 function getClipNoteStorage(clip: unknown): Pick<Song, "notes" | "compressedNotes"> {
@@ -44,21 +50,6 @@ function getClipNoteStorage(clip: unknown): Pick<Song, "notes" | "compressedNote
   }
   return { notes: value.notes ?? [] };
 }
-
-export const NOTE_NAMES = [
-  "C",
-  "D♭",
-  "D",
-  "E♭",
-  "E",
-  "F",
-  "F♭",
-  "G",
-  "A♭",
-  "A",
-  "B♭",
-  "B",
-];
 
 export function getSongKey(song: Pick<Song, "tonic" | "scale">) {
   return NOTE_NAMES[song.tonic] + " " + song.scale;
@@ -389,6 +380,21 @@ export const SONGS: Song[] = [
     } satisfies Song;
   }),
   ...ESSEN_CLIPS.map((clip, index) => {
+    const sourceScale = clip.scale === 0 ? "major" : clip.scale === 1 ? "minor" : undefined;
+    if (sourceScale === undefined) throw new Error(`invalid Essen scale code: ${clip.scale}`);
+    const newScale = sourceScale === "major" ? "minor" : "major";
+    const rangeStart = Math.floor(index / 50) * 50 + 1;
+    return {
+      title: clip.title,
+      subtitle: "Imported from Essen. Modified to " + newScale,
+      category: "Essen (modified)",
+      subcategory: `${rangeStart}-${rangeStart + 49}`,
+      tonic: clip.tonic,
+      scale: newScale,
+      compressedNotes: () => convertCompressedSongMode(clip.compressedNotes, clip.tonic, sourceScale),
+    } satisfies Song;
+  }),
+  ...ESSEN_CLIPS.map((clip, index) => {
     const scale = clip.scale === 0 ? "major" : clip.scale === 1 ? "minor" : undefined;
     if (scale === undefined) throw new Error(`invalid Essen scale code: ${clip.scale}`);
     const rangeStart = Math.floor(index / 50) * 50 + 1;
@@ -421,6 +427,7 @@ export const SONG_CATEGORIES = [
   "Scary",
   "Sad",
   "Essen",
+  "Essen (modified)",
   "Custom",
 ] as const;
 

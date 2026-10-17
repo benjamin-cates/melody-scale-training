@@ -293,6 +293,8 @@ export function Chromatone({
     const angle = -Math.PI / 2 + index * angleStep + angleOffset;
     return point(inner + ringDepth / 2 + spiralRadiusOffset(angle), angle);
   };
+  const getChordLinePoints = (rootPoint: { x: number; y: number }, otherPoint: { x: number; y: number }) =>
+    `${rootPoint.x},${rootPoint.y} ${center},${centerY} ${otherPoint.x},${otherPoint.y}`;
 
   const activeNoteList = isInteractive
     ? [...activeIndices]
@@ -422,7 +424,7 @@ export function Chromatone({
       chordRelationTimer.current = null;
     }
     setChordRelationFlash(null);
-    if (inactiveGap > 200) return;
+    if (inactiveGap > 2000) return;
 
     const previousPitchClass = ((previousNote + 21) % 12 + 12) % 12;
     const currentPitchClass = ((currentActiveNote + 21) % 12 + 12) % 12;
@@ -498,24 +500,21 @@ export function Chromatone({
         ].flatMap(({ interval, className }) => {
           const otherNote = activeNoteByPitchClass.get((rootPitchClass + interval) % 12);
           if (otherNote === undefined) return [];
-          const rootOffset = interval === 7 ? -angleStep * 0.18 : angleStep * 0.18;
-          const rootPoint = getNotePoint(rootNote, rootOffset);
-          const otherPoint = getNotePoint(otherNote, -rootOffset);
+          const rootPoint = getNotePoint(rootNote, 0);
+          const otherPoint = getNotePoint(otherNote, 0);
           return [{
             className,
-            points: `${rootPoint.x},${rootPoint.y} ${center},${centerY} ${otherPoint.x},${otherPoint.y}`,
+            points: getChordLinePoints(rootPoint, otherPoint),
           }];
         }),
       )
     : [];
   if (chordRelationFlash && showChordLines !== "none") {
-    const interval = chordRelationFlash.className === "perfect-fifth" ? 7 : chordRelationFlash.className === "major-third" ? 4 : 3;
-    const rootOffset = interval === 7 ? -angleStep * 0.18 : angleStep * 0.18;
-    const rootPoint = getNotePoint(chordRelationFlash.rootNote, rootOffset);
-    const otherPoint = getNotePoint(chordRelationFlash.otherNote, -rootOffset);
+    const rootPoint = getNotePoint(chordRelationFlash.rootNote, 0);
+    const otherPoint = getNotePoint(chordRelationFlash.otherNote, 0);
     chordLines.push({
       className: `${chordRelationFlash.className} is-flashing`,
-      points: `${rootPoint.x},${rootPoint.y} ${center},${centerY} ${otherPoint.x},${otherPoint.y}`,
+      points: getChordLinePoints(rootPoint, otherPoint),
     });
   }
 

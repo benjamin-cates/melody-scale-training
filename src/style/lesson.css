@@ -100,17 +100,20 @@ li {
 .chord-interval-line {
   fill: none;
   stroke-width: 2.5;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   stroke-linejoin: round;
 }
 .chord-interval-line.minor-third {
   stroke: #8fd8ef;
+  stroke-dasharray: 3 1.5;
 }
 .chord-interval-line.major-third {
   stroke: #f2d447;
 }
 .chord-interval-line.perfect-fifth {
   stroke: #a875d6;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 1.5;
 }
 .chord-interval-node {
   fill: #f2f0e9;

@@ -63,18 +63,22 @@
 }
 .chromatone-chord-lines polyline {
   fill: none;
-  stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 3;
+  stroke-linecap: butt;
 }
 .chromatone-chord-lines .major-third {
+  stroke-width: 9;
   stroke: #f2d447;
 }
 .chromatone-chord-lines .minor-third {
+  stroke-width: 9;
   stroke: #8fd8ef;
+  stroke-dasharray: 10 5;
 }
 .chromatone-chord-lines .perfect-fifth {
+  stroke-width: 5;
   stroke: #a875d6;
+  stroke-dasharray: 16 5;
 }
 .chromatone-chord-lines .is-flashing {
   animation: chord-relationship-flash 600ms ease-out both;
@@ -82,11 +86,9 @@
 @keyframes chord-relationship-flash {
   from {
     opacity: 1;
-    stroke-width: 6;
   }
   to {
     opacity: 0.25;
-    stroke-width: 3;
   }
 }
 .chromatone-note-direction {

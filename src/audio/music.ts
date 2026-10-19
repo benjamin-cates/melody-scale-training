@@ -385,7 +385,7 @@ export const SONGS: Song[] = [
     const newScale = sourceScale === "major" ? "minor" : "major";
     const rangeStart = Math.floor(index / 50) * 50 + 1;
     return {
-      title: clip.title,
+      title: "m_" + clip.title,
       subtitle: "Imported from Essen. Modified to " + newScale,
       category: "Essen (modified)",
       subcategory: `${rangeStart}-${rangeStart + 49}`,

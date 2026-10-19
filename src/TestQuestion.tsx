@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getAudioContext, playTone } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { MusicSymbol, type MusicSymbolType } from "./audio/MusicSymbol";
-import { getSongKey, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
+import { decodeSongNotes, getSongKey, getSongNotes, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
 
 type PitchAnswer = "increasing" | "decreasing";
 type ChordAnswer = "same" | "different";
@@ -62,7 +62,7 @@ type PlaybackEvent = {
     duration: number;
 };
 
-function getPlaybackEvents(question: Question, melodySong?: Song): PlaybackEvent[] {
+async function getPlaybackEvents(question: Question, melodySong?: Song): Promise<PlaybackEvent[]> {
     if (question.type === "pitch") {
         return [
             { noteIndices: [question.rootNote!], onset: 0, duration: 0.7 },
@@ -79,12 +79,15 @@ function getPlaybackEvents(question: Question, melodySong?: Song): PlaybackEvent
             ...second.map((note, index) => ({ noteIndices: [note], onset: 0.6 + index * noteOffset, duration: 0.55 })),
         ];
     }
-    return (melodySong?.notes ?? []).flatMap((note) => {
-        const onset = Math.min(note.onset ?? 0, 14.5) * 0.5;
+    let notes = await getSongNotes(melodySong!);
+    let curOnset = 0;
+    return notes.flatMap((note) => {
+        const onset = note.onset ?? curOnset;
         if (onset >= 15) return [];
+        curOnset = onset + (note.duration ?? 0);
         return [{
             noteIndices: note.noteIndices,
-            onset,
+            onset: onset * 0.5,
             duration: Math.min(note.duration * 0.5, 1),
         }];
     });
@@ -122,7 +125,7 @@ export function TestQuestion({
         setActiveNotes([]);
     };
 
-    const playQuestion = () => {
+    const playQuestion = async () => {
         stopPlayback();
         const context = getAudioContext();
         void context.resume();
@@ -130,7 +133,8 @@ export function TestQuestion({
         const melodySong = question.type === "melody"
             ? SONGS.find((song) => song.title === question.songTitle)
             : undefined;
-        const events = getPlaybackEvents(question, melodySong);
+        const events = await getPlaybackEvents(question, melodySong);
+        console.log(events);
         events.forEach((event) => {
             event.noteIndices.forEach((noteIndex) => {
                 oscillators.current.push(

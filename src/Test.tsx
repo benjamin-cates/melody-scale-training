@@ -55,7 +55,7 @@ export function createChordQuestions(count: number): Question[] {
 }
 
 export function createMelodyQuestions(count: number, database?: "Peretz" | "Essen"): Question[] {
-	if(database === "Peretz") {
+	if (database === "Peretz") {
 		const affectSongs = SONGS.filter(
 			(song) => song.category === "Peaceful" || song.category === "Sad",
 		);
@@ -71,7 +71,7 @@ export function createMelodyQuestions(count: number, database?: "Peretz" | "Esse
 			} satisfies Question;
 		});
 	}
-	else if(database === "Essen") {
+	else if (database === "Essen") {
 		const essenSongs = SONGS.filter(
 			(song) => song.category === "Essen"
 		);
@@ -83,7 +83,7 @@ export function createMelodyQuestions(count: number, database?: "Peretz" | "Esse
 			return {
 				id: `melody-${index + 1}-${song.title}`,
 				type: "melody",
-				songTitle: song.title + (major_minor[index] === 1 ? " (modified)": ""),
+				songTitle: (major_minor[index] === 1 ? "m_" : "") + song.title,
 				correctAnswer: major_minor[index] === 1 ? "minor" : "major",
 			} satisfies Question;
 		});
@@ -91,20 +91,10 @@ export function createMelodyQuestions(count: number, database?: "Peretz" | "Esse
 	else {
 		return [];
 	}
-	
+
 }
 
 function createBaselineQuestions(): Question[] {
-	return [
-		...createPitchQuestions(1, 12),
-		...createPitchQuestions(2, 12),
-		...createPitchQuestions(4, 12),
-		...createChordQuestions(36),
-		...createMelodyQuestions(12)
-	];
-}
-
-function createPostTestQuestions(): Question[] {
 	return [
 		...createPitchQuestions(1, 12),
 		...createPitchQuestions(2, 12),
@@ -116,7 +106,6 @@ function createPostTestQuestions(): Question[] {
 
 export function createPracticeQuestions(group: "audio" | "visual") {
 	let questions = shuffle([
-		// CHANGE COUNTS LATER
 		...createPitchQuestions(1, 32),
 		...createPitchQuestions(2, 32),
 		...createPitchQuestions(4, 32),

@@ -47,7 +47,7 @@ export async function decodeSongNotes(encoded: string): Promise<SongNote[]> {
     const decoded: unknown = JSON.parse(await new Response(decompressedStream).text());
     if (!Array.isArray(decoded)) throw new Error("Invalid compressed song notes payload");
 
-    return decoded.map((entry): SongNote => {
+    let out = decoded.map((entry): SongNote => {
         if (
             !Array.isArray(entry) ||
             !Array.isArray(entry[0]) ||
@@ -65,6 +65,8 @@ export async function decodeSongNotes(encoded: string): Promise<SongNote[]> {
             ...(entry[2] === null ? {} : { onset: entry[2] }),
         };
     });
+    console.log(out);
+    return out;
 }
 
 export async function convertCompressedSongMode(

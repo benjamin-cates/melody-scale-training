@@ -96,6 +96,7 @@ function MelodyVisual({
       showKey
       showNotes
       showChordLines="tonic-only"
+      symbol={"melody"}
     />
   );
 }

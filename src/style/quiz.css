@@ -29,6 +29,11 @@
   border-radius: 50%;
   transform: rotate(25deg) scaleX(1.7);
 }
+.test-music-symbol {
+  width: 56px;
+  height: 70px;
+  color: currentColor;
+}
 .new-sequence .test-art {
   animation: sequence-art 0.9s ease-out;
 }

@@ -53,6 +53,19 @@
   height: auto;
   overflow: visible;
 }
+.chromatone-center-symbol {
+  color: #ef8a5b;
+  pointer-events: none;
+}
+.music-symbol-clef {
+  fill: currentColor;
+  font-family: "Noto Music", "Bravura", "Apple Symbols", serif;
+  font-size: 72px;
+}
+.music-symbol-note {
+  fill: currentColor;
+  font-size: 65px;
+}
 .key-sectors path {
   opacity: 0.22;
 }

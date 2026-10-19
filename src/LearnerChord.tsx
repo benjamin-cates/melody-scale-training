@@ -176,6 +176,7 @@ function ChordVisual({
       showNotes
       emphasizeTonic
       showChordLines="tonic-only"
+      symbol={"chord"}
     />
   );
 }

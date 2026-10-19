@@ -97,6 +97,7 @@ function NoteVisual({ guidance, activeNote }: { guidance: GuidanceMode; activeNo
       showKey={false}
       showNotes
       showNoteDirection
+      symbol={"note"}
     />
   );
 }

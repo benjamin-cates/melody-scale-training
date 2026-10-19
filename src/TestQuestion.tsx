@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getAudioContext, playTone } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
+import { MusicSymbol, type MusicSymbolType } from "./audio/MusicSymbol";
 import { getSongKey, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
 
 type PitchAnswer = "increasing" | "decreasing";
@@ -199,6 +200,10 @@ export function TestQuestion({
     const questionKeyLabel = melodySong ? getSongKey(melodySong) : (
         questionTonic === undefined ? undefined : `${NOTE_NAMES[questionTonic]} major`
     );
+    const questionSymbol: MusicSymbolType | undefined = question.type === "chord"
+        ? "chord"
+        : question.type === "melody" ? "melody"
+            : "note";
     const visualFeedback = showVisual ? (
         <Chromatone
             keyLabel={showEnhancedVisual ? questionKeyLabel : undefined}
@@ -209,6 +214,7 @@ export function TestQuestion({
             showNoteDirection={showEnhancedVisual && question.type === "pitch"}
             showChordLines={showEnhancedVisual ? "tonic-only" : "none"}
             emphasizeTonic={showEnhancedVisual}
+            symbol={questionSymbol}
         />
     ) : null;
 
@@ -217,7 +223,9 @@ export function TestQuestion({
             {visualFeedback ?? (
                 <div className="test-art" aria-hidden="true">
                     <span className="test-orbit" />
-                    <span>♪</span>
+
+                    <MusicSymbol className="test-music-symbol" type={questionSymbol} />
+
                 </div>
             )}
             <p className={`sequence-status ${giveAnswerFeedback ? feedbackClass : ""}`} aria-live="polite">

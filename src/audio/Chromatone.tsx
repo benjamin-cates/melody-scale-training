@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { getAudioBus, getAudioContext } from "./audio";
 import { ChordBuilder } from "./ChordBuilder";
 import { DEFAULT_OCTAVE_4_CHORDS, type SavedChord } from "./chords";
+import { MusicSymbol, type MusicSymbolType } from "./MusicSymbol";
 import {
   type Scale,
   type SongNote,
@@ -20,6 +21,7 @@ export type ChromatoneProps = {
   showNoteDirection?: boolean;
   showChordLines?: "all" | "none" | "tonic-only";
   isInteractive?: boolean;
+  symbol?: MusicSymbolType;
   /** Outlines the tonic in white without highlighting the full scale. */
   emphasizeTonic?: boolean;
 };
@@ -34,6 +36,7 @@ export function Chromatone({
   showChordLines = "tonic-only",
   isInteractive = false,
   emphasizeTonic = false,
+  symbol,
 }: ChromatoneProps) {
   const [sustain, setSustain] = useState(false);
   const [interactiveActiveNotes, setInteractiveActiveNotes] = useState<Set<number>>(new Set());
@@ -640,6 +643,16 @@ export function Chromatone({
               />
             ))}
           </g>
+        )}
+        {symbol && (
+          <MusicSymbol
+            className="chromatone-center-symbol"
+            type={symbol}
+            x={center - 24}
+            y={centerY - 30}
+            scale={0.8}
+            color={"rgba(255,255,255,0.2)"}
+          />
         )}
         <g className="spiral-notes">
           {Array.from({ length: octaveCount }, (_, octaveOffset) => {

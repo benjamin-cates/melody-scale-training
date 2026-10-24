@@ -1,111 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getAudioBus, getAudioContext } from "./audio";
-
-type FilterSlope = -12 | -24;
-
-type VocoderSettings = {
-  channels: number;
-  slope: FilterSlope;
-};
-
-const DEFAULT_SETTINGS: VocoderSettings = {
-  channels: 8,
-  slope: -12,
-};
-const FILTER_RESPONSE_SAMPLES = 4096;
-const NOISE_SOURCE_POWER = 1 / 3;
-
-function greenwoodPosition(frequency: number) {
-  return Math.log10(frequency / 165.4 + 0.88) / 2.1;
-}
-
-function greenwoodFrequency(position: number) {
-  return 165.4 * (10 ** (2.1 * position) - 0.88);
-}
-
-function getCenterFrequencies(settings: VocoderSettings): number[] {
-  // Space 4 or 8 channel centers across 100-6000 Hz using the Greenwood map.
-  const minimum = 100;
-  const maximum = 6000;
-  const start = greenwoodPosition(minimum);
-  const end = greenwoodPosition(maximum);
-  return Array.from({ length: settings.channels }, (_, index) =>
-    greenwoodFrequency(start + ((end - start) * index) / Math.max(settings.channels - 1, 1)));
-}
-
-function getBandEdges(centers: number[], minimum: number, maximum: number) {
-  return centers.map((center, index) => ({
-    center,
-    low: index === 0 ? minimum : Math.sqrt(centers[index - 1] * center),
-    high: index === centers.length - 1 ? maximum : Math.sqrt(center * centers[index + 1]),
-  }));
-}
-
-function makeBandPass(
-  context: AudioContext,
-  center: number,
-  low: number,
-  high: number,
-  slope: FilterSlope,
-): BiquadFilterNode[] {
-  const bandwidth = Math.max(1, high - low);
-  const stages = slope === -24 ? 2 : 1;
-  return Array.from({ length: stages }, () => {
-    const filter = context.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = center;
-    filter.Q.value = center / bandwidth;
-    return filter;
-  });
-}
-
-function makeFourthOrderLowPass(context: AudioContext, frequency: number): BiquadFilterNode[] {
-  return [0.5411961, 1.306563].map((q) => {
-    const filter = context.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = frequency;
-    filter.Q.value = q;
-    return filter;
-  });
-}
-
-function connectFilters(input: AudioNode, filters: BiquadFilterNode[]) {
-  let previous: AudioNode = input;
-  filters.forEach((filter) => {
-    previous.connect(filter);
-    previous = filter;
-  });
-}
-
-function getCascadePower(filters: BiquadFilterNode[], sampleRate: number): number {
-  const nyquist = sampleRate / 2;
-  const frequencies = Float32Array.from({ length: FILTER_RESPONSE_SAMPLES }, (_, index) =>
-    ((index + 0.5) * nyquist) / FILTER_RESPONSE_SAMPLES);
-  const magnitudes = new Float32Array(FILTER_RESPONSE_SAMPLES).fill(1);
-  const phase = new Float32Array(FILTER_RESPONSE_SAMPLES);
-
-  filters.forEach((filter) => {
-    const response = new Float32Array(FILTER_RESPONSE_SAMPLES);
-    filter.getFrequencyResponse(frequencies, response, phase);
-    for (let index = 0; index < response.length; index += 1) {
-      magnitudes[index] *= response[index];
-    }
-  });
-
-  return magnitudes.reduce((power, magnitude) => power + magnitude * magnitude, 0) / magnitudes.length;
-}
-
-function createNoiseCarrier(context: AudioContext): AudioBufferSourceNode {
-  const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
-  const samples = buffer.getChannelData(0);
-  for (let index = 0; index < samples.length; index += 1) {
-    samples[index] = Math.random() * 2 - 1;
-  }
-  const source = context.createBufferSource();
-  source.buffer = buffer;
-  source.loop = true;
-  return source;
-}
+import {
+  createVocoder,
+  DEFAULT_VOCODER_SETTINGS,
+  getVocoderCenterFrequencies,
+  type FilterSlope,
+  type VocoderSettings,
+} from "./vocoder-biquad";
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
   if (intensity <= 0.02) {
@@ -132,112 +32,61 @@ type VocoderProps = {
 export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}) {
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(false);
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState(DEFAULT_VOCODER_SETTINGS);
   const [error, setError] = useState("");
-  const audioRef = useRef<{ context: AudioContext; bus: GainNode; nodes: AudioNode[] } | null>(null);
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const centers = useMemo(() => getCenterFrequencies(settings), [settings]);
+  const centers = useMemo(() => getVocoderCenterFrequencies(settings), [settings]);
   const isEnabled = forceEnabled ?? enabled;
 
   useEffect(() => {
     if (!isEnabled) return;
     let cancelled = false;
-    let graph: typeof audioRef.current = null;
     let animationFrameId: number | null = null;
-
-    async function start() {
-      try {
-        const context = getAudioContext();
-        const bus = getAudioBus();
-        const source = context.createGain();
-        if (cancelled) return;
-        const edges = getBandEdges(centers, 100, 6000);
-        const sum = context.createGain();
-        const channelAnalysers: AnalyserNode[] = [];
-        const analysisPowers: number[] = [];
-        const nodes: AudioNode[] = [source, sum];
-        bus.disconnect();
-        bus.connect(source);
-        // Split the input into Greenwood-spaced channel bands.
-        edges.forEach(({ center, low, high }) => {
-          const analysisFilters = makeBandPass(context, center, low, high, settings.slope);
-          // Half-wave rectify each band, then smooth its envelope with a fourth-order 500 Hz low-pass.
-          const rectifier = context.createWaveShaper();
-          rectifier.curve = Float32Array.from({ length: 1025 }, (_, index) =>
-            Math.max(0, (index * 2) / 1024 - 1));
-          const envelopeFilters = makeFourthOrderLowPass(context, 500);
-          const channelAnalyser = context.createAnalyser();
-          channelAnalyser.fftSize = 128;
-          channelAnalyser.smoothingTimeConstant = 0.3;
-          const carrier = createNoiseCarrier(context);
-          const carrierFilters = makeBandPass(context, center, low, high, settings.slope);
-          const carrierLevel = context.createGain();
-          carrierLevel.gain.value = 1 / Math.sqrt(NOISE_SOURCE_POWER * getCascadePower(carrierFilters, context.sampleRate));
-          const modulator = context.createGain();
-          modulator.gain.value = 0;
-          analysisPowers.push(getCascadePower(analysisFilters, context.sampleRate));
-
-          connectFilters(source, analysisFilters);
-          analysisFilters.at(-1)?.connect(rectifier);
-          connectFilters(rectifier, envelopeFilters);
-          // Use the extracted envelope to amplitude-modulate broadband noise, then keep this channel's band.
-          envelopeFilters.at(-1)?.connect(modulator.gain);
-          envelopeFilters.at(-1)?.connect(channelAnalyser);
-          carrier.connect(modulator);
-          modulator.connect(carrierLevel);
-          connectFilters(carrierLevel, carrierFilters);
-          carrierFilters.at(-1)?.connect(sum);
-          carrier.start();
-          nodes.push(...analysisFilters, rectifier, ...envelopeFilters, carrier, modulator, carrierLevel, ...carrierFilters, channelAnalyser);
-          channelAnalysers.push(channelAnalyser);
-        });
-        // Sum the filtered noise channels into the final output.
-        sum.gain.value = 1 / Math.sqrt(0.5 * analysisPowers.reduce((total, power) => total + power, 0));
-        sum.connect(context.destination);
-        graph = { context, bus, nodes };
-        audioRef.current = graph;
-        await context.resume();
-
-        const channelSampleData = new Float32Array(128);
-        const levels = new Float32Array(channelAnalysers.length);
-        const updateMeter = () => {
-          if (cancelled || audioRef.current !== graph) return;
-          for (let index = 0; index < channelAnalysers.length; index += 1) {
-            const analyser = channelAnalysers[index];
-            analyser.getFloatTimeDomainData(channelSampleData);
-            let sumSquares = 0;
-            for (let sampleIndex = 0; sampleIndex < channelSampleData.length; sampleIndex += 1) {
-              const sample = channelSampleData[sampleIndex];
-              sumSquares += sample * sample;
-            }
-            const rms = Math.sqrt(sumSquares / channelSampleData.length);
-            const instantIntensity = Math.min(1, rms * 5.5);
-            if (instantIntensity > levels[index]) {
-              levels[index] = instantIntensity;
-            } else {
-              levels[index] = Math.max(0, levels[index] * 0.84 - 0.004);
-            }
-            const box = boxRefs.current[index];
-            if (box) {
-              const { background, shadow } = getIntensityColor(levels[index]);
-              box.style.backgroundColor = background;
-              box.style.boxShadow = shadow;
-              box.textContent = `${Math.floor(rms * 10000) / 10000}`;
-            }
-          }
-          animationFrameId = window.requestAnimationFrame(updateMeter);
-        };
-        animationFrameId = window.requestAnimationFrame(updateMeter);
-      } catch (reason) {
-        if (!cancelled) {
-          setError(reason instanceof Error ? reason.message : "The audio output could not be processed.");
-          setEnabled(false);
-        }
-      }
+    let session: ReturnType<typeof createVocoder>;
+    try {
+      session = createVocoder(settings);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "The audio output could not be processed.");
+      setEnabled(false);
+      return;
     }
 
-    void start();
+    void session.ready.catch((reason: unknown) => {
+      if (!cancelled) {
+        setError(reason instanceof Error ? reason.message : "The audio output could not be processed.");
+        setEnabled(false);
+      }
+    });
+
+    const channelSampleData = new Float32Array(128);
+    const levels = new Float32Array(session.channels.length);
+    const updateMeter = () => {
+      if (cancelled) return;
+      for (let index = 0; index < session.channels.length; index += 1) {
+        session.channels[index].getFloatTimeDomainData(channelSampleData);
+        let sumSquares = 0;
+        for (let sampleIndex = 0; sampleIndex < channelSampleData.length; sampleIndex += 1) {
+          const sample = channelSampleData[sampleIndex];
+          sumSquares += sample * sample;
+        }
+        const rms = Math.sqrt(sumSquares / channelSampleData.length);
+        const instantIntensity = Math.min(1, rms * 5.5);
+        levels[index] = instantIntensity > levels[index]
+          ? instantIntensity
+          : Math.max(0, levels[index] * 0.84 - 0.004);
+        const box = boxRefs.current[index];
+        if (box) {
+          const { background, shadow } = getIntensityColor(levels[index]);
+          box.style.backgroundColor = background;
+          box.style.boxShadow = shadow;
+          box.textContent = `${Math.floor(rms * 10000) / 10000}`;
+        }
+      }
+      animationFrameId = window.requestAnimationFrame(updateMeter);
+    };
+    animationFrameId = window.requestAnimationFrame(updateMeter);
+
     return () => {
       cancelled = true;
       if (animationFrameId !== null) {
@@ -250,24 +99,9 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
           box.textContent = "";
         }
       });
-      const current = graph ?? audioRef.current;
-      if (current) {
-        current.nodes.forEach((node) => {
-          try {
-            if (node instanceof OscillatorNode) node.stop();
-            node.disconnect();
-          } catch {
-            // A node may already be disconnected during a settings rebuild.
-          }
-        });
-        if (audioRef.current === current) {
-          current.bus.disconnect();
-          current.bus.connect(current.context.destination);
-        }
-      }
-      if (audioRef.current === current) audioRef.current = null;
+      session.dispose();
     };
-  }, [centers, isEnabled, settings.slope]);
+  }, [centers, isEnabled, settings]);
 
   function updateSettings(patch: Partial<VocoderSettings>) {
     setSettings((current) => ({ ...current, ...patch }));
@@ -303,8 +137,14 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
               <span>Filter slope <output>{settings.slope} dB/oct</output></span>
               <input type="range" min="-24" max="-12" step="12" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) as FilterSlope })} />
             </label>
+            <label className="vocoder-field">
+              <span>Envelope low-pass <output>{settings.envelopeCutoffHz} Hz</output></span>
+              <input type="range" min="100" max="2000" step="50" value={settings.envelopeCutoffHz} onChange={(event) => updateSettings({ envelopeCutoffHz: Number(event.target.value) })} />
+            </label>
             {error && <p className="vocoder-error">{error}</p>}
-            <p className="vocoder-note">100-6000 Hz Greenwood-spaced bands with 500 Hz envelopes.</p>
+            <p className="vocoder-note">
+              100-6000 Hz Greenwood-spaced bands with {settings.envelopeCutoffHz} Hz envelopes. <a href="#vocoder_debug">Vocoder debug</a>
+            </p>
           </div>
           <div className="vocoder-channel-meter" aria-label="Channel activity meter">
             {centers.map((center, index) => (

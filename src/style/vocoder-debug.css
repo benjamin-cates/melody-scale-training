@@ -1,0 +1,322 @@
+.vocoder-debug-page {
+  padding-top: 54px;
+  padding-left: 0;
+  padding-right: 0;
+}
+.vocoder-debug-heading {
+  margin-bottom: 34px;
+}
+.vocoder-debug-heading h1 {
+  margin: 0 0 16px;
+  font-size: 54px;
+}
+.vocoder-debug-heading .intro-copy {
+  max-width: none;
+  margin: 0;
+}
+.vocoder-debug-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 22px 30px;
+  padding: 17px 0;
+  border-top: 1px solid #c9c7be;
+  border-bottom: 1px solid #c9c7be;
+}
+.vocoder-debug-control {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.vocoder-debug-control legend {
+  margin-bottom: 8px;
+  color: #6c7475;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.vocoder-debug-cutoff {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 190px;
+  color: #6c7475;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.vocoder-debug-cutoff span {
+  display: flex;
+  justify-content: space-between;
+}
+.vocoder-debug-cutoff output {
+  color: #c76745;
+  letter-spacing: 0;
+}
+.vocoder-debug-cutoff input {
+  width: 100%;
+  accent-color: #317b72;
+}
+.vocoder-debug-segmented {
+  display: flex;
+}
+.vocoder-debug-segmented button {
+  min-height: 36px;
+  padding: 7px 13px;
+  border: 1px solid #9da4a0;
+  background: transparent;
+  color: #26353c;
+  cursor: pointer;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
+}
+.vocoder-debug-segmented button + button {
+  border-left: 0;
+}
+.vocoder-debug-segmented button[aria-pressed="true"] {
+  border-color: #26353c;
+  background: #26353c;
+  color: #f2f0e9;
+}
+.vocoder-debug-rerun {
+  min-height: 36px;
+  margin-left: auto;
+}
+.vocoder-debug-rerun:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+.vocoder-debug-frequency-panel {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto auto;
+  align-items: center;
+  gap: 18px 28px;
+  padding: 17px 0;
+  border-bottom: 1px solid #c9c7be;
+}
+.vocoder-debug-frequency-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #6c7475;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.vocoder-debug-frequency-control > span:first-child {
+  display: flex;
+  justify-content: space-between;
+}
+.vocoder-debug-frequency-control output {
+  color: #c76745;
+  letter-spacing: 0;
+}
+.vocoder-debug-frequency-control input {
+  width: 100%;
+  accent-color: #317b72;
+}
+.vocoder-debug-frequency-endpoints {
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: 0;
+}
+.vocoder-debug-power-readouts {
+  display: flex;
+  gap: 24px;
+}
+.vocoder-debug-power-readouts > div {
+  display: grid;
+  gap: 3px;
+  min-width: 120px;
+}
+.vocoder-debug-power-readouts span {
+  color: #6c7475;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vocoder-debug-power-readouts strong {
+  color: #26353c;
+  font:
+    16px "Trebuchet MS",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.vocoder-debug-power-readouts small {
+  color: #727a79;
+  font-size: 10px;
+}
+.vocoder-debug-play-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.vocoder-debug-play-controls button {
+  white-space: nowrap;
+}
+.vocoder-debug-play-controls button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+.vocoder-debug-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  padding: 17px 0 13px;
+}
+.vocoder-debug-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #26353c;
+  cursor: pointer;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.vocoder-debug-legend-item input {
+  accent-color: #26353c;
+}
+.vocoder-debug-legend-item small {
+  color: #727a79;
+  font-size: 10px;
+}
+.vocoder-debug-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.vocoder-debug-swatch.is-sum {
+  background: #26353c;
+}
+.vocoder-debug-status,
+.vocoder-debug-error {
+  min-height: 30px;
+  margin: 8px 0;
+  color: #6c7475;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.vocoder-debug-error {
+  color: #a23f2c;
+}
+.vocoder-debug-plot-wrap {
+  border-top: 1px solid #c9c7be;
+  padding-top: 12px;
+}
+.vocoder-debug-plot {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  background: #f2f0e9;
+}
+.vocoder-debug-gridline {
+  stroke: #d3d2ca;
+  stroke-width: 1;
+}
+.vocoder-debug-gridline.vocoder-debug-zero-line {
+  stroke: #c76745;
+  stroke-dasharray: 6 4;
+  stroke-width: 1.5;
+}
+.vocoder-debug-axis {
+  stroke: #26353c;
+  stroke-width: 1.5;
+}
+.vocoder-debug-tick {
+  fill: #5f696a;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.vocoder-debug-axis-label {
+  fill: #26353c;
+  font:
+    13px "Trebuchet MS",
+    sans-serif;
+}
+.vocoder-debug-zero-label {
+  fill: #a34c30;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
+}
+.vocoder-debug-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.72;
+}
+.vocoder-debug-line.is-sum {
+  stroke-width: 2.5;
+  opacity: 0.9;
+}
+.vocoder-debug-selection-line {
+  stroke: #317b72;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+.vocoder-debug-sweep-line {
+  stroke: #c76745;
+  stroke-width: 2;
+}
+.vocoder-debug-selection-point {
+  fill: #f2f0e9;
+  stroke: #26353c;
+  stroke-width: 2;
+}
+.vocoder-debug-caption {
+  margin: 10px 0 0;
+  color: #727a79;
+  font:
+    11px/1.5 "Trebuchet MS",
+    sans-serif;
+}
+@media (max-width: 680px) {
+  .vocoder-debug-page {
+    padding-top: 40px;
+  }
+  .vocoder-debug-heading h1 {
+    font-size: 42px;
+  }
+  .vocoder-debug-toolbar {
+    gap: 15px 18px;
+  }
+  .vocoder-debug-frequency-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .vocoder-debug-power-readouts {
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .vocoder-debug-power-readouts > div {
+    min-width: 0;
+  }
+  .vocoder-debug-rerun {
+    margin-left: 0;
+  }
+  .vocoder-debug-legend {
+    gap: 9px 14px;
+  }
+  .vocoder-debug-legend-item {
+    font-size: 10px;
+  }
+  .vocoder-debug-tick {
+    font-size: 14px;
+  }
+}

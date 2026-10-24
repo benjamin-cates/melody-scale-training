@@ -9,6 +9,7 @@ import "./style/quiz.css";
 import "./style/note-test.css";
 import "./style/survey.css";
 import "./style/vocoder.css"
+import "./style/vocoder-debug.css";
 import logoUrl from "./logo.svg";
 import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
@@ -19,6 +20,7 @@ import { Test } from "./Test";
 import { Explorer } from "./Explorer";
 import { Experiment } from "./Experiment";
 import { Vocoder } from "./audio/VocoderBiquad";
+import { VocoderDebug } from "./VocoderDebug";
 
 export function downloadJson(filename: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -32,7 +34,7 @@ export function downloadJson(filename: string, data: unknown) {
   URL.revokeObjectURL(url);
 }
 
-type Route = "explorer" | "survey" | "note_learner" | "chord_learner" | "melody_learner" | "test" | "note-test" | "experiment";
+type Route = "explorer" | "survey" | "note_learner" | "chord_learner" | "melody_learner" | "test" | "note-test" | "experiment" | "vocoder_debug";
 
 const ROUTES: { id: Exclude<Route, "experiment">; label: string }[] = [
   { id: "explorer", label: "Explorer" },
@@ -45,7 +47,7 @@ const ROUTES: { id: Exclude<Route, "experiment">; label: string }[] = [
 
 function getRoute(): Route {
   const value = window.location.hash.replace(/^#\/?/, "") as Route;
-  if (value === "experiment") return value;
+  if (value === "experiment" || value === "vocoder_debug") return value;
   return ROUTES.some((route) => route.id === value) ? value : "explorer";
 }
 
@@ -79,7 +81,7 @@ function Layout({ route, children }: { route: Route; children: ReactNode }) {
         </header>
       )}
       {children}
-      {route !== "survey" && route !== "experiment" && <Vocoder />}
+      {route !== "survey" && route !== "experiment" && route !== "vocoder_debug" && <Vocoder />}
     </main>
   );
 }
@@ -94,6 +96,8 @@ export function AppRoutes() {
   const page =
     route === "experiment" ? (
       <Experiment />
+    ) : route === "vocoder_debug" ? (
+      <VocoderDebug />
     ) : route === "survey" ? (
       <Survey />
     ) : route === "note_learner" ? (

@@ -78,12 +78,19 @@ input[type="range"] {
 }
 @media (max-width: 680px) {
   .player-controls {
-    align-items: stretch;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 18px;
+    gap: 12px;
   }
   .tempo-control {
-    order: 3;
-    flex-basis: 100%;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+  }
+  .tempo-control input[type="range"] {
+    min-width: 0;
+  }
+  .progress-text {
+    margin-left: auto;
   }
 }

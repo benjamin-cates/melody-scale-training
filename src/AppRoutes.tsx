@@ -58,7 +58,7 @@ export function downloadFormJson(filename: string, form: HTMLFormElement) {
 
 function Layout({ route, children }: { route: Route; children: ReactNode }) {
   return (
-    <main className="app-shell">
+    <main className={`app-shell${route === "experiment" ? " experiment-shell" : ""}`}>
       {route !== "experiment" && (
         <header className="topbar">
           <a className="brand-link" href="#/explorer">

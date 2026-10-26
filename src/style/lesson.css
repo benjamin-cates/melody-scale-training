@@ -31,8 +31,6 @@
   background: #26353c;
 }
 .lesson-card {
-  display: flex;
-  flex-direction: column;
   min-height: 620px;
   background: #26353c;
   color: #f2f0e9;

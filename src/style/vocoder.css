@@ -180,8 +180,9 @@
   font-size: 10px;
 }
 @media (max-width: 680px) {
-  .vocoder {
-    left: 16px;
-    bottom: 16px;
+  .app-shell:not(.experiment-shell) > .vocoder {
+    position: static;
+    width: calc(100% - 32px);
+    margin: 16px 16px 24px;
   }
 }

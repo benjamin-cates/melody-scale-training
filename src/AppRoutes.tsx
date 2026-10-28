@@ -80,8 +80,8 @@ function Layout({ route, children }: { route: Route; children: ReactNode }) {
           </nav>
         </header>
       )}
+      {route !== "experiment" && <Vocoder />}
       {children}
-      {route !== "survey" && route !== "experiment" && route !== "vocoder_debug" && <Vocoder />}
     </main>
   );
 }

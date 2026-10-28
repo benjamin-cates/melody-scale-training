@@ -1,31 +1,45 @@
 .vocoder {
   position: fixed;
   z-index: 10;
-  right: 24px;
-  bottom: 24px;
-  width: min(328px, calc(100vw - 32px));
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  margin: 0;
   color: #f2f0e9;
   background: #26353c;
   box-shadow: 8px 8px 0 rgba(38, 53, 60, 0.2);
 }
+.vocoder.is-open {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: stretch;
+}
 .vocoder-toggle {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  width: 100%;
+  justify-content: center;
+  width: 46px;
+  min-height: 132px;
   border: 1px solid #506067;
   background: #26353c;
   color: #f2f0e9;
-  padding: 13px 15px;
+  padding: 14px 10px;
   cursor: pointer;
   font:
     11px "Trebuchet MS",
     sans-serif;
   letter-spacing: 0.08em;
-  text-align: left;
+  text-align: center;
   text-transform: uppercase;
 }
+.vocoder-toggle-label {
+  display: block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
 .vocoder-toggle b {
-  margin-left: auto;
+  margin-top: 8px;
   color: #ef8a5b;
   font-size: 18px;
   font-weight: 400;
@@ -33,7 +47,7 @@
 .vocoder-status {
   width: 7px;
   height: 7px;
-  margin-right: 9px;
+  margin-bottom: 9px;
   border-radius: 50%;
   background: #718087;
 }
@@ -42,15 +56,29 @@
   box-shadow: 0 0 0 4px rgba(125, 200, 93, 0.15);
 }
 .vocoder-panel {
-  display: flex;
-  gap: 12px;
+  display: block;
+  width: min(328px, calc(100vw - 78px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
   border: 1px solid #506067;
-  border-top: 0;
   padding: 15px;
 }
 .vocoder-panel-body {
+  min-width: 0;
+}
+.vocoder-timbre {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #506067;
+}
+.vocoder-controls {
   flex: 1;
   min-width: 0;
+}
+.vocoder-controls-row {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
 }
 .vocoder-channel-meter {
   display: flex;
@@ -184,5 +212,31 @@
     position: static;
     width: calc(100% - 32px);
     margin: 16px 16px 24px;
+    transform: none;
+  }
+  .vocoder.is-open {
+    display: block;
+  }
+  .vocoder-toggle {
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 0;
+    padding: 13px 15px;
+    text-align: left;
+  }
+  .vocoder-toggle-label {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+  .vocoder-toggle b {
+    margin: 0 0 0 auto;
+  }
+  .vocoder-status {
+    margin: 0 9px 0 0;
+  }
+  .vocoder-panel {
+    width: 100%;
+    max-width: 100%;
   }
 }

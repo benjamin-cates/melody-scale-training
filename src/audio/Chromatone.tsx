@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { getAudioBus, getAudioContext } from "./audio";
+import { configureOscillatorTimbre, getAudioBus, getAudioContext } from "./audio";
 import { ChordBuilder } from "./ChordBuilder";
 import { DEFAULT_OCTAVE_4_CHORDS, type SavedChord } from "./chords";
 import { MusicSymbol, type MusicSymbolType } from "./MusicSymbol";
@@ -106,7 +106,7 @@ export function Chromatone({
 
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.type = "sine";
+    configureOscillatorTimbre(context, oscillator);
     oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
     gain.gain.setValueAtTime(0.0001, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.5, context.currentTime + 0.025);
@@ -139,7 +139,7 @@ export function Chromatone({
       }
       const oscillator = context.createOscillator();
       const gain = context.createGain();
-      oscillator.type = "sine";
+      configureOscillatorTimbre(context, oscillator);
       oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
       gain.gain.setValueAtTime(0.0001, context.currentTime);
       gain.gain.exponentialRampToValueAtTime(gainLevel, context.currentTime + 0.025);

@@ -6,6 +6,7 @@ import {
   type FilterSlope,
   type VocoderSettings,
 } from "./vocoder-biquad";
+import { getTimbre, setTimbre, TIMBRES, type Timbre } from "./audio";
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
   if (intensity <= 0.02) {
@@ -32,6 +33,7 @@ type VocoderProps = {
 export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}) {
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(false);
+  const [timbre, setSelectedTimbre] = useState<Timbre>(getTimbre);
   const [settings, setSettings] = useState(DEFAULT_VOCODER_SETTINGS);
   const [error, setError] = useState("");
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -110,53 +112,73 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   if (!showControls) return null;
 
   return (
-    <aside className={`vocoder ${open ? "is-open" : ""}`} aria-label="Cochlear implant vocoder">
+    <aside className={`vocoder ${open ? "is-open" : ""}`} aria-label="Audio configuration">
       <button className="vocoder-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
         <span className={`vocoder-status ${isEnabled ? "is-live" : ""}`} />
-        Vocoder
+        <span className="vocoder-toggle-label">Config</span>
         <b>{open ? "-" : "+"}</b>
       </button>
       {open && (
         <div className="vocoder-panel">
           <div className="vocoder-panel-body">
-
-            <button
-              className={`vocoder-power ${isEnabled ? "is-on" : ""}`}
-              onClick={() => {
-                setError("");
-                setEnabled((value) => !value);
-              }}
-            >
-              {isEnabled ? "Stop vocoder" : "Start vocoder"}
-            </button>
-            <label className="vocoder-field">
-              <span>Channels <output>{settings.channels}</output></span>
-              <input type="range" min="4" max="8" step="4" value={settings.channels} onChange={(event) => updateSettings({ channels: Number(event.target.value) })} />
-            </label>
-            <label className="vocoder-field">
-              <span>Filter slope <output>{settings.slope} dB/oct</output></span>
-              <input type="range" min="-24" max="-12" step="12" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) as FilterSlope })} />
-            </label>
-            <label className="vocoder-field">
-              <span>Envelope low-pass <output>{settings.envelopeCutoffHz} Hz</output></span>
-              <input type="range" min="100" max="2000" step="50" value={settings.envelopeCutoffHz} onChange={(event) => updateSettings({ envelopeCutoffHz: Number(event.target.value) })} />
-            </label>
-            {error && <p className="vocoder-error">{error}</p>}
-            <p className="vocoder-note">
-              100-6000 Hz Greenwood-spaced bands with {settings.envelopeCutoffHz} Hz envelopes. <a href="#vocoder_debug">Vocoder debug</a>
-            </p>
-          </div>
-          <div className="vocoder-channel-meter" aria-label="Channel activity meter">
-            {centers.map((center, index) => (
-              <div
-                className="vocoder-channel-box"
-                key={`${index}-${Math.round(center)}`}
-                ref={(element) => {
-                  boxRefs.current[index] = element;
-                }}
-                title={`Channel ${index + 1}: ${Math.round(center)} Hz`}
-              />
-            ))}
+            <div className="vocoder-timbre">
+              <label className="vocoder-field">
+                <span>Playback timbre</span>
+                <select
+                  value={timbre}
+                  onChange={(event) => {
+                    const selected = event.target.value as Timbre;
+                    setTimbre(selected);
+                    setSelectedTimbre(selected);
+                  }}
+                >
+                  {TIMBRES.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="vocoder-controls-row">
+              <div className="vocoder-controls">
+                <button
+                  className={`vocoder-power ${isEnabled ? "is-on" : ""}`}
+                  onClick={() => {
+                    setError("");
+                    setEnabled((value) => !value);
+                  }}
+                >
+                  {isEnabled ? "Stop vocoder" : "Start vocoder"}
+                </button>
+                <label className="vocoder-field">
+                  <span>Channels <output>{settings.channels}</output></span>
+                  <input type="range" min="4" max="8" step="4" value={settings.channels} onChange={(event) => updateSettings({ channels: Number(event.target.value) })} />
+                </label>
+                <label className="vocoder-field">
+                  <span>Filter slope <output>{settings.slope} dB/oct</output></span>
+                  <input type="range" min="-24" max="-12" step="12" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) as FilterSlope })} />
+                </label>
+                <label className="vocoder-field">
+                  <span>Envelope low-pass <output>{settings.envelopeCutoffHz} Hz</output></span>
+                  <input type="range" min="100" max="2000" step="50" value={settings.envelopeCutoffHz} onChange={(event) => updateSettings({ envelopeCutoffHz: Number(event.target.value) })} />
+                </label>
+                {error && <p className="vocoder-error">{error}</p>}
+                <p className="vocoder-note">
+                  100-6000 Hz Greenwood-spaced bands with {settings.envelopeCutoffHz} Hz envelopes. <a href="#vocoder_debug">Vocoder debug</a>
+                </p>
+              </div>
+              <div className="vocoder-channel-meter" aria-label="Channel activity meter">
+                {centers.map((center, index) => (
+                  <div
+                    className="vocoder-channel-box"
+                    key={`${index}-${Math.round(center)}`}
+                    ref={(element) => {
+                      boxRefs.current[index] = element;
+                    }}
+                    title={`Channel ${index + 1}: ${Math.round(center)} Hz`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { getAudioBus, getAudioContext } from "./audio";
+import { configureOscillatorTimbre, getAudioBus, getAudioContext } from "./audio";
 
 export type FilterSlope = -12 | -24;
 
@@ -315,7 +315,7 @@ function createTonePreview(
     }
 
     const oscillator = context.createOscillator();
-    oscillator.type = "sine";
+    configureOscillatorTimbre(context, oscillator);
     oscillator.connect(input);
 
     const startTime = context.currentTime;

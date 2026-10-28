@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { configureOscillatorTimbre } from "./audio";
 import { getAudioBus, getAudioContext } from "./audio";
 
 type Spacing = "greenwood" | "linear" | "custom";
@@ -439,7 +440,7 @@ export function Vocoder() {
     const start = context.currentTime + 0.03;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.type = "sine";
+    configureOscillatorTimbre(context, oscillator);
     oscillator.frequency.setValueAtTime(220, start);
     oscillator.frequency.exponentialRampToValueAtTime(settings.maxFrequency * 0.9, start + 5);
     gain.gain.setValueAtTime(0.0001, start);

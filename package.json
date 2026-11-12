@@ -9,7 +9,8 @@
     "start": "NODE_ENV=production bun src/index.ts",
     "extract-instruments": "bun scripts/extract-instruments.ts",
     "extract-soundfonts": "bun scripts/extract-soundfonts.ts",
-    "extract-mono-piano": "bun scripts/extract-mono-piano.ts"
+    "extract-mono-piano": "bun scripts/extract-mono-piano.ts",
+    "extract-mono-simple-piano": "bun scripts/extract-mono-simple-piano.ts"
   },
   "dependencies": {
     "react": "^19",

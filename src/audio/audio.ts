@@ -37,7 +37,7 @@ const soundFontSettings: Record<
   SoundFontTimbre,
   { url: string; program: number; channel: number; noteOffDelay: number }
 > = {
-  piano: { url: "/soundfonts/grand-piano.sf3", program: 0, channel: 0, noteOffDelay: 0 },
+  piano: { url: "/soundfonts/grand-piano-mono-simple.sf2pack", program: 0, channel: 0, noteOffDelay: 0 },
   marimba: { url: "/soundfonts/marimba.sf3", program: 12, channel: 1, noteOffDelay: 0.15 },
 };
 
@@ -49,9 +49,13 @@ export function getTimbre(): Timbre {
 }
 
 export async function setTimbre(timbre: Timbre) {
+  if (isSoundFontTimbre(timbre)) await loadSoundFont(timbre);
   const url = new URL(window.location.href);
   url.searchParams.set("timbre", timbre);
   window.history.replaceState(null, "", url);
+}
+
+export async function preloadTimbre(timbre: Timbre) {
   if (isSoundFontTimbre(timbre)) await loadSoundFont(timbre);
 }
 

@@ -11,12 +11,9 @@ import {
 import { createOggEncoder } from "wasm-media-encoders";
 import { fileURLToPath } from "node:url";
 
-const sourcePath = fileURLToPath(new URL("../public/soundfonts/grand-piano.sf3", import.meta.url));
-const outputPath = fileURLToPath(new URL("../public/soundfonts/grand-piano-mono-compact.sf3", import.meta.url));
-const sampleLayers = [
-  { name: "MF", minVelocity: 1, maxVelocity: 127, instrumentPrefix: "Piano MF-" },
-] as const;
-const targetSamplesPerLayer = 12;
+const sourcePath = fileURLToPath(new URL("../public/soundfonts/grand-piano-mono-compact.sf3", import.meta.url));
+const outputPath = fileURLToPath(new URL("../public/soundfonts/grand-piano-mono-ultra-compact.sf3", import.meta.url));
+const targetSampleCount = 6;
 
 function resampleToKey(sample: BasicSample, targetKey: number): Float32Array {
   const sourceData = sample.getAudioData();
@@ -67,87 +64,57 @@ await BasicSoundBank.ready;
 const sourceData = await Bun.file(sourcePath).arrayBuffer();
 const sourceBank = SoundBankLoader.fromArrayBuffer(sourceData, { copySampleData: false });
 const sourcePreset = sourceBank.presets.find((preset) =>
-  preset.name === "Grand Piano"
+  preset.name === "Grand Piano Mono Compact"
   && preset.program === 0
   && preset.bankMSB === 0
   && preset.bankLSB === 0
 );
-if (!sourcePreset) throw new Error(`Grand Piano preset not found in ${sourcePath}`);
+const sourceInstrument = sourceBank.instruments.find((instrument) => instrument.name === "Grand Piano Mono Compact");
+if (!sourcePreset || !sourceInstrument) {
+  throw new Error(`Grand Piano Mono Compact preset and instrument not found in ${sourcePath}`);
+}
 
-const sourceInstruments = new Map(
-  sampleLayers.map((layer) => [
-    layer.name,
-    sourceBank.instruments.filter((instrument) => instrument.name.startsWith(layer.instrumentPrefix)),
-  ]),
+const sourceZones = sourceInstrument.zones.flatMap((sourceZone) => {
+  const sourceSample = sourceZone.sample;
+  return sourceSample ? [{ sourceSample, sourceZone }] : [];
+});
+const sourceSamples = [...new Set(sourceZones.map(({ sourceSample }) => sourceSample))]
+  .sort((left, right) => left.originalKey - right.originalKey);
+if (sourceSamples.length < targetSampleCount) {
+  throw new Error(`Not enough source samples to create ${targetSampleCount} output samples`);
+}
+
+const selectedSamples = Array.from({ length: targetSampleCount }, (_, index) =>
+  sourceSamples[Math.round(index * (sourceSamples.length - 1) / (targetSampleCount - 1))]
 );
-for (const layer of sampleLayers) {
-  if (sourceInstruments.get(layer.name)?.length === 0) {
-    throw new Error(`Grand Piano ${layer.name} instruments not found`);
-  }
-}
-const mediumForteInstrument = sourceInstruments.get("MF")?.[0];
-if (!mediumForteInstrument) throw new Error("Grand Piano medium-forte instrument not found");
-const sourceZones: {
-  layer: (typeof sampleLayers)[number];
-  sourceSample: BasicSample;
-  sourceZone: (typeof mediumForteInstrument.zones)[number];
-}[] = [];
-for (const layer of sampleLayers) {
-  const candidateSamples = new Set(sourceBank.samples.filter((sample) =>
-    sample.name.startsWith(`Piano ${layer.name} `)
-    && sample.name.endsWith("(L)")
-  ));
-  const layerInstruments = sourceInstruments.get(layer.name) ?? [];
-  for (const sourceZone of layerInstruments.flatMap((sourceInstrument) => sourceInstrument.zones)) {
-    const sourceSample = sourceZone.sample;
-    if (sourceSample && candidateSamples.has(sourceSample)) {
-      sourceZones.push({ layer, sourceSample, sourceZone });
-    }
-  }
-}
-if (sourceZones.length === 0) throw new Error("No mono piano source zones found");
-
-const compactZones = sampleLayers.flatMap((layer) => {
-  const layerZones = sourceZones.filter((source) => source.layer.name === layer.name);
-  const sourceSamples = [...new Set(layerZones.map((source) => source.sourceSample))]
-    .sort((left, right) => left.originalKey - right.originalKey);
-  if (sourceSamples.length < targetSamplesPerLayer) {
-    throw new Error(`Not enough ${layer.name} samples to create the requested compact layer`);
-  }
-  const selectedSamples = Array.from({ length: targetSamplesPerLayer }, (_, index) =>
-    sourceSamples[Math.round(index * (sourceSamples.length - 1) / (targetSamplesPerLayer - 1))]
-  );
-  return selectedSamples.map((sourceSample) => {
-    if (!sourceSample) throw new Error(`Could not select a ${layer.name} source sample`);
-    const sourceZone = layerZones.find((source) => source.sourceSample === sourceSample)?.sourceZone;
-    if (!sourceZone) throw new Error(`No ${layer.name} source zone found for ${sourceSample.name}`);
-    const assignedZones = layerZones.filter((candidate) => {
-      let nearest = selectedSamples[0]!;
-      for (const selected of selectedSamples.slice(1)) {
-        if (
-          selected
-          && Math.abs(candidate.sourceSample.originalKey - selected.originalKey)
-            < Math.abs(candidate.sourceSample.originalKey - nearest.originalKey)
-        ) {
-          nearest = selected;
-        }
+const compactZones = selectedSamples.map((sourceSample) => {
+  if (!sourceSample) throw new Error("Could not select a source sample");
+  const assignedZones = sourceZones.filter((candidate) => {
+    let nearest = selectedSamples[0]!;
+    for (const selected of selectedSamples.slice(1)) {
+      if (
+        selected
+        && Math.abs(candidate.sourceSample.originalKey - selected.originalKey)
+          < Math.abs(candidate.sourceSample.originalKey - nearest.originalKey)
+      ) {
+        nearest = selected;
       }
-      return nearest === sourceSample;
-    });
-    if (assignedZones.length === 0) {
-      throw new Error(`No key range assigned to ${sourceSample.name}`);
     }
-    return {
-      layer,
-      sourceSample,
-      sourceZone,
-      sourceSamples: [...new Set(assignedZones.map((source) => source.sourceSample))],
-      keyRange: {
-        min: Math.min(...assignedZones.map((source) => source.sourceZone.keyRange.min)),
-        max: Math.max(...assignedZones.map((source) => source.sourceZone.keyRange.max)),
-      },
-    };
+    return nearest === sourceSample;
   });
+  const sourceZone = sourceZones.find((candidate) => candidate.sourceSample === sourceSample)?.sourceZone;
+  if (!sourceZone || assignedZones.length === 0) {
+    throw new Error(`No key range or source zone found for ${sourceSample.name}`);
+  }
+  return {
+    sourceSample,
+    sourceZone,
+    sourceSamples: [...new Set(assignedZones.map(({ sourceSample: assignedSample }) => assignedSample))],
+    keyRange: {
+      min: Math.min(...assignedZones.map(({ sourceZone: assignedZone }) => assignedZone.keyRange.min)),
+      max: Math.max(...assignedZones.map(({ sourceZone: assignedZone }) => assignedZone.keyRange.max)),
+    },
+  };
 });
 
 const outputBank = new BasicSoundBank("sf2");
@@ -156,7 +123,7 @@ outputBank.defaultModulators = sourceBank.defaultModulators.map((modulator) => M
 outputBank.customDefaultModulators = sourceBank.customDefaultModulators;
 
 const preset = new BasicPreset(outputBank);
-preset.name = "Grand Piano Mono Compact";
+preset.name = "Grand Piano Mono Ultra Compact";
 preset.program = sourcePreset.program;
 preset.bankMSB = sourcePreset.bankMSB;
 preset.bankLSB = sourcePreset.bankLSB;
@@ -165,17 +132,13 @@ preset.library = sourcePreset.library;
 preset.genre = sourcePreset.genre;
 preset.morphology = sourcePreset.morphology;
 preset.globalZone.copyFrom(sourcePreset.globalZone);
-preset.globalZone.setGenerator(GeneratorTypes.initialAttenuation, 0);
 
 const instrument = new BasicInstrument();
-instrument.name = "Grand Piano Mono Compact";
-instrument.globalZone.copyFrom(mediumForteInstrument.globalZone);
-instrument.globalZone.setGenerator(GeneratorTypes.initialFilterFc, 13500);
-instrument.globalZone.setGenerator(GeneratorTypes.pan, 0);
-instrument.globalZone.setGenerator(GeneratorTypes.initialAttenuation, 0);
+instrument.name = "Grand Piano Mono Ultra Compact";
+instrument.globalZone.copyFrom(sourceInstrument.globalZone);
 
-for (const { layer, sourceSample, sourceZone, sourceSamples, keyRange } of compactZones) {
-  const blendedAudio = blendSamples(sourceSamples, sourceSample.originalKey);
+for (const { sourceSample, sourceZone, sourceSamples: blendedSamples, keyRange } of compactZones) {
+  const blendedAudio = blendSamples(blendedSamples, sourceSample.originalKey);
   const sample = new BasicSample(
     `Grand Piano Blend ${sourceSample.originalKey}`,
     sourceSample.sampleRate,
@@ -190,10 +153,7 @@ for (const { layer, sourceSample, sourceZone, sourceSamples, keyRange } of compa
   const zone = instrument.createZone(sample);
   zone.copyFrom(sourceZone);
   zone.keyRange = keyRange;
-  zone.velRange = { min: layer.minVelocity, max: layer.maxVelocity };
-  zone.setGenerator(GeneratorTypes.pan, 0);
-  zone.setGenerator(GeneratorTypes.initialAttenuation, 0);
-  zone.setGenerator(GeneratorTypes.sampleModes, 0);
+  zone.velRange = { min: 1, max: 127 };
 }
 
 outputBank.addInstruments(instrument);
@@ -223,32 +183,25 @@ const verificationBank = SoundBankLoader.fromArrayBuffer(outputData, { sampleDat
 const extractedPreset = verificationBank.presets[0];
 const extractedInstrument = verificationBank.instruments[0];
 const extractedInstrumentZones = extractedInstrument?.zones ?? [];
-const expectedZoneCount = compactZones.length;
 if (
   verificationBank.presets.length !== 1
   || verificationBank.instruments.length !== 1
-  || verificationBank.samples.length !== targetSamplesPerLayer
+  || verificationBank.samples.length !== targetSampleCount
   || verificationBank.samples.some((sample) =>
     sample.sampleType !== SampleTypes.monoSample || sample.storedForm !== "vorbis" || sample.isLinked
   )
-  || extractedPreset?.globalZone.getGenerator(GeneratorTypes.initialAttenuation, NaN) !== 0
-  || extractedInstrument?.globalZone.getGenerator(GeneratorTypes.initialFilterFc, NaN) !== 13500
-  || extractedInstrument?.globalZone.getGenerator(GeneratorTypes.pan, NaN) !== 0
-  || extractedInstrument?.globalZone.getGenerator(GeneratorTypes.initialAttenuation, NaN) !== 0
-  || extractedInstrumentZones.length !== expectedZoneCount
+  || extractedPreset?.name !== "Grand Piano Mono Ultra Compact"
+  || extractedInstrumentZones.length !== targetSampleCount
   || extractedInstrumentZones.some((zone, index) => {
     const source = compactZones[index];
     return !source
       || zone.keyRange.min !== source.keyRange.min
       || zone.keyRange.max !== source.keyRange.max
-      || zone.velRange.min !== source.layer.minVelocity
-      || zone.velRange.max !== source.layer.maxVelocity
-      || zone.getGenerator(GeneratorTypes.pan, NaN) !== 0
-      || zone.getGenerator(GeneratorTypes.initialAttenuation, NaN) !== 0
-      || zone.getGenerator(GeneratorTypes.sampleModes, NaN) !== 0;
+      || zone.velRange.min !== 1
+      || zone.velRange.max !== 127;
   })
 ) {
-  throw new Error("The compact mono Grand Piano SoundFont did not pass validation");
+  throw new Error("The ultra-compact mono Grand Piano SoundFont did not pass validation");
 }
 
 await Bun.write(outputPath, outputData);

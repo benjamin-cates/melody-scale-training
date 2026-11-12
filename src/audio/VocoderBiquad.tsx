@@ -6,7 +6,7 @@ import {
   type FilterSlope,
   type VocoderSettings,
 } from "./vocoder-biquad";
-import { getTimbre, setTimbre, TIMBRES, TIMBRE_LABELS, type Timbre } from "./audio";
+import { getTimbre, preloadTimbre, setTimbre, TIMBRES, TIMBRE_LABELS, type Timbre } from "./audio";
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
   if (intensity <= 0.02) {
@@ -34,12 +34,30 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [timbre, setSelectedTimbre] = useState<Timbre>(getTimbre);
+  const [isTimbreLoading, setIsTimbreLoading] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_VOCODER_SETTINGS);
   const [error, setError] = useState("");
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const centers = useMemo(() => getVocoderCenterFrequencies(settings), [settings]);
   const isEnabled = forceEnabled ?? enabled;
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsTimbreLoading(true);
+    void preloadTimbre(timbre)
+      .catch((reason: unknown) => {
+        if (!cancelled) {
+          setError(reason instanceof Error ? reason.message : "The selected timbre could not be loaded.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsTimbreLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [timbre]);
 
   useEffect(() => {
     if (!isEnabled) return;
@@ -126,13 +144,17 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
                 <span>Playback timbre</span>
                 <select
                   value={timbre}
+                  disabled={isTimbreLoading}
                   onChange={(event) => {
                     const selected = event.target.value as Timbre;
-                    setSelectedTimbre(selected);
                     setError("");
-                    void setTimbre(selected).catch((reason: unknown) => {
-                      setError(reason instanceof Error ? reason.message : "The selected timbre could not be loaded.");
-                    });
+                    setIsTimbreLoading(true);
+                    void setTimbre(selected)
+                      .then(() => setSelectedTimbre(selected))
+                      .catch((reason: unknown) => {
+                        setError(reason instanceof Error ? reason.message : "The selected timbre could not be loaded.");
+                      })
+                      .finally(() => setIsTimbreLoading(false));
                   }}
                 >
                   {TIMBRES.map((option) => (
@@ -140,6 +162,7 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
                   ))}
                 </select>
               </label>
+              {isTimbreLoading && <p aria-live="polite">Loading {timbre} audio...</p>}
             </div>
             <div className="vocoder-controls-row">
               <div className="vocoder-controls">

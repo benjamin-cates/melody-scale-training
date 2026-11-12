@@ -19,6 +19,12 @@ const NOISE_SOURCE_POWER = 1 / 3;
 const MINIMUM_FREQUENCY = 100;
 const MAXIMUM_FREQUENCY = 6000;
 export const TONE_SWEEP_INPUT_AMPLITUDE = 0.2;
+const POWER_NORMALIZATION_FREQUENCY_COUNT = 160;
+const POWER_NORMALIZATION_FREQUENCIES = Float32Array.from(
+    { length: POWER_NORMALIZATION_FREQUENCY_COUNT },
+    (_, index) => MINIMUM_FREQUENCY
+        * (MAXIMUM_FREQUENCY / MINIMUM_FREQUENCY) ** (index / (POWER_NORMALIZATION_FREQUENCY_COUNT - 1)),
+);
 
 function greenwoodPosition(frequency: number) {
     return Math.log10(frequency / 165.4 + 0.88) / 2.1;
@@ -85,16 +91,20 @@ function connectFilters(input: AudioNode, filters: BiquadFilterNode[]) {
     });
 }
 
-function getCascadePower(filters: BiquadFilterNode[], sampleRate: number): number {
+function getCascadePower(
+    filters: BiquadFilterNode[],
+    sampleRate: number,
+    frequencies?: Float32Array<ArrayBuffer>,
+): number {
     const nyquist = sampleRate / 2;
-    const frequencies = Float32Array.from({ length: FILTER_RESPONSE_SAMPLES }, (_, index) =>
+    const sampleFrequencies = frequencies ?? Float32Array.from({ length: FILTER_RESPONSE_SAMPLES }, (_, index) =>
         ((index + 0.5) * nyquist) / FILTER_RESPONSE_SAMPLES);
-    const magnitudes = new Float32Array(FILTER_RESPONSE_SAMPLES).fill(1);
-    const phase = new Float32Array(FILTER_RESPONSE_SAMPLES);
+    const magnitudes = new Float32Array(sampleFrequencies.length).fill(1);
+    const phase = new Float32Array(sampleFrequencies.length);
 
     filters.forEach((filter) => {
-        const response = new Float32Array(FILTER_RESPONSE_SAMPLES);
-        filter.getFrequencyResponse(frequencies, response, phase);
+        const response = new Float32Array(sampleFrequencies.length);
+        filter.getFrequencyResponse(sampleFrequencies, response, phase);
         for (let index = 0; index < response.length; index += 1) {
             magnitudes[index] *= response[index];
         }
@@ -150,14 +160,20 @@ function buildVocoderGraph(
         edges.forEach(({ center, low, high }, channelIndex) => {
             const analysisFilters = makeBandPass(context, center, low, high, settings.slope);
             nodes.push(...analysisFilters);
-            const rectifier = context.createWaveShaper();
-            nodes.push(rectifier);
-            rectifier.curve = Float32Array.from({ length: 1025 }, (_, index) => {
+            const powerDetector = context.createWaveShaper();
+            nodes.push(powerDetector);
+            powerDetector.curve = Float32Array.from({ length: 1025 }, (_, index) => {
                 const x = (index * 2) / 1024 - 1;
                 return x * x; // Squaring maps input to true power (amplitude squared)
             });
             const envelopeFilters = makeFourthOrderLowPass(context, settings.envelopeCutoffHz);
             nodes.push(...envelopeFilters);
+            const rmsEnvelope = context.createWaveShaper();
+            nodes.push(rmsEnvelope);
+            rmsEnvelope.curve = Float32Array.from({ length: 8193 }, (_, index) => {
+                const power = (index * 2) / 8192 - 1;
+                return Math.sqrt(Math.max(0, power));
+            });
             const analyser = context.createAnalyser();
             nodes.push(analyser);
             analyser.fftSize = 128;
@@ -173,13 +189,18 @@ function buildVocoderGraph(
             const modulator = context.createGain();
             nodes.push(modulator);
             modulator.gain.value = 0;
-            analysisPowers.push(getCascadePower(analysisFilters, context.sampleRate));
+            analysisPowers.push(getCascadePower(
+                analysisFilters,
+                context.sampleRate,
+                POWER_NORMALIZATION_FREQUENCIES,
+            ));
 
             connectFilters(input, analysisFilters);
-            analysisFilters.at(-1)?.connect(rectifier);
-            connectFilters(rectifier, envelopeFilters);
-            envelopeFilters.at(-1)?.connect(modulator.gain);
-            envelopeFilters.at(-1)?.connect(analyser);
+            analysisFilters.at(-1)?.connect(powerDetector);
+            connectFilters(powerDetector, envelopeFilters);
+            envelopeFilters.at(-1)?.connect(rmsEnvelope);
+            rmsEnvelope.connect(modulator.gain);
+            rmsEnvelope.connect(analyser);
             carrier.connect(modulator);
             modulator.connect(carrierLevel);
             connectFilters(carrierLevel, carrierFilters);
@@ -193,7 +214,7 @@ function buildVocoderGraph(
             channels.push(analyser);
         });
 
-        const outputGain = 1 / Math.sqrt(0.5 * analysisPowers.reduce((total, power) => total + power, 0));
+        const outputGain = 1 / Math.sqrt(analysisPowers.reduce((total, power) => total + power, 0));
         if (channelMerger) {
             const normalization = context.createGain();
             nodes.push(normalization);

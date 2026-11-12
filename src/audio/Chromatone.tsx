@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { getAudioContext, startTone, type AudioVoice } from "./audio";
 import { ChordBuilder } from "./ChordBuilder";
 import { DEFAULT_OCTAVE_4_CHORDS, type SavedChord } from "./chords";
@@ -16,6 +16,7 @@ export type ChromatoneProps = {
   keyLabel?: string;
   tonic?: number;
   activeNotes?: SongNote[];
+  noteAttack?: { id: number; noteIndices: number[] } | null;
   showKey?: boolean;
   showNotes?: boolean;
   showNoteDirection?: boolean;
@@ -30,6 +31,7 @@ export function Chromatone({
   keyLabel,
   tonic,
   activeNotes: propActiveNotes = [],
+  noteAttack,
   showKey = true,
   showNotes = true,
   showNoteDirection = false,
@@ -52,6 +54,10 @@ export function Chromatone({
     otherNote: number;
     className: string;
   } | null>(null);
+  const [noteFlash, setNoteFlash] = useState<{ id: number; noteIndices: Set<number> }>({
+    id: 0,
+    noteIndices: new Set(),
+  });
   const [savedChords, setSavedChords] = useState<SavedChord[]>(DEFAULT_OCTAVE_4_CHORDS);
 
   const audioContext = useRef<AudioContext | null>(null);
@@ -62,7 +68,29 @@ export function Chromatone({
   const previousRelationshipNote = useRef<number | null>(null);
   const relationshipInactiveSince = useRef<number | null>(null);
   const chordRelationTimer = useRef<number | null>(null);
+  const noteFlashTimer = useRef<number | null>(null);
+  const noteFlashId = useRef(0);
   const arrowMarkerId = `chromatone-arrow-${useId().replace(/:/g, "")}`;
+
+  const flashNotes = useCallback((noteIndices: number[]) => {
+    if (noteIndices.length === 0) return;
+    noteFlashId.current += 1;
+    setNoteFlash((current) => ({
+      id: noteFlashId.current,
+      noteIndices: new Set([...current.noteIndices, ...noteIndices]),
+    }));
+    if (noteFlashTimer.current !== null) {
+      window.clearTimeout(noteFlashTimer.current);
+    }
+    noteFlashTimer.current = window.setTimeout(() => {
+      setNoteFlash((current) => ({ id: current.id, noteIndices: new Set() }));
+      noteFlashTimer.current = null;
+    }, 120);
+  }, []);
+
+  useEffect(() => {
+    if (noteAttack) flashNotes(noteAttack.noteIndices);
+  }, [flashNotes, noteAttack]);
 
   function stopNote(noteIndex: number) {
     const voice = activeVoices.current.get(noteIndex);
@@ -94,6 +122,7 @@ export function Chromatone({
 
     activeVoices.current.set(noteIndex, startTone(noteIndex, context.currentTime));
     setInteractiveActiveNotes((notes) => new Set(notes).add(noteIndex));
+    flashNotes([noteIndex]);
   }
 
   function releaseNote(noteIndex: number) {
@@ -109,6 +138,7 @@ export function Chromatone({
 
     setPlayingChordNotes(new Set(noteIndices));
     setActiveChordKey(keyLabel ?? null);
+    flashNotes(noteIndices);
 
     const velocity = Math.round(127 * Math.sqrt(0.8 / noteIndices.length));
     noteIndices.forEach((noteIndex) => {
@@ -177,6 +207,9 @@ export function Chromatone({
     }
     if (chordRelationTimer.current !== null) {
       window.clearTimeout(chordRelationTimer.current);
+    }
+    if (noteFlashTimer.current !== null) {
+      window.clearTimeout(noteFlashTimer.current);
     }
   }, []);
 
@@ -628,6 +661,7 @@ export function Chromatone({
               const noteIndex = octave * 12 + index - 21;
               const angle = -Math.PI / 2 + index * angleStep;
               const isActive = activeIndices.has(noteIndex);
+              const isFlashing = noteFlash.noteIndices.has(noteIndex);
               const isInKey = isInteractive
                 ? inKey.has(index)
                 : showKey && inKey.has(index);
@@ -674,28 +708,39 @@ export function Chromatone({
               };
 
               return (
-                <path
-                  aria-label={`${noteName}${octave}, ${freq.toFixed(1)} Hz`}
-                  className={`chromatone-note ${isInteractive ? "custom-note " : ""}${isActive && (isInteractive || showNotes) ? "is-active" : ""
-                    }`}
-                  d={sectorPath(inner, outer, angle)}
-                  fill={RAINBOW_COLORS[index]}
-                  fillOpacity={fillOpacity}
-                  key={`${octave}-${noteName}`}
-                  stroke="none"
-                  onPointerDown={isInteractive ? handlePointerDown : undefined}
-                  onPointerUp={isInteractive ? handlePointerUp : undefined}
-                  onPointerCancel={isInteractive ? handlePointerUp : undefined}
-                  onPointerLeave={isInteractive ? handlePointerUp : undefined}
-                  onKeyDown={isInteractive ? handleKeyDown : undefined}
-                  onKeyUp={isInteractive ? handleKeyUp : undefined}
-                  role={isInteractive ? "button" : undefined}
-                  tabIndex={isInteractive ? 0 : undefined}
-                >
-                  {isInteractive && (
-                    <title>{`${noteName}${octave}: ${freq.toFixed(1)} Hz`}</title>
+                <g key={`${octave}-${noteName}`}>
+                  <path
+                    aria-label={`${noteName}${octave}, ${freq.toFixed(1)} Hz`}
+                    className={`chromatone-note ${isInteractive ? "custom-note " : ""}${isActive && (isInteractive || showNotes) ? "is-active" : ""
+                      }`}
+                    d={sectorPath(inner, outer, angle)}
+                    fill={RAINBOW_COLORS[index]}
+                    fillOpacity={fillOpacity}
+                    stroke="none"
+                    onPointerDown={isInteractive ? handlePointerDown : undefined}
+                    onPointerUp={isInteractive ? handlePointerUp : undefined}
+                    onPointerCancel={isInteractive ? handlePointerUp : undefined}
+                    onPointerLeave={isInteractive ? handlePointerUp : undefined}
+                    onKeyDown={isInteractive ? handleKeyDown : undefined}
+                    onKeyUp={isInteractive ? handleKeyUp : undefined}
+                    role={isInteractive ? "button" : undefined}
+                    tabIndex={isInteractive ? 0 : undefined}
+                  >
+                    {isInteractive && (
+                      <title>{`${noteName}${octave}: ${freq.toFixed(1)} Hz`}</title>
+                    )}
+                  </path>
+                  {isFlashing && (
+                    <path
+                      aria-hidden="true"
+                      className="chromatone-note-flash"
+                      d={sectorPath(inner, outer, angle)}
+                      fill="white"
+                      key={noteFlash.id}
+                      pointerEvents="none"
+                    />
                   )}
-                </path>
+                </g>
               );
             });
           })}

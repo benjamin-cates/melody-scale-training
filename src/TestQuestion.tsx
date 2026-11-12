@@ -106,7 +106,9 @@ export function TestQuestion({
     const oscillators = useRef<AudioVoice[]>([]);
     const animationFrame = useRef<number | null>(null);
     const activeNotesSignature = useRef("");
+    const previousActiveEventIndices = useRef<number[]>([]);
     const [activeNotes, setActiveNotes] = useState<SongNote[]>([]);
+    const [noteAttack, setNoteAttack] = useState<{ id: number; noteIndices: number[] } | null>(null);
 
     const stopPlayback = () => {
         if (animationFrame.current !== null) {
@@ -122,6 +124,7 @@ export function TestQuestion({
         });
         oscillators.current = [];
         activeNotesSignature.current = "";
+        previousActiveEventIndices.current = [];
         setActiveNotes([]);
     };
 
@@ -145,13 +148,25 @@ export function TestQuestion({
 
         const updateActiveNotes = () => {
             const elapsed = context.currentTime - start;
-            const nextActiveNotes = events
-                .filter((event) => elapsed >= event.onset && elapsed < event.onset + event.duration)
-                .map(({ noteIndices, duration }) => ({ noteIndices, duration }));
-            const signature = nextActiveNotes.map((note) => note.noteIndices.join(",")).join("|");
+            const activeEventIndices: number[] = [];
+            const nextActiveNotes: SongNote[] = [];
+            events.forEach((event, index) => {
+                if (elapsed < event.onset || elapsed >= event.onset + event.duration) return;
+                activeEventIndices.push(index);
+                nextActiveNotes.push({ noteIndices: event.noteIndices, duration: event.duration });
+            });
+            const signature = activeEventIndices.join("|");
             if (signature !== activeNotesSignature.current) {
+                const newlyActiveEvents = activeEventIndices.filter((index) => !previousActiveEventIndices.current.includes(index));
                 activeNotesSignature.current = signature;
+                previousActiveEventIndices.current = activeEventIndices;
                 setActiveNotes(nextActiveNotes);
+                if (newlyActiveEvents.length > 0) {
+                    setNoteAttack((attack) => ({
+                        id: (attack?.id ?? 0) + 1,
+                        noteIndices: newlyActiveEvents.flatMap((index) => events[index].noteIndices),
+                    }));
+                }
             }
             if (elapsed < Math.max(0, ...events.map((event) => event.onset + event.duration))) {
                 animationFrame.current = requestAnimationFrame(updateActiveNotes);
@@ -213,6 +228,7 @@ export function TestQuestion({
             keyLabel={showEnhancedVisual ? questionKeyLabel : undefined}
             tonic={showEnhancedVisual ? questionTonic : undefined}
             activeNotes={activeNotes}
+            noteAttack={noteAttack}
             showKey={showEnhancedVisual && question.type === "melody"}
             showNotes
             showNoteDirection={showEnhancedVisual && question.type === "pitch"}

@@ -14,6 +14,7 @@ export function useSongPlayback(
   const [position, setPosition] = useState(0);
   const [playbackRun, setPlaybackRun] = useState(0);
   const [activeNotes, setActiveNotes] = useState<SongNote[]>([]);
+  const [noteAttack, setNoteAttack] = useState<{ id: number; noteIndices: number[] } | null>(null);
   const [decoded, setDecoded] = useState<{ song: Song; notes: SongNote[] } | null>(null);
   const notes = song.notes ?? (decoded?.song === song ? decoded.notes : EMPTY_NOTES);
   const audioContext = useRef<AudioContext | null>(null);
@@ -75,6 +76,10 @@ export function useSongPlayback(
       return playTone(noteIndex, context.currentTime, duration);
     });
     oscillators.current.push(...currentOscillators);
+    setNoteAttack((attack) => ({
+      id: (attack?.id ?? 0) + 1,
+      noteIndices: [...currentNote.noteIndices],
+    }));
     const currentOnset = getNoteOnset(playableSong, position);
     setActiveNotes(
       notes.filter((note, notePosition) => {
@@ -107,5 +112,5 @@ export function useSongPlayback(
     setPlaybackRun((run) => run + 1);
   };
 
-  return { position, activeNotes, notes, stop, restart };
+  return { position, activeNotes, noteAttack, notes, stop, restart };
 }

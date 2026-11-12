@@ -27,6 +27,7 @@ export function Player({
           keyLabel={getSongKey(song)}
           tonic={song.tonic}
           activeNotes={playback.activeNotes}
+          noteAttack={playback.noteAttack}
           showKey={showKey}
           showNotes={showNotes}
         />

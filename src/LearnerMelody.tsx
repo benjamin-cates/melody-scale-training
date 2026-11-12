@@ -80,10 +80,12 @@ function MelodyVisual({
   guidance,
   song,
   activeNotes,
+  noteAttack,
 }: {
   guidance: GuidanceMode;
   song: Song;
   activeNotes: SongNote[];
+  noteAttack: { id: number; noteIndices: number[] } | null;
 }) {
   if (guidance === "auditory") {
     return <PianoView tonic={song.tonic} mode={song.scale} />;
@@ -93,6 +95,7 @@ function MelodyVisual({
       keyLabel={NOTE_NAMES[song.tonic] + " " + song.scale}
       tonic={song.tonic}
       activeNotes={activeNotes}
+      noteAttack={noteAttack}
       showKey
       showNotes
       showChordLines="tonic-only"
@@ -284,6 +287,7 @@ export function LearnerMelody({
               guidance={guidance}
               song={visualizerSong}
               activeNotes={player.activeNotes}
+              noteAttack={player.noteAttack}
             />
           </div>
         </div>

@@ -41,6 +41,7 @@ function usePitchPlayer() {
   const oscillators = useRef<AudioVoice[]>([]);
   const timers = useRef<number[]>([]);
   const [activeNote, setActiveNote] = useState<number | null>(null);
+  const [noteAttack, setNoteAttack] = useState<{ id: number; noteIndices: number[] } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const stop = () => {
@@ -71,7 +72,13 @@ function usePitchPlayer() {
       const noteStart = start + index * (noteDuration + gap);
       oscillators.current.push(playTone(note, noteStart, noteDuration));
       const delayMs = Math.max((noteStart - context.currentTime) * 1000, 0);
-      timers.current.push(window.setTimeout(() => setActiveNote(note), delayMs));
+      timers.current.push(window.setTimeout(() => {
+        setActiveNote(note);
+        setNoteAttack((attack) => ({
+          id: (attack?.id ?? 0) + 1,
+          noteIndices: [note],
+        }));
+      }, delayMs));
     });
     const totalMs = notes.length * (noteDuration + gap) * 1000;
     timers.current.push(
@@ -84,16 +91,25 @@ function usePitchPlayer() {
 
   useEffect(() => stop, []);
 
-  return { play, stop, activeNote, isPlaying };
+  return { play, stop, activeNote, noteAttack, isPlaying };
 }
 
-function NoteVisual({ guidance, activeNote }: { guidance: GuidanceMode; activeNote: number | null }) {
+function NoteVisual({
+  guidance,
+  activeNote,
+  noteAttack,
+}: {
+  guidance: GuidanceMode;
+  activeNote: number | null;
+  noteAttack: { id: number; noteIndices: number[] } | null;
+}) {
   if (guidance === "auditory") {
     return null;
   }
   return (
     <Chromatone
       activeNotes={activeNote !== null ? [{ noteIndices: [activeNote], duration: 1 }] : []}
+      noteAttack={noteAttack}
       showKey={false}
       showNotes
       showNoteDirection
@@ -238,6 +254,7 @@ export function LearnerNote({
             <NoteVisual
               guidance={guidance}
               activeNote={player.activeNote}
+              noteAttack={player.noteAttack}
             />
           </div>
         </div>

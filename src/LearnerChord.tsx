@@ -83,6 +83,7 @@ function useChordPlayer() {
   const timers = useRef<number[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeNotes, setActiveNotes] = useState<number[]>([]);
+  const [noteAttack, setNoteAttack] = useState<{ id: number; noteIndices: number[] } | null>(null);
 
   const stop = () => {
     oscillators.current.forEach((oscillator) => {
@@ -108,15 +109,30 @@ function useChordPlayer() {
       oscillators.current.push(playTone(note, noteStart, noteDuration));
       const startDelay = Math.max((noteStart - currentTime) * 1000, 0);
       const endDelay = Math.max((noteStart + noteDuration - currentTime) * 1000, 0);
-      timers.current.push(window.setTimeout(
-        () => setActiveNotes((active) => active.includes(note) ? active : [...active, note]),
-        startDelay,
-      ));
+      if (mode === "arpeggio") {
+        timers.current.push(window.setTimeout(() => {
+          setActiveNotes((active) => active.includes(note) ? active : [...active, note]);
+          setNoteAttack((attack) => ({
+            id: (attack?.id ?? 0) + 1,
+            noteIndices: [note],
+          }));
+        }, startDelay));
+      }
       timers.current.push(window.setTimeout(
         () => setActiveNotes((active) => active.filter((activeNote) => activeNote !== note)),
         endDelay,
       ));
     });
+    if (mode === "melody") {
+      const startDelay = Math.max((chordStart - currentTime) * 1000, 0);
+      timers.current.push(window.setTimeout(() => {
+        setActiveNotes(notes);
+        setNoteAttack((attack) => ({
+          id: (attack?.id ?? 0) + 1,
+          noteIndices: [...notes],
+        }));
+      }, startDelay));
+    }
     return (notes.length - 1) * step + noteDuration;
   };
 
@@ -157,12 +173,14 @@ function ChordVisual({
   root,
   chordType,
   activeNotes,
+  noteAttack,
   revealChordType = true,
 }: {
   guidance: GuidanceMode;
   root: number;
   chordType: 3 | 4 | 7 | null;
   activeNotes: number[];
+  noteAttack: { id: number; noteIndices: number[] } | null;
   revealChordType?: boolean;
 }) {
   if (guidance === "auditory") {
@@ -171,6 +189,7 @@ function ChordVisual({
   return (
     <Chromatone
       activeNotes={activeNotes.length > 0 ? [{ noteIndices: activeNotes, duration: 1 }] : []}
+      noteAttack={noteAttack}
       tonic={chordType ? root : undefined}
       showKey={false}
       showNotes
@@ -425,6 +444,7 @@ export function LearnerChord({
               root={visualChord.root}
               chordType={visualChord.chordType}
               activeNotes={player.activeNotes}
+              noteAttack={player.noteAttack}
               revealChordType={visualChord.revealChordType}
             />
           </div>

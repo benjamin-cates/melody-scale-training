@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getAudioBus, getAudioContext, playTone } from "./audio";
+import { getAudioBus, getAudioContext, playTone, type AudioVoice } from "./audio";
 import { getNoteOnset, getSongDuration, getSongNotes, type Song, type SongNote } from "./music";
 
 const EMPTY_NOTES: SongNote[] = [];
@@ -17,7 +17,7 @@ export function useSongPlayback(
   const [decoded, setDecoded] = useState<{ song: Song; notes: SongNote[] } | null>(null);
   const notes = song.notes ?? (decoded?.song === song ? decoded.notes : EMPTY_NOTES);
   const audioContext = useRef<AudioContext | null>(null);
-  const oscillators = useRef<OscillatorNode[]>([]);
+  const oscillators = useRef<AudioVoice[]>([]);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 

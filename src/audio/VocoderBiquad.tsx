@@ -6,7 +6,7 @@ import {
   type FilterSlope,
   type VocoderSettings,
 } from "./vocoder-biquad";
-import { getTimbre, setTimbre, TIMBRES, type Timbre } from "./audio";
+import { getTimbre, setTimbre, TIMBRES, TIMBRE_LABELS, type Timbre } from "./audio";
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
   if (intensity <= 0.02) {
@@ -128,12 +128,15 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
                   value={timbre}
                   onChange={(event) => {
                     const selected = event.target.value as Timbre;
-                    setTimbre(selected);
                     setSelectedTimbre(selected);
+                    setError("");
+                    void setTimbre(selected).catch((reason: unknown) => {
+                      setError(reason instanceof Error ? reason.message : "The selected timbre could not be loaded.");
+                    });
                   }}
                 >
                   {TIMBRES.map((option) => (
-                    <option key={option} value={option}>{option}</option>
+                    <option key={option} value={option}>{TIMBRE_LABELS[option]}</option>
                   ))}
                 </select>
               </label>

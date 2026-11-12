@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getAudioContext, noteLabel, playTone } from "./audio/audio";
+import { getAudioContext, noteLabel, playTone, type AudioVoice } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
 import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
@@ -79,7 +79,7 @@ function createExampleTrial(): ChordTrial {
 }
 
 function useChordPlayer() {
-  const oscillators = useRef<OscillatorNode[]>([]);
+  const oscillators = useRef<AudioVoice[]>([]);
   const timers = useRef<number[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeNotes, setActiveNotes] = useState<number[]>([]);

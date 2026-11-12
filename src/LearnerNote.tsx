@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getAudioBus, getAudioContext, noteLabel, playTone } from "./audio/audio";
+import { getAudioBus, getAudioContext, noteLabel, playTone, type AudioVoice } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
 import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
@@ -38,7 +38,7 @@ function createExampleTrial(): PitchTrial {
 
 
 function usePitchPlayer() {
-  const oscillators = useRef<OscillatorNode[]>([]);
+  const oscillators = useRef<AudioVoice[]>([]);
   const timers = useRef<number[]>([]);
   const [activeNote, setActiveNote] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);

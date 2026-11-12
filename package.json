@@ -5,17 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/index.ts",
-    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*'",
-    "start": "NODE_ENV=production bun src/index.ts"
+    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*' && bun scripts/copy-public.ts",
+    "start": "NODE_ENV=production bun src/index.ts",
+    "extract-instruments": "bun scripts/extract-instruments.ts",
+    "extract-soundfonts": "bun scripts/extract-soundfonts.ts",
+    "extract-mono-piano": "bun scripts/extract-mono-piano.ts"
   },
   "dependencies": {
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "spessasynth_core": "^4.4.10",
+    "spessasynth_lib": "^4.4.8"
   },
   "devDependencies": {
+    "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/bun": "latest"
+    "wasm-media-encoders": "0.7.0"
   },
   "peerDependencies": {
     "typescript": "^7"

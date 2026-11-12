@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { configureOscillatorTimbre, getAudioBus, getAudioContext } from "./audio";
+import { getAudioContext, startTone, type AudioVoice } from "./audio";
 import { ChordBuilder } from "./ChordBuilder";
 import { DEFAULT_OCTAVE_4_CHORDS, type SavedChord } from "./chords";
 import { MusicSymbol, type MusicSymbolType } from "./MusicSymbol";
@@ -55,7 +55,7 @@ export function Chromatone({
   const [savedChords, setSavedChords] = useState<SavedChord[]>(DEFAULT_OCTAVE_4_CHORDS);
 
   const audioContext = useRef<AudioContext | null>(null);
-  const activeVoices = useRef<Map<number, { osc: OscillatorNode; gain: GainNode }>>(new Map());
+  const activeVoices = useRef<Map<number, AudioVoice>>(new Map());
   const previousActiveNote = useRef<number | null>(null);
   const inactiveSince = useRef<number | null>(null);
   const noteDirectionTimer = useRef<number | null>(null);
@@ -67,19 +67,8 @@ export function Chromatone({
   function stopNote(noteIndex: number) {
     const voice = activeVoices.current.get(noteIndex);
     if (!voice) return;
-    const context = audioContext.current;
-    if (context) {
-      voice.gain.gain.cancelScheduledValues(context.currentTime);
-      voice.gain.gain.setValueAtTime(voice.gain.gain.value, context.currentTime);
-      voice.gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.05);
-      voice.osc.stop(context.currentTime + 0.06);
-    } else {
-      voice.osc.stop();
-    }
-    setTimeout(() => {
-      voice.osc.disconnect();
-      voice.gain.disconnect();
-    }, 70);
+    voice.stop();
+    window.setTimeout(() => voice.disconnect(), 70);
     activeVoices.current.delete(noteIndex);
     setInteractiveActiveNotes((notes) => {
       if (!notes.has(noteIndex)) return notes;
@@ -92,7 +81,6 @@ export function Chromatone({
   function startNote(noteIndex: number) {
     const context = audioContext.current ?? getAudioContext();
     audioContext.current = context;
-    const bus = getAudioBus();
     void context.resume();
 
     if (sustain && activeVoices.current.has(noteIndex)) {
@@ -104,16 +92,7 @@ export function Chromatone({
       stopNote(noteIndex);
     }
 
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    configureOscillatorTimbre(context, oscillator);
-    oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
-    gain.gain.setValueAtTime(0.0001, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.5, context.currentTime + 0.025);
-    oscillator.connect(gain).connect(bus);
-    oscillator.start();
-
-    activeVoices.current.set(noteIndex, { osc: oscillator, gain });
+    activeVoices.current.set(noteIndex, startTone(noteIndex, context.currentTime));
     setInteractiveActiveNotes((notes) => new Set(notes).add(noteIndex));
   }
 
@@ -126,26 +105,17 @@ export function Chromatone({
     if (noteIndices.length === 0) return;
     const context = audioContext.current ?? getAudioContext();
     audioContext.current = context;
-    const bus = getAudioBus();
     void context.resume();
 
     setPlayingChordNotes(new Set(noteIndices));
     setActiveChordKey(keyLabel ?? null);
 
-    const gainLevel = 0.4 / Math.sqrt(noteIndices.length);
+    const velocity = Math.round(127 * Math.sqrt(0.8 / noteIndices.length));
     noteIndices.forEach((noteIndex) => {
       if (activeVoices.current.has(noteIndex)) {
         stopNote(noteIndex);
       }
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      configureOscillatorTimbre(context, oscillator);
-      oscillator.frequency.value = 440 * Math.pow(2, (noteIndex + 21 - 69) / 12);
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(gainLevel, context.currentTime + 0.025);
-      oscillator.connect(gain).connect(bus);
-      oscillator.start();
-      activeVoices.current.set(noteIndex, { osc: oscillator, gain });
+      activeVoices.current.set(noteIndex, startTone(noteIndex, context.currentTime, velocity));
     });
   }
 
@@ -198,13 +168,8 @@ export function Chromatone({
 
   useEffect(() => () => {
     activeVoices.current.forEach((voice) => {
-      try {
-        voice.osc.stop();
-      } catch {
-        /* already stopped */
-      }
-      voice.osc.disconnect();
-      voice.gain.disconnect();
+      voice.stop();
+      voice.disconnect();
     });
     activeVoices.current.clear();
     if (noteDirectionTimer.current !== null) {

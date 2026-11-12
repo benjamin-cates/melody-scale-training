@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getAudioContext, playTone } from "./audio/audio";
+import { getAudioContext, playTone, type AudioVoice } from "./audio/audio";
 import { Chromatone } from "./audio/Chromatone";
 import { MusicSymbol, type MusicSymbolType } from "./audio/MusicSymbol";
 import { decodeSongNotes, getSongKey, getSongNotes, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
@@ -103,7 +103,7 @@ export function TestQuestion({
     const [answer, setAnswer] = useState<Answer | null>(null);
     const startedAt = useRef(new Date());
     const replayEvents = useRef<number[]>([]);
-    const oscillators = useRef<OscillatorNode[]>([]);
+    const oscillators = useRef<AudioVoice[]>([]);
     const animationFrame = useRef<number | null>(null);
     const activeNotesSignature = useRef("");
     const [activeNotes, setActiveNotes] = useState<SongNote[]>([]);

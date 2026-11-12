@@ -1,0 +1,2165 @@
+[
+  {
+    "name": "Grand Piano",
+    "program": 0,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Mellow Grand Piano",
+    "program": 0,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bright Grand Piano",
+    "program": 1,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Electric Grand",
+    "program": 2,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Honky-Tonk Piano",
+    "program": 3,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Tine Electric Piano",
+    "program": 4,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned Tine EP",
+    "program": 4,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "FM Electric Piano",
+    "program": 5,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned FM EP",
+    "program": 5,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Harpsichord",
+    "program": 6,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Coupled Harpsichord",
+    "program": 6,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Clavinet",
+    "program": 7,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celesta",
+    "program": 8,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Glockenspiel",
+    "program": 9,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Music Box",
+    "program": 10,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Vibraphone",
+    "program": 11,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Marimba",
+    "program": 12,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Xylophone",
+    "program": 13,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Tubular Bells",
+    "program": 14,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Church Bell",
+    "program": 14,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Dulcimer",
+    "program": 15,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Drawbar Organ",
+    "program": 16,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned Organ 1",
+    "program": 16,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Drawbar Organ Expr.",
+    "program": 16,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned Org. 1 Expr.",
+    "program": 16,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Percussive Organ",
+    "program": 17,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned Organ 2",
+    "program": 17,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Perc. Organ Expr.",
+    "program": 17,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned Org. 2 Expr.",
+    "program": 17,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Rock Organ",
+    "program": 18,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Rock Organ Expr.",
+    "program": 18,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Church Organ",
+    "program": 19,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Church Organ 2",
+    "program": 19,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Church Organ Expr.",
+    "program": 19,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Church Organ 2 Expr.",
+    "program": 19,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Reed Organ",
+    "program": 20,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Reed Organ Expr.",
+    "program": 20,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Accordion",
+    "program": 21,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Italian Accordion",
+    "program": 21,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Accordion Expr.",
+    "program": 21,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "It. Accordion Expr.",
+    "program": 21,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Harmonica",
+    "program": 22,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Harmonica Expr.",
+    "program": 22,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bandoneon",
+    "program": 23,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bandoneon Expr.",
+    "program": 23,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Nylon String Guitar",
+    "program": 24,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Ukulele",
+    "program": 24,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Steel String Guitar",
+    "program": 25,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "12-String Guitar",
+    "program": 25,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Mandolin",
+    "program": 25,
+    "bankMSB": 16,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Jazz Guitar",
+    "program": 26,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Hawaiian Guitar",
+    "program": 26,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Clean Guitar",
+    "program": 27,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Palm Muted Guitar",
+    "program": 28,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Funk Guitar",
+    "program": 28,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Overdrive Guitar",
+    "program": 29,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Distortion Guitar",
+    "program": 30,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Feedback Guitar",
+    "program": 30,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Guitar Harmonics",
+    "program": 31,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Guitar Feedback",
+    "program": 31,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Acoustic Bass",
+    "program": 32,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Fingered Bass",
+    "program": 33,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Picked Bass",
+    "program": 34,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Fretless Bass",
+    "program": 35,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Slap Bass",
+    "program": 36,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Pop Bass",
+    "program": 37,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Bass 1",
+    "program": 38,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Bass 3",
+    "program": 38,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Bass 2",
+    "program": 39,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Bass 4",
+    "program": 39,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violin",
+    "program": 40,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Slow Violin",
+    "program": 40,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violin Expr.",
+    "program": 40,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Slow Violin Expr.",
+    "program": 40,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Viola",
+    "program": 41,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Viola Expr.",
+    "program": 41,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Cello",
+    "program": 42,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Cello Expr.",
+    "program": 42,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Contrabass",
+    "program": 43,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Contrabass Expr.",
+    "program": 43,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Strings Tremolo",
+    "program": 44,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Strings Trem Expr.",
+    "program": 44,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins Tremolo",
+    "program": 44,
+    "bankMSB": 20,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins Trem Expr.",
+    "program": 44,
+    "bankMSB": 21,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins2 Tremolo",
+    "program": 44,
+    "bankMSB": 25,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins2 Trem Expr.",
+    "program": 44,
+    "bankMSB": 26,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violas Tremolo",
+    "program": 44,
+    "bankMSB": 30,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violas Trem Expr.",
+    "program": 44,
+    "bankMSB": 31,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celli Tremolo",
+    "program": 44,
+    "bankMSB": 40,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celli Trem Expr.",
+    "program": 44,
+    "bankMSB": 41,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Basses Tremolo",
+    "program": 44,
+    "bankMSB": 50,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Basses Trem Expr.",
+    "program": 44,
+    "bankMSB": 51,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Strings Pizzicato",
+    "program": 45,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins Pizzicato",
+    "program": 45,
+    "bankMSB": 20,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins2 Pizzicato",
+    "program": 45,
+    "bankMSB": 25,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violas Pizzicato",
+    "program": 45,
+    "bankMSB": 30,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celli Pizzicato",
+    "program": 45,
+    "bankMSB": 40,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Basses Pizzicato",
+    "program": 45,
+    "bankMSB": 50,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Harp",
+    "program": 46,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Timpani",
+    "program": 47,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Strings Fast",
+    "program": 48,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Orchestral Pad",
+    "program": 48,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Strings Fast Expr.",
+    "program": 48,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins Fast",
+    "program": 48,
+    "bankMSB": 20,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins Fast Expr.",
+    "program": 48,
+    "bankMSB": 21,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins2 Fast",
+    "program": 48,
+    "bankMSB": 25,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins2 Fast Expr.",
+    "program": 48,
+    "bankMSB": 26,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violas Fast",
+    "program": 48,
+    "bankMSB": 30,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violas Fast Expr.",
+    "program": 48,
+    "bankMSB": 31,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celli Fast",
+    "program": 48,
+    "bankMSB": 40,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celli Fast Expr.",
+    "program": 48,
+    "bankMSB": 41,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Basses Fast",
+    "program": 48,
+    "bankMSB": 50,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Basses Fast Expr.",
+    "program": 48,
+    "bankMSB": 51,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Strings Slow",
+    "program": 49,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Strings Slow Expr.",
+    "program": 49,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins Slow",
+    "program": 49,
+    "bankMSB": 20,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins Slow Expr.",
+    "program": 49,
+    "bankMSB": 21,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins2 Slow",
+    "program": 49,
+    "bankMSB": 25,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violins2 Slow Expr.",
+    "program": 49,
+    "bankMSB": 26,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violas Slow",
+    "program": 49,
+    "bankMSB": 30,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Violas Slow Expr.",
+    "program": 49,
+    "bankMSB": 31,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celli Slow",
+    "program": 49,
+    "bankMSB": 40,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Celli Slow Expr.",
+    "program": 49,
+    "bankMSB": 41,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Basses Slow",
+    "program": 49,
+    "bankMSB": 50,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Basses Slow Expr.",
+    "program": 49,
+    "bankMSB": 51,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Strings 1",
+    "program": 50,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Strings 3",
+    "program": 50,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Syn. Strings 1 Expr.",
+    "program": 50,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Strings3 Expr.",
+    "program": 50,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Strings 2",
+    "program": 51,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Syn. Strings 2 Expr.",
+    "program": 51,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Choir Aahs",
+    "program": 52,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Choir Aahs Expr.",
+    "program": 52,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Voice Oohs",
+    "program": 53,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Voice Oohs Expr.",
+    "program": 53,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Voice",
+    "program": 54,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Voice Expr.",
+    "program": 54,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Orchestra Hit",
+    "program": 55,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Trumpet",
+    "program": 56,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Trumpet Expr.",
+    "program": 56,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Trombone",
+    "program": 57,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Trombone Expr.",
+    "program": 57,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Tuba",
+    "program": 58,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Tuba Expr.",
+    "program": 58,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Harmon Mute Trumpet",
+    "program": 59,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Hmn. Mute Tpt. Expr.",
+    "program": 59,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "French Horns",
+    "program": 60,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "French Horns Expr.",
+    "program": 60,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Brass Section",
+    "program": 61,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Brass 2",
+    "program": 61,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Brass Section Expr.",
+    "program": 61,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Brass 2 Expr.",
+    "program": 61,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 1",
+    "program": 62,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 3",
+    "program": 62,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 1 Expr.",
+    "program": 62,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 3 Expr.",
+    "program": 62,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 2",
+    "program": 63,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 4",
+    "program": 63,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 2 Expr.",
+    "program": 63,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Brass 4 Expr.",
+    "program": 63,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Soprano Sax",
+    "program": 64,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Soprano Sax Expr.",
+    "program": 64,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Alto Sax",
+    "program": 65,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Alto Sax Expr.",
+    "program": 65,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Tenor Sax",
+    "program": 66,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Tenor Sax Expr.",
+    "program": 66,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Baritone Sax",
+    "program": 67,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Baritone Sax Expr.",
+    "program": 67,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Oboe",
+    "program": 68,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Oboe Expr.",
+    "program": 68,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "English Horn",
+    "program": 69,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "English Horn Expr.",
+    "program": 69,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bassoon",
+    "program": 70,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bassoon Expr.",
+    "program": 70,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Clarinet",
+    "program": 71,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Clarinet Expr.",
+    "program": 71,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Piccolo",
+    "program": 72,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Piccolo Expr.",
+    "program": 72,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Flute",
+    "program": 73,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Flute Expr.",
+    "program": 73,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Recorder",
+    "program": 74,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Recorder Expr.",
+    "program": 74,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Pan Flute",
+    "program": 75,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Pan Flute Expr.",
+    "program": 75,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bottle Chiff",
+    "program": 76,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bottle Chiff Expr.",
+    "program": 76,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Shakuhachi",
+    "program": 77,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Shakuhachi Expr.",
+    "program": 77,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Whistle",
+    "program": 78,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Whistle Expr.",
+    "program": 78,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Ocarina",
+    "program": 79,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Ocarina Expr.",
+    "program": 79,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Square Lead",
+    "program": 80,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Sine Wave",
+    "program": 80,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Square Lead Expr.",
+    "program": 80,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Sine Wave Expr.",
+    "program": 80,
+    "bankMSB": 18,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Saw Lead",
+    "program": 81,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Saw Lead Expr.",
+    "program": 81,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned Saw",
+    "program": 81,
+    "bankMSB": 20,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Detuned Saw Expr.",
+    "program": 81,
+    "bankMSB": 21,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Calliope Lead",
+    "program": 82,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Calliope Lead Expr.",
+    "program": 82,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Chiffer Lead",
+    "program": 83,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Chiffer Lead Expr.",
+    "program": 83,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Charang",
+    "program": 84,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Charang Expr.",
+    "program": 84,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Solo Vox",
+    "program": 85,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Solo Vox Expr.",
+    "program": 85,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "5th Saw Wave",
+    "program": 86,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "5th Saw Wave Expr.",
+    "program": 86,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bass & Lead",
+    "program": 87,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bass & Lead Expr.",
+    "program": 87,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Fantasia",
+    "program": 88,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Warm Pad",
+    "program": 89,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Warm Pad Expr.",
+    "program": 89,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Polysynth",
+    "program": 90,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Polysynth Expr.",
+    "program": 90,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Space Voice",
+    "program": 91,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Space Voice Expr.",
+    "program": 91,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bowed Glass",
+    "program": 92,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bowed Glass Expr.",
+    "program": 92,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Metal Pad",
+    "program": 93,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Metal Pad Expr.",
+    "program": 93,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Halo Pad",
+    "program": 94,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Halo Pad Expr.",
+    "program": 94,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Sweep Pad",
+    "program": 95,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Sweep Pad Expr.",
+    "program": 95,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Ice Rain",
+    "program": 96,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Soundtrack",
+    "program": 97,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Soundtrack Expr.",
+    "program": 97,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Crystal",
+    "program": 98,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Atmosphere",
+    "program": 99,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Atmosphere Expr.",
+    "program": 99,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Brightness",
+    "program": 100,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Goblin",
+    "program": 101,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Goblin Expr.",
+    "program": 101,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Echo Drops",
+    "program": 102,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Echo Drops Expr.",
+    "program": 102,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Star Theme",
+    "program": 103,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Star Theme Expr.",
+    "program": 103,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Sitar",
+    "program": 104,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Banjo",
+    "program": 105,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Shamisen",
+    "program": 106,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Koto",
+    "program": 107,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Taisho Koto",
+    "program": 107,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Kalimba",
+    "program": 108,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bagpipe",
+    "program": 109,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Fiddle",
+    "program": 110,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Fiddle Expr.",
+    "program": 110,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Shenai",
+    "program": 111,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Shenai Expr.",
+    "program": 111,
+    "bankMSB": 17,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Tinker Bell",
+    "program": 112,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Agogo",
+    "program": 113,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Steel Drums",
+    "program": 114,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Woodblock",
+    "program": 115,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Temple Blocks",
+    "program": 115,
+    "bankMSB": 1,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Castanets",
+    "program": 115,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Taiko Drum",
+    "program": 116,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Concert Bass Drum",
+    "program": 116,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Melodic Tom",
+    "program": 117,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Melo Tom 2",
+    "program": 117,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Synth Drum",
+    "program": 118,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "808 Tom",
+    "program": 118,
+    "bankMSB": 8,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Reverse Cymbal",
+    "program": 119,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Fret Noise",
+    "program": 120,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Breath Noise",
+    "program": 121,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Sea Shore",
+    "program": 122,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Bird Tweet",
+    "program": 123,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Telephone",
+    "program": 124,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Helicopter",
+    "program": 125,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Applause",
+    "program": 126,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Gun Shot",
+    "program": 127,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": false
+  },
+  {
+    "name": "Standard",
+    "program": 0,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Standard 1",
+    "program": 1,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Standard 2",
+    "program": 2,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Standard 3",
+    "program": 3,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Standard 4",
+    "program": 4,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Standard 5",
+    "program": 5,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Standard 6",
+    "program": 6,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Standard 7",
+    "program": 7,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room",
+    "program": 8,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room 1",
+    "program": 9,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room 2",
+    "program": 10,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room 3",
+    "program": 11,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room 4",
+    "program": 12,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room 5",
+    "program": 13,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room 6",
+    "program": 14,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Room 7",
+    "program": 15,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Power",
+    "program": 16,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Power 1",
+    "program": 17,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Power 2",
+    "program": 18,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Power 3",
+    "program": 19,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Electronic",
+    "program": 24,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "TR-808",
+    "program": 25,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Jazz",
+    "program": 32,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Jazz 1",
+    "program": 33,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Jazz 2",
+    "program": 34,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Jazz 3",
+    "program": 35,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Jazz 4",
+    "program": 36,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Brush",
+    "program": 40,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Brush 1",
+    "program": 41,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Brush 2",
+    "program": 42,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Orchestra Kit",
+    "program": 48,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Marching Snare",
+    "program": 56,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "OldMarchingBass",
+    "program": 57,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Marching Cymbals",
+    "program": 58,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Marching Bass",
+    "program": 59,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "OldMarchingTenor",
+    "program": 95,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  },
+  {
+    "name": "Marching Tenor",
+    "program": 96,
+    "bankMSB": 0,
+    "bankLSB": 0,
+    "isGMGSDrum": true
+  }
+]

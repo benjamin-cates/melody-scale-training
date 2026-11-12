@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { getAudioContext, playTone } from "./audio/audio";
+import { getAudioContext, playTone, type AudioVoice } from "./audio/audio";
 
 export function VolumeAdjustment() {
-    const [oscillator, setOscillator] = useState<OscillatorNode | null>(null);
+    const [oscillator, setOscillator] = useState<AudioVoice | null>(null);
 
     // End oscillator when unmounted
     useEffect(() => {

@@ -218,7 +218,9 @@ await outputBank.setSampleFormat({ format: "pcm" });
 const pcmSoundFont = outputBank.writeSF2();
 const outputData = await writeSF2Pack(pcmSoundFont, sampleRates[0]!);
 
-const verificationBank = SoundBankLoader.fromArrayBuffer(outputData);
+const verificationArrayBuffer = new ArrayBuffer(outputData.byteLength);
+new Uint8Array(verificationArrayBuffer).set(outputData);
+const verificationBank = SoundBankLoader.fromArrayBuffer(verificationArrayBuffer);
 const verificationPreset = verificationBank.presets[0];
 const verificationZones = verificationBank.instruments.flatMap((instrument) => instrument.zones);
 if (

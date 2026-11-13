@@ -659,6 +659,7 @@ export function Chromatone({
             const outer = inner + ringDepth;
             return NOTE_NAMES.map((noteName, index) => {
               const noteIndex = octave * 12 + index - 21;
+              const displayedOctave = octave - 1;
               const angle = -Math.PI / 2 + index * angleStep;
               const isActive = activeIndices.has(noteIndex);
               const isFlashing = noteFlash.noteIndices.has(noteIndex);
@@ -710,7 +711,7 @@ export function Chromatone({
               return (
                 <g key={`${octave}-${noteName}`}>
                   <path
-                    aria-label={`${noteName}${octave}, ${freq.toFixed(1)} Hz`}
+                    aria-label={`${noteName}${displayedOctave}, ${freq.toFixed(1)} Hz`}
                     className={`chromatone-note ${isInteractive ? "custom-note " : ""}${isActive && (isInteractive || showNotes) ? "is-active" : ""
                       }`}
                     d={sectorPath(inner, outer, angle)}
@@ -727,7 +728,7 @@ export function Chromatone({
                     tabIndex={isInteractive ? 0 : undefined}
                   >
                     {isInteractive && (
-                      <title>{`${noteName}${octave}: ${freq.toFixed(1)} Hz`}</title>
+                      <title>{`${noteName}${displayedOctave}: ${freq.toFixed(1)} Hz`}</title>
                     )}
                   </path>
                   {isFlashing && (

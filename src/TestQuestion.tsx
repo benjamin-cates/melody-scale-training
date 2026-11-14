@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getAudioContext, playTone, type AudioVoice } from "./audio/audio";
+import { CHORD_SEQUENCE_DURATION, CHORD_SEQUENCE_GAP, getChordPlaybackEvents, type ChordPlaybackEvent } from "./audio/chord-playback";
 import { Chromatone } from "./audio/Chromatone";
 import { MusicSymbol, type MusicSymbolType } from "./audio/MusicSymbol";
 import { decodeSongNotes, getSongKey, getSongNotes, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
@@ -16,7 +17,7 @@ export interface Question {
     rootNote?: number;
     secondNote?: number;
     secondInterval?: 3 | 4 | 7;
-    presentation?: "arpeggio" | "melodic";
+    presentation?: "note-note-chord";
     songTitle?: string;
     correctAnswer: Answer;
 }
@@ -56,13 +57,7 @@ function optionsFor(question: Question): { value: Answer; label: string }[] {
     ];
 }
 
-type PlaybackEvent = {
-    noteIndices: number[];
-    onset: number;
-    duration: number;
-};
-
-async function getPlaybackEvents(question: Question, melodySong?: Song): Promise<PlaybackEvent[]> {
+async function getPlaybackEvents(question: Question, melodySong?: Song): Promise<ChordPlaybackEvent[]> {
     if (question.type === "pitch") {
         return [
             { noteIndices: [question.rootNote!], onset: 0, duration: 0.7 },
@@ -71,12 +66,11 @@ async function getPlaybackEvents(question: Question, melodySong?: Song): Promise
     }
     if (question.type === "chord") {
         const root = question.rootNote!;
-        const first = [root, root + 4];
-        const second = [root, root + question.secondInterval!];
-        const noteOffset = question.presentation === "arpeggio" ? 0.2 : 0;
+        const first: [number, number] = [root, root + 4];
+        const second: [number, number] = [root, root + question.secondInterval!];
         return [
-            ...first.map((note, index) => ({ noteIndices: [note], onset: index * noteOffset, duration: 0.55 })),
-            ...second.map((note, index) => ({ noteIndices: [note], onset: 0.6 + index * noteOffset, duration: 0.55 })),
+            ...getChordPlaybackEvents(first),
+            ...getChordPlaybackEvents(second, CHORD_SEQUENCE_DURATION + CHORD_SEQUENCE_GAP),
         ];
     }
     let notes = await getSongNotes(melodySong!);
@@ -232,7 +226,12 @@ export function TestQuestion({
             showKey={showEnhancedVisual && question.type === "melody"}
             showNotes
             showNoteDirection={showEnhancedVisual && question.type === "pitch"}
-            showChordLines={showEnhancedVisual ? "tonic-only" : "none"}
+            showChordLines={
+                showEnhancedVisual
+                    && (question.type !== "chord" || activeNotes.some((note) => note.noteIndices.length > 1))
+                    ? "tonic-only"
+                    : "none"
+            }
             emphasizeTonic={showEnhancedVisual}
             symbol={questionSymbol}
         />

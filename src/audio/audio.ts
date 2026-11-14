@@ -21,6 +21,7 @@ export const TIMBRE_LABELS: Record<Timbre, string> = {
 type SoundFontTimbre = Extract<Timbre, "piano" | "marimba">;
 const PIANO_DEFAULT_VELOCITY = 100;
 const PIANO_SYNTHETIC_DEFAULT_VELOCITY = 120;
+const SOUNDFONT_CHANNEL_VOLUME = 115;
 
 export type AudioVoice = {
   stop(): void;
@@ -103,6 +104,7 @@ function loadSoundFont(timbre: SoundFontTimbre): Promise<WorkletSynthesizer> {
     }
     await synthesizer.soundBankManager.addSoundBank(await response.arrayBuffer(), `timbre-${timbre}`);
     synthesizer.programChange(settings.channel, settings.program);
+    synthesizer.controllerChange(settings.channel, 7, SOUNDFONT_CHANNEL_VOLUME);
     synthesizer.controllerChange(settings.channel, 10, 64);
     return synthesizer;
   })();
@@ -172,10 +174,11 @@ function createOscillatorVoice(
   const context = getAudioContext();
   const oscillator = context.createOscillator();
   const gain = context.createGain();
+  const gainMultiplier = timbre === "sine" || timbre === "triangle" ? 1 : 1.2;
   configureOscillatorTimbre(context, oscillator, timbre);
   oscillator.frequency.value = 440 * Math.pow(2, (note + 21 - 69) / 12);
   gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(peakGain, start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(peakGain * gainMultiplier, start + 0.02);
   if (duration !== undefined) {
     gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(duration - 0.02, 0.04));
   }

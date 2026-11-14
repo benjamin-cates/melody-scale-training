@@ -40,7 +40,6 @@ export function createPitchQuestions(gap: number, count: number): Question[] {
 }
 
 export function createChordQuestions(count: number): Question[] {
-	let arpeggio_shift = Math.floor(Math.random() * 4);
 	return shuffle(Array.from({ length: count }, (_, index) => {
 		const secondInterval = [3, 4, 7, 4][(index + Math.floor(index / 12)) % 4] as any;
 		return ({
@@ -48,7 +47,7 @@ export function createChordQuestions(count: number): Question[] {
 			type: "chord",
 			rootNote: 39 + index % 12,
 			secondInterval,
-			presentation: ["arpeggio", "melodic", "melodic", "arpeggio"][(index + Math.floor(index / 12) + arpeggio_shift) % 4] as any,
+			presentation: "note-note-chord",
 			correctAnswer: secondInterval === 4 ? "same" : "different",
 		} satisfies Question);
 	}));

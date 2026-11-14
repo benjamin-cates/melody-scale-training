@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { getAudioContext, noteLabel, playTone, type AudioVoice } from "./audio/audio";
+import { getAudioContext, playTone, type AudioVoice } from "./audio/audio";
+import { CHORD_SEQUENCE_DURATION, CHORD_SEQUENCE_GAP, getChordPlaybackEvents } from "./audio/chord-playback";
 import { Chromatone } from "./audio/Chromatone";
 import { NOTE_NAMES } from "./audio/music";
 import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
 
 type GuidanceMode = "visual" | "auditory";
-type PlaybackMode = "arpeggio" | "melody";
 
 type ChordTrial = {
   id: string;
   root: number;
   firstInterval: 4;
   secondInterval: 3 | 4 | 7;
-  mode: PlaybackMode;
+  presentation: "note-note-chord";
 };
 
 type ChordTrialResult = {
@@ -20,7 +20,7 @@ type ChordTrialResult = {
   root: number;
   firstInterval: 4;
   secondInterval: 3 | 4 | 7;
-  mode: PlaybackMode;
+  presentation: "note-note-chord";
   correctAnswer: "same" | "different";
   answer: "same" | "different";
   replayEvents: number[];
@@ -36,7 +36,7 @@ const CHORD_DEFS: Record<3 | 4 | 7, { label: string; interval: number; mood: str
   7: { label: "Perfect fifth", interval: 7, mood: "open and neutral" },
 };
 
-function chordNotes(root: number, chordType: 3 | 4 | 7) {
+function chordNotes(root: number, chordType: 3 | 4 | 7): [number, number] {
   const rootNote = MIDDLE_C + root;
   return [rootNote, rootNote + chordType];
 }
@@ -68,13 +68,12 @@ function ChordIntervalSignal({ chordType, angle }: { chordType: 3 | 4 | 7; angle
 
 function createExampleTrial(): ChordTrial {
   const secondInterval = CHORD_TYPES[Math.floor(Math.random() * CHORD_TYPES.length)];
-  const mode = Math.random() < 0.5 ? "arpeggio" : "melody";
   return {
     id: `chord-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     root: Math.floor(Math.random() * 12),
     firstInterval: 4,
     secondInterval,
-    mode,
+    presentation: "note-note-chord",
   };
 }
 
@@ -101,60 +100,44 @@ function useChordPlayer() {
     setActiveNotes([]);
   };
 
-  const scheduleChord = (notes: number[], chordStart: number, currentTime: number, mode: PlaybackMode) => {
-    const noteDuration = mode === "arpeggio" ? 0.45 : 0.7;
-    const step = mode === "arpeggio" ? noteDuration - 0.05 : 0;
-    notes.forEach((note, index) => {
-      const noteStart = chordStart + index * step;
-      oscillators.current.push(playTone(note, noteStart, noteDuration));
-      const startDelay = Math.max((noteStart - currentTime) * 1000, 0);
-      const endDelay = Math.max((noteStart + noteDuration - currentTime) * 1000, 0);
-      if (mode === "arpeggio") {
-        timers.current.push(window.setTimeout(() => {
-          setActiveNotes((active) => active.includes(note) ? active : [...active, note]);
-          setNoteAttack((attack) => ({
-            id: (attack?.id ?? 0) + 1,
-            noteIndices: [note],
-          }));
-        }, startDelay));
-      }
-      timers.current.push(window.setTimeout(
-        () => setActiveNotes((active) => active.filter((activeNote) => activeNote !== note)),
-        endDelay,
-      ));
-    });
-    if (mode === "melody") {
-      const startDelay = Math.max((chordStart - currentTime) * 1000, 0);
+  const scheduleChord = (notes: [number, number], chordStart: number, currentTime: number) => {
+    const events = getChordPlaybackEvents(notes);
+    events.forEach((event) => {
+      const eventStart = chordStart + event.onset;
+      oscillators.current.push(...event.noteIndices.map((note) => playTone(note, eventStart, event.duration)));
+      const startDelay = Math.max((eventStart - currentTime) * 1000, 0);
+      const endDelay = Math.max((eventStart + event.duration - currentTime) * 1000, 0);
       timers.current.push(window.setTimeout(() => {
-        setActiveNotes(notes);
+        setActiveNotes(event.noteIndices);
         setNoteAttack((attack) => ({
           id: (attack?.id ?? 0) + 1,
-          noteIndices: [...notes],
+          noteIndices: [...event.noteIndices],
         }));
       }, startDelay));
-    }
-    return (notes.length - 1) * step + noteDuration;
+      timers.current.push(window.setTimeout(() => setActiveNotes([]), endDelay));
+    });
+    return CHORD_SEQUENCE_DURATION;
   };
 
-  const playChord = (notes: number[], mode: PlaybackMode) => {
+  const playChord = (notes: [number, number]) => {
     stop();
     const context = getAudioContext();
     void context.resume();
     const start = context.currentTime + 0.05;
     setIsPlaying(true);
-    const span = scheduleChord(notes, start, context.currentTime, mode);
+    const span = scheduleChord(notes, start, context.currentTime);
     timers.current.push(window.setTimeout(() => setIsPlaying(false), span * 1000 + 150));
   };
 
-  const playChordPair = (first: number[], second: number[], mode: PlaybackMode) => {
+  const playChordPair = (first: [number, number], second: [number, number]) => {
     stop();
     const context = getAudioContext();
     void context.resume();
     const start = context.currentTime + 0.05;
     setIsPlaying(true);
-    const firstSpan = scheduleChord(first, start, context.currentTime, mode);
-    const secondStart = start + firstSpan + 0.25;
-    const secondSpan = scheduleChord(second, secondStart, context.currentTime, mode);
+    const firstSpan = scheduleChord(first, start, context.currentTime);
+    const secondStart = start + firstSpan + CHORD_SEQUENCE_GAP;
+    const secondSpan = scheduleChord(second, secondStart, context.currentTime);
     timers.current.push(
       window.setTimeout(
         () => setIsPlaying(false),
@@ -165,7 +148,7 @@ function useChordPlayer() {
 
   useEffect(() => stop, []);
 
-  return { playChord, playChordPair, isPlaying, activeNotes, stop };
+  return { playChord, playChordPair, isPlaying, activeNotes, noteAttack, stop };
 }
 
 function ChordVisual({
@@ -174,14 +157,12 @@ function ChordVisual({
   chordType,
   activeNotes,
   noteAttack,
-  revealChordType = true,
 }: {
   guidance: GuidanceMode;
   root: number;
   chordType: 3 | 4 | 7 | null;
   activeNotes: number[];
   noteAttack: { id: number; noteIndices: number[] } | null;
-  revealChordType?: boolean;
 }) {
   if (guidance === "auditory") {
     return null;
@@ -194,7 +175,7 @@ function ChordVisual({
       showKey={false}
       showNotes
       emphasizeTonic
-      showChordLines="tonic-only"
+      showChordLines={activeNotes.length === 2 ? "tonic-only" : "none"}
       symbol={"chord"}
     />
   );
@@ -216,7 +197,6 @@ export function LearnerChord({
   const [guidance, setGuidance] = useState<GuidanceMode>(guidanceMode ?? "visual");
   const [playgroundRoot, setPlaygroundRoot] = useState(0);
   const [playgroundType, setPlaygroundType] = useState<3 | 4 | 7>(3);
-  const [playgroundMode, setPlaygroundMode] = useState<PlaybackMode>("melody");
   const [exampleTrial, setExampleTrial] = useState(createExampleTrial);
   const [examplePlayed, setExamplePlayed] = useState(false);
   const [exampleGuess, setExampleGuess] = useState<"same" | "different" | null>(null);
@@ -226,7 +206,6 @@ export function LearnerChord({
   const [visualChord, setVisualChord] = useState({
     root: 0,
     chordType: 3 as 3 | 4 | 7,
-    revealChordType: true,
   });
   const remainingSeconds = useLessonTimer(timer, pauseTimer);
 
@@ -237,7 +216,7 @@ export function LearnerChord({
     exampleStartedAt.current = Date.now();
     exampleReplayEvents.current = [0];
     setExamplePlayed(false);
-    setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval, revealChordType: false });
+    setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval });
     setExampleGuess(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instructionOnly, exampleTrial]);
@@ -270,8 +249,9 @@ export function LearnerChord({
       <>
         <h2>Simple chords</h2>
         <p className="lesson-body">
-          A chord is a combination of notes played together or in rapid sequence (an arpeggio). We
-          will focus on three core intervals built from a root note and one other note.
+          Each chord is played in three steps: the root note, the other note, then both together.
+          Compare the two sequences to identify whether their intervals are the same or different.
+          We will focus on three core intervals built from a root note and one other note.
         </p>
         {guidance === "visual" && <p className="lesson-body">Chords are visually represented on the spiral as <b>colored connections</b> between notes.</p>}
 
@@ -302,9 +282,9 @@ export function LearnerChord({
         <div className="example-prompt-row">
           <p className="sequence-status" aria-live="polite">
             {!examplePlayed
-              ? "Press Hear example to listen to both chords."
+              ? "Press Hear example to listen to both three-step chord sequences."
               : exampleGuess === null
-                ? "Listen to both chords, then decide if they are the same or different."
+                ? "Listen to both sequences, then decide if the chords are the same or different."
                 : exampleGuess === correctAnswer
                   ? `Correct: ${correctAnswer}.`
                   : "Not quite. Listen again and try the other answer."}
@@ -318,11 +298,10 @@ export function LearnerChord({
                 ...(examplePlayed ? [Date.now() - exampleStartedAt.current] : []),
               ];
               setExamplePlayed(true);
-              setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval, revealChordType: false });
+              setVisualChord({ root: exampleTrial.root, chordType: exampleTrial.secondInterval });
               player.playChordPair(
                 chordNotes(exampleTrial.root, exampleTrial.firstInterval),
                 chordNotes(exampleTrial.root, exampleTrial.secondInterval),
-                exampleTrial.mode,
               );
             }}
           >
@@ -349,7 +328,7 @@ export function LearnerChord({
                       root: exampleTrial.root,
                       firstInterval: exampleTrial.firstInterval,
                       secondInterval: exampleTrial.secondInterval,
-                      mode: exampleTrial.mode,
+                      presentation: exampleTrial.presentation,
                       correctAnswer,
                       answer,
                       replayEvents: [...exampleReplayEvents.current],
@@ -372,7 +351,7 @@ export function LearnerChord({
     return (
       <>
         <p className="lesson-body">
-          Choose a starting note, interval, and presentation, then play the selection before trying the examples.
+          Choose a starting note and interval, then hear the notes individually and together before trying the examples.
         </p>
         <div className="note-practice-layout chord-practice-layout">
           <div className="note-practice-picker-panel">
@@ -410,29 +389,13 @@ export function LearnerChord({
                   ))}
                 </div>
               </div>
-              <div className="note-tone-row">
-                <span className="explorer-picker-label">Presentation:</span>
-                <div className="explorer-button-row note-tone-options" aria-label="Presentation">
-                  {(["melody", "arpeggio"] as const).map((mode) => (
-                    <button
-                      aria-pressed={playgroundMode === mode}
-                      className={playgroundMode === mode ? "explorer-picker-button is-selected" : "explorer-picker-button"}
-                      key={mode}
-                      type="button"
-                      onClick={() => setPlaygroundMode(mode)}
-                    >
-                      {mode === "melody" ? "Chord" : "Arpeggio"}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
             <button
               className="primary-button note-play-selection"
               type="button"
               onClick={() => {
-                setVisualChord({ root: playgroundRoot, chordType: playgroundType, revealChordType: true });
-                player.playChord(chordNotes(playgroundRoot, playgroundType), playgroundMode);
+                setVisualChord({ root: playgroundRoot, chordType: playgroundType });
+                player.playChord(chordNotes(playgroundRoot, playgroundType));
               }}
             >
               Play selection
@@ -445,7 +408,6 @@ export function LearnerChord({
               chordType={visualChord.chordType}
               activeNotes={player.activeNotes}
               noteAttack={player.noteAttack}
-              revealChordType={visualChord.revealChordType}
             />
           </div>
         </div>

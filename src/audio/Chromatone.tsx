@@ -649,7 +649,7 @@ export function Chromatone({
             x={center - 24}
             y={centerY - 30}
             scale={0.8}
-            color={"rgba(255,255,255,0.2)"}
+            color="#ffffff"
           />
         )}
         <g className="spiral-notes">

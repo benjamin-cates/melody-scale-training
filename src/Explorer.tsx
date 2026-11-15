@@ -6,6 +6,7 @@ import { Player } from "./audio/Player";
 export function Explorer() {
   const [category, setCategory] = useState<SongCategory>(SONG_CATEGORIES[0]);
   const [subcategory, setSubcategory] = useState("Other");
+  const [analyzerEnabled, setAnalyzerEnabled] = useState(false);
   const songsInCategory = SONGS.filter((song) => song.category === category);
   const hasSubcategories = songsInCategory.some((song) => song.subcategory !== undefined);
   const subcategories = [...new Set(songsInCategory.map((song) => song.subcategory ?? "Other"))];
@@ -14,7 +15,6 @@ export function Explorer() {
     : songsInCategory;
   const [songTitle, setSongTitle] = useState(songsInSubcategory[0]?.title ?? "");
   const song = songsInSubcategory.find((item) => item.title === songTitle) ?? songsInSubcategory[0] ?? songsInCategory[0] ?? SONGS[0];
-
   function selectCategory(nextCategory: SongCategory) {
     const nextSongs = SONGS.filter((songItem) => songItem.category === nextCategory);
     const nextSubcategory = [...new Set(nextSongs.map((songItem) => songItem.subcategory ?? "Other"))][0] ?? "Other";
@@ -106,7 +106,17 @@ export function Explorer() {
             </div>
           </div>
         )}
-        {category === "Custom" ? <Chromatone isInteractive /> : <Player song={song} showKey showNotes />}
+        {category === "Custom" ? (
+          <Chromatone isInteractive />
+        ) : (
+          <Player
+            song={song}
+            showKey
+            showNotes
+            analyzerEnabled={analyzerEnabled}
+            onToggleAnalyzer={() => setAnalyzerEnabled((enabled) => !enabled)}
+          />
+        )}
       </section>
     </section>
   );

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Chromatone } from "./Chromatone";
+import { MelodyAnalyzer } from "./MelodyAnalyzer";
 import { useSongPlayback } from "./useSongPlayback";
 import type { Song } from "./music";
 import { getSongKey } from "./music";
@@ -10,12 +11,16 @@ export function Player({
   className = "",
   showKey = true,
   showNotes = true,
+  analyzerEnabled = false,
+  onToggleAnalyzer,
 }: {
   song: Song;
   tempo?: number;
   className?: string;
   showKey?: boolean;
   showNotes?: boolean;
+  analyzerEnabled?: boolean;
+  onToggleAnalyzer?: () => void;
 }) {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(tempo);
@@ -23,14 +28,31 @@ export function Player({
   return (
     <div className={`song-player ${className}`}>
       {showNotes && (
-        <Chromatone
-          keyLabel={getSongKey(song)}
-          tonic={song.tonic}
-          activeNotes={playback.activeNotes}
-          noteAttack={playback.noteAttack}
-          showKey={showKey}
-          showNotes={showNotes}
-        />
+        analyzerEnabled
+          ? <MelodyAnalyzer song={song} />
+          : (
+            <Chromatone
+              keyLabel={getSongKey(song)}
+              tonic={song.tonic}
+              activeNotes={playback.activeNotes}
+              noteAttack={playback.noteAttack}
+              showKey={showKey}
+              showNotes={showNotes}
+            />
+          )
+      )}
+      {onToggleAnalyzer && (
+        <div className="analyzer-toggle-row">
+          <button
+            className="secondary-button analyzer-toggle"
+            type="button"
+            aria-pressed={analyzerEnabled}
+            aria-controls="melody-analyzer"
+            onClick={onToggleAnalyzer}
+          >
+            {analyzerEnabled ? "Show Chromatone" : "Analyze Melody"}
+          </button>
+        </div>
       )}
       <div className="player-controls">
         <button

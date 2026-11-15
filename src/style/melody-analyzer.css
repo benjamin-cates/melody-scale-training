@@ -1,0 +1,161 @@
+.melody-analyzer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 18px;
+}
+.melody-chart {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #506067;
+  background: #304149;
+}
+.melody-chart figcaption {
+  margin-bottom: 6px;
+  color: #f2f0e9;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.melody-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.melody-chart-grid {
+  stroke: #506067;
+  stroke-width: 1;
+}
+.melody-chart-bar {
+  fill: #ef8a5b;
+}
+.piano-roll-pitch-grid {
+  stroke: #506067;
+  stroke-width: 0.65;
+}
+.piano-roll-pitch-tick {
+  stroke: #98a5a4;
+  stroke-width: 1;
+}
+.piano-roll-pitch-label {
+  fill: #b9c2be;
+  font:
+    9px "Trebuchet MS",
+    sans-serif;
+}
+.piano-roll-beat-grid {
+  stroke: #718087;
+  stroke-width: 1;
+}
+.piano-roll-note {
+  shape-rendering: geometricPrecision;
+}
+.pitch-class-roll-note {
+  shape-rendering: geometricPrecision;
+}
+.pitch-class-roll-note.is-tonic,
+.pitch-class-legend .is-tonic {
+  fill: #f2f0e9;
+  background: #f2f0e9;
+}
+.pitch-class-roll-note.is-major-third,
+.pitch-class-legend .is-major-third {
+  fill: #f2c84b;
+  background: #f2c84b;
+}
+.pitch-class-roll-note.is-minor-third,
+.pitch-class-legend .is-minor-third {
+  fill: #4e8bd0;
+  background: #4e8bd0;
+}
+.pitch-class-roll-note.is-perfect-fifth,
+.pitch-class-legend .is-perfect-fifth {
+  fill: #9569c6;
+  background: #9569c6;
+}
+.pitch-class-roll-note.is-other,
+.pitch-class-legend .is-other {
+  fill: #ef8a5b;
+  background: #ef8a5b;
+}
+.pitch-class-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: #b9c2be;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+}
+.pitch-class-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.pitch-class-legend i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+}
+.melody-chart-tick {
+  fill: #b9c2be;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+}
+.melody-chart-axis-label {
+  fill: #98a5a4;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+}
+.melody-key-predictions {
+  padding: 12px;
+  border: 1px solid #506067;
+  background: #304149;
+  color: #b9c2be;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.melody-key-predictions h3 {
+  margin: 0 0 8px;
+  color: #f2f0e9;
+  font-weight: 400;
+}
+.melody-key-predictions ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 22px;
+}
+.melody-key-predictions li {
+  padding-left: 3px;
+}
+.melody-key-predictions li::marker {
+  color: #ef8a5b;
+}
+.melody-key-predictions li span:last-child {
+  margin-left: 16px;
+  color: #efc96a;
+}
+.melody-key-predictions p {
+  margin: 0;
+}
+.melody-analyzer-status {
+  margin: 18px 0;
+  color: #b9c2be;
+  font-size: 12px;
+}
+@media (max-width: 680px) {
+  .melody-analyzer {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .melody-chart {
+    padding: 8px;
+  }
+}

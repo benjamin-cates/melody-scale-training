@@ -2,6 +2,7 @@ import "./style/base.css";
 import "./style/layout.css";
 import "./style/buttons.css";
 import "./style/panel.css";
+import "./style/melody-analyzer.css";
 import "./style/chromatone.css";
 import "./style/player.css";
 import "./style/lesson.css";

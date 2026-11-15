@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-// Use case: bun run scripts/convert-essen.ts Clips-Essen src/audio/generated-essen.ts
+// Use case: bun run scripts/convert-essen.ts Clips-Essen src/audio/generated-essen.ts src/audio/essen-key-rankings.csv
 
 // Clips-Essen can be downloaded from here: https://figshare.com/s/03179521a56c88bfac63 
 // Extract the directory containing the MIDI files and pass it as the first argument
@@ -8,6 +8,7 @@
 
 import { readdir } from "node:fs/promises";
 import { basename, extname, join, resolve } from "node:path";
+import { rankKeyClassifications, type KeyClassification } from "../src/audio/key-analysis";
 import { encodeSongNotes } from "../src/audio/song-notes";
 import type { SongNote } from "../src/audio/music";
 
@@ -15,12 +16,6 @@ const NOTE_NAMES = [
     "C", "D♭", "D", "E♭", "E", "F", "F♭", "G", "A♭", "A", "B♭", "B",
 ];
 
-const MAJOR_PROFILE = [
-    1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1,
-];
-const MINOR_PROFILE = [
-    1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0,
-];
 type MidiEvent = {
     tick: number;
     status: number;
@@ -138,34 +133,11 @@ function getMidiEvents(data: Uint8Array) {
     return { events, ticksPerBeat: division };
 }
 
-function inferKey(notes: SongNote[]) {
-    const pitchDurations = Array.from({ length: 12 }, () => 0);
-    for (const note of notes) {
-        for (const noteIndex of note.noteIndices) {
-            const pitchClass = (noteIndex + 21) % 12;
-            pitchDurations[pitchClass] += note.duration;
-        }
-    }
-
-    let best = { tonic: 0, scale: "major" as "major" | "minor", score: -Infinity };
-    for (const [scale, profile] of [
-        ["major", MAJOR_PROFILE],
-        ["minor", MINOR_PROFILE],
-    ] as const) {
-        for (let tonic = 0; tonic < 12; tonic++) {
-            const score = profile.reduce(
-                (total, weight, interval) =>
-                    total + weight * pitchDurations[(tonic + interval) % 12],
-                0,
-            );
-            if (score > best.score) best = { tonic, scale, score };
-        }
-    }
-
-    return { tonic: best.tonic, scale: best.scale === "major" ? 0 : 1 };
-}
-
-export async function convertMidiToSong(filePath: string): Promise<EssenClip> {
+async function analyzeMidiToSong(filePath: string): Promise<{
+    song: EssenClip | null;
+    rankedKeys: KeyClassification[];
+    title: string;
+}> {
     const data = new Uint8Array(await Bun.file(filePath).arrayBuffer());
     const { events, ticksPerBeat } = getMidiEvents(data);
     events.sort((left, right) =>
@@ -227,12 +199,49 @@ export async function convertMidiToSong(filePath: string): Promise<EssenClip> {
         previousEndTick = group.onsetTick + group.durationTick;
     }
 
-    const inferredKey = inferKey(notes);
-    return {
-        title: basename(filePath).replace(/\.[^.]+$/, ""),
-        ...inferredKey,
+    const title = basename(filePath).replace(/\.[^.]+$/, "");
+    const rankedKeys = rankKeyClassifications(notes);
+    const inferredKey = rankedKeys[0];
+    if (!inferredKey) return { song: null, rankedKeys, title };
+    const song: EssenClip = {
+        title,
+        tonic: inferredKey.tonic,
+        scale: inferredKey.scale === "major" ? 0 : 1,
         compressedNotes: await encodeSongNotes(notes),
     };
+    return { song, rankedKeys, title };
+}
+
+export async function convertMidiToSong(filePath: string): Promise<EssenClip | null> {
+    return (await analyzeMidiToSong(filePath)).song;
+}
+
+function csvField(value: string | number) {
+    const text = String(value);
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+type SongRanking = {
+    title: string;
+    rankedKeys: KeyClassification[];
+    song?: EssenClip;
+};
+
+type ConfidentSongRanking = SongRanking & {
+    song: EssenClip;
+    confidenceGap: number;
+};
+
+function getTopConfidentRankings(rows: SongRanking[]): ConfidentSongRanking[] {
+    const sortableRows = rows.flatMap((row) => {
+        const [first, second] = row.rankedKeys;
+        return row.song && first && second
+            ? [{ ...row, song: row.song, confidenceGap: first.confidence - second.confidence }]
+            : [];
+    }).sort((left, right) =>
+        right.confidenceGap - left.confidenceGap || left.title.localeCompare(right.title),
+    );
+    return sortableRows.slice(0, Math.ceil(sortableRows.length * 0.9));
 }
 
 async function findMidiFiles(directory: string): Promise<string[]> {
@@ -253,20 +262,37 @@ async function convertDirectory(inputDirectory: string) {
     if (files.length === 0) throw new Error(`no MIDI files found in ${inputDirectory}`);
 
     const songs: EssenClip[] = [];
+    const excludedSongNames: string[] = [];
+    const rankings: SongRanking[] = [];
     for (const file of files) {
         try {
-            songs.push(await convertMidiToSong(file));
+            const result = await analyzeMidiToSong(file);
+            rankings.push({
+                title: result.title,
+                rankedKeys: result.rankedKeys,
+                ...(result.song ? { song: result.song } : {}),
+            });
+            if (result.song) {
+                songs.push(result.song);
+            } else {
+                excludedSongNames.push(result.title);
+            }
         } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
             throw new Error(`failed to convert ${file}: ${reason}`, { cause: error });
         }
     }
-    return songs;
+    return { songs, excludedSongNames, rankings };
 }
 
 const inputDirectory = resolve(process.argv[2] ?? "Clips-Essen");
 const outputPath = resolve(process.argv[3] ?? "src/audio/generated-essen.ts");
-const songs = await convertDirectory(inputDirectory);
-const records = songs.map((song) => `  ${JSON.stringify(song)}`).join(",\n");
+const { songs, excludedSongNames, rankings } = await convertDirectory(inputDirectory);
+const selectedRankings = getTopConfidentRankings(rankings);
+const selectedSongs = selectedRankings.map(({ song }) => song);
+const records = selectedSongs.map((song) => `  ${JSON.stringify(song)}`).join(",\n");
 const output = `export type EssenClip = { title: string; tonic: number; scale: number; compressedNotes: string };\n\nexport const ESSEN_CLIPS: EssenClip[] = [\n${records}\n];\n`;
 await Bun.write(outputPath, output);
+console.log(`Excluded ${excludedSongNames.length} song(s) that do not fit any major or minor scale.`);
+console.log(excludedSongNames.length > 0 ? excludedSongNames.join("\n") : "None");
+console.log(`Generated ${selectedSongs.length} Essen song(s); removed ${songs.length - selectedSongs.length} scale-fitting song(s) outside the top 90% by confidence gap.`);

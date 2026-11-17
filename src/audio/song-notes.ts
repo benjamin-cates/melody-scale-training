@@ -65,15 +65,14 @@ export async function decodeSongNotes(encoded: string): Promise<SongNote[]> {
             ...(entry[2] === null ? {} : { onset: entry[2] }),
         };
     });
-    console.log(out);
     return out;
 }
 
-export async function convertCompressedSongMode(
-    compressedNotes: string,
+export function convertSongModeNotes(
+    notes: SongNote[],
     tonic: number,
     scale: Scale,
-): Promise<string> {
+): SongNote[] {
     if (!Number.isInteger(tonic) || tonic < 0 || tonic > 11) {
         throw new Error("Tonic must be a pitch class from 0 to 11");
     }
@@ -81,8 +80,7 @@ export async function convertCompressedSongMode(
     const alteredDegrees = scale === "major"
         ? new Map([[4, 3], [9, 8], [11, 10]])
         : new Map([[3, 4], [8, 9], [10, 11]]);
-    const notes = await decodeSongNotes(compressedNotes);
-    const convertedNotes = notes.map((note) => ({
+    return notes.map((note) => ({
         ...note,
         noteIndices: note.noteIndices.map((noteIndex) => {
             const pitchClass = (noteIndex + 21) % 12;
@@ -93,6 +91,13 @@ export async function convertCompressedSongMode(
                 : noteIndex + convertedDegree - degree;
         }),
     }));
+}
 
-    return encodeSongNotes(convertedNotes);
+export async function convertCompressedSongMode(
+    compressedNotes: string,
+    tonic: number,
+    scale: Scale,
+): Promise<string> {
+    const notes = await decodeSongNotes(compressedNotes);
+    return encodeSongNotes(convertSongModeNotes(notes, tonic, scale));
 }

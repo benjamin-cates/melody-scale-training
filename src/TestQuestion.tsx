@@ -3,7 +3,8 @@ import { getAudioContext, playTone, type AudioVoice } from "./audio/audio";
 import { CHORD_SEQUENCE_DURATION, CHORD_SEQUENCE_GAP, getChordPlaybackEvents, type ChordPlaybackEvent } from "./audio/chord-playback";
 import { Chromatone } from "./audio/Chromatone";
 import { MusicSymbol, type MusicSymbolType } from "./audio/MusicSymbol";
-import { decodeSongNotes, getSongKey, getSongNotes, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
+import { decodeSongNotes, getSongNotes, NOTE_NAMES, SONGS, type Song, type SongNote } from "./audio/music";
+import { useSongClassification } from "./audio/useSongClassification";
 
 type PitchAnswer = "increasing" | "decreasing";
 type ChordAnswer = "same" | "different";
@@ -203,14 +204,19 @@ export function TestQuestion({
     const melodySong = question.type === "melody"
         ? SONGS.find((song) => song.title === question.songTitle)
         : undefined;
+    const melodyKey = useSongClassification(melodySong ?? null);
     const showVisual = question.guidance === "visual" || question.guidance === "visual-enhanced";
     const showEnhancedVisual = question.guidance === "visual-enhanced";
-    const questionTonic = melodySong?.tonic ?? (
+    const questionTonic = melodySong
+        ? melodyKey.status === "ready" ? melodyKey.classification?.tonic : undefined
+        : (
         question.rootNote === undefined
             ? undefined
             : ((question.rootNote + 21) % 12 + 12) % 12
     );
-    const questionKeyLabel = melodySong ? getSongKey(melodySong) : (
+    const questionKeyLabel = melodySong
+        ? melodyKey.status === "ready" ? melodyKey.label : undefined
+        : (
         questionTonic === undefined ? undefined : `${NOTE_NAMES[questionTonic]} major`
     );
     const questionSymbol: MusicSymbolType | undefined = question.type === "chord"
@@ -246,6 +252,11 @@ export function TestQuestion({
                     <MusicSymbol className="test-music-symbol" type={questionSymbol} />
 
                 </div>
+            )}
+            {melodyKey.status === "error" && (
+                <p className="melody-analyzer-status" role="alert">
+                    Could not analyze melody key: {melodyKey.message}
+                </p>
             )}
             <p className={`sequence-status ${giveAnswerFeedback ? feedbackClass : ""}`} aria-live="polite">
                 {giveAnswerFeedback && answer !== null

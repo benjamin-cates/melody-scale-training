@@ -11,6 +11,7 @@ import "./style/note-test.css";
 import "./style/survey.css";
 import "./style/vocoder.css"
 import "./style/vocoder-debug.css";
+import "./style/essen-debug.css";
 import logoUrl from "./logo.svg";
 import { useEffect, useState, type ReactNode } from "react";
 import { Survey } from "./Survey";
@@ -22,6 +23,7 @@ import { Explorer } from "./Explorer";
 import { Experiment } from "./Experiment";
 import { Vocoder } from "./audio/VocoderBiquad";
 import { VocoderDebug } from "./VocoderDebug";
+import { EssenDebug } from "./EssenDebug";
 
 export function downloadJson(filename: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -35,7 +37,7 @@ export function downloadJson(filename: string, data: unknown) {
   URL.revokeObjectURL(url);
 }
 
-type Route = "explorer" | "survey" | "note_learner" | "chord_learner" | "melody_learner" | "test" | "note-test" | "experiment" | "vocoder_debug";
+type Route = "explorer" | "survey" | "note_learner" | "chord_learner" | "melody_learner" | "test" | "note-test" | "experiment" | "vocoder_debug" | "essen_debug";
 
 const ROUTES: { id: Exclude<Route, "experiment">; label: string }[] = [
   { id: "explorer", label: "Explorer" },
@@ -48,7 +50,7 @@ const ROUTES: { id: Exclude<Route, "experiment">; label: string }[] = [
 
 function getRoute(): Route {
   const value = window.location.hash.replace(/^#\/?/, "") as Route;
-  if (value === "experiment" || value === "vocoder_debug") return value;
+  if (value === "experiment" || value === "vocoder_debug" || value === "essen_debug") return value;
   return ROUTES.some((route) => route.id === value) ? value : "explorer";
 }
 
@@ -99,6 +101,8 @@ export function AppRoutes() {
       <Experiment />
     ) : route === "vocoder_debug" ? (
       <VocoderDebug />
+    ) : route === "essen_debug" ? (
+      <EssenDebug />
     ) : route === "survey" ? (
       <Survey />
     ) : route === "note_learner" ? (

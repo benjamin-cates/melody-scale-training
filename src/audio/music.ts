@@ -1,6 +1,12 @@
-import { convertCompressedSongMode, decodeSongNotes } from "./song-notes";
+import { convertSongModeNotes, decodeSongNotes } from "./song-notes";
+import { rankKeyClassifications } from "./key-analysis";
 import { NOTE_NAMES } from "./note-names.ts";
-export { convertCompressedSongMode, decodeSongNotes, encodeSongNotes } from "./song-notes";
+export {
+  convertCompressedSongMode,
+  convertSongModeNotes,
+  decodeSongNotes,
+  encodeSongNotes,
+} from "./song-notes";
 export { NOTE_NAMES } from "./note-names.ts";
 
 export type Scale = "major" | "minor";
@@ -27,19 +33,62 @@ export type Song = {
   subtitle: string;
   category: SongCategory;
   subcategory?: string;
-  tonic: number;
-  scale: Scale;
+  tonic?: number;
+  scale?: Scale;
   notes?: SongNote[];
   compressedNotes?: string | (() => Promise<string>);
+  loadNotes?: () => Promise<SongNote[]>;
 };
+
+export type KeyedSong = Song & { tonic: number; scale: Scale };
+export type SongClassification = Pick<KeyedSong, "tonic" | "scale">;
+
+export function hasKey(song: Song): song is KeyedSong {
+  return song.tonic !== undefined && song.scale !== undefined;
+}
+
+const songNotesCache = new WeakMap<Song, Promise<SongNote[]>>();
+const songClassificationCache = new WeakMap<Song, Promise<SongClassification | null>>();
 
 export async function getSongNotes(song: Song): Promise<SongNote[]> {
   if (song.notes) return song.notes;
-  if (!song.compressedNotes) return [];
-  const compressedNotes = typeof song.compressedNotes === "function"
-    ? await song.compressedNotes()
-    : song.compressedNotes;
-  return decodeSongNotes(compressedNotes);
+  const cachedNotes = songNotesCache.get(song);
+  if (cachedNotes) return cachedNotes;
+
+  const notesRequest = (async () => {
+    if (song.loadNotes) return song.loadNotes();
+    if (!song.compressedNotes) return [];
+    const compressedNotes = typeof song.compressedNotes === "function"
+      ? await song.compressedNotes()
+      : song.compressedNotes;
+    return decodeSongNotes(compressedNotes);
+  })();
+  songNotesCache.set(song, notesRequest);
+  try {
+    return await notesRequest;
+  } catch (error) {
+    songNotesCache.delete(song);
+    throw error;
+  }
+}
+
+export async function getSongClassification(song: Song): Promise<SongClassification | null> {
+  if (hasKey(song)) return { tonic: song.tonic, scale: song.scale };
+  if (song.category === "Essen" && song.title.startsWith("X-")) return null;
+  const cachedClassification = songClassificationCache.get(song);
+  if (cachedClassification) return cachedClassification;
+
+  const classificationRequest = getSongNotes(song).then((notes) => {
+    const key = rankKeyClassifications(notes)[0];
+    return key ? { tonic: key.tonic, scale: key.scale } : null;
+  });
+  songClassificationCache.set(song, classificationRequest);
+  try {
+    return await classificationRequest;
+  } catch (error) {
+    songClassificationCache.delete(song);
+    throw error;
+  }
 }
 
 function getClipNoteStorage(clip: unknown): Pick<Song, "notes" | "compressedNotes"> {
@@ -52,6 +101,7 @@ function getClipNoteStorage(clip: unknown): Pick<Song, "notes" | "compressedNote
 }
 
 export function getSongKey(song: Pick<Song, "tonic" | "scale">) {
+  if (song.tonic === undefined || song.scale === undefined) return "No matching mode";
   return NOTE_NAMES[song.tonic] + " " + song.scale;
 }
 
@@ -122,6 +172,43 @@ const GREENSLEEVES_PHRASE: SongNote[] = [
 
 import { ESSEN_CLIPS } from "./generated-essen";
 import { TSV_CLIPS } from "./generated-tsv";
+
+function getEssenSubcategory(index: number, unclassified = false) {
+  const rangeStart = Math.floor(index / 100) * 100 + 1;
+  return `${unclassified ? "X " : ""}${rangeStart}-${rangeStart + 99}`;
+}
+
+const CLASSIFIED_ESSEN_CLIPS = ESSEN_CLIPS.flatMap((clip) => {
+  if (clip.title.startsWith("X-")) return [];
+  return [clip];
+});
+
+const UNCLASSIFIED_ESSEN_CLIPS = ESSEN_CLIPS.filter(
+  (clip) => clip.title.startsWith("X-"),
+);
+
+const ESSEN_SONGS: Song[] = CLASSIFIED_ESSEN_CLIPS.map((clip, index) => ({
+  title: clip.title,
+  subtitle: "Imported from Essen",
+  category: "Essen",
+  subcategory: getEssenSubcategory(index),
+  compressedNotes: clip.compressedNotes,
+}));
+
+const ESSEN_MODIFIED_SONGS: Song[] = ESSEN_SONGS.map((sourceSong, index) => ({
+  title: "m_" + sourceSong.title,
+  subtitle: "Imported from Essen. Modified to the opposite mode.",
+  category: "Essen (modified)",
+  subcategory: getEssenSubcategory(index),
+  loadNotes: async () => {
+    const sourceNotes = await getSongNotes(sourceSong);
+    const sourceKey = rankKeyClassifications(sourceNotes)[0];
+    if (!sourceKey) {
+      throw new Error(`Cannot create a modified mode for ${sourceSong.title}: no matching mode was found`);
+    }
+    return convertSongModeNotes(sourceNotes, sourceKey.tonic, sourceKey.scale);
+  },
+}));
 
 export const SONGS: Song[] = [
   {
@@ -379,35 +466,15 @@ export const SONGS: Song[] = [
       notes
     } satisfies Song;
   }),
-  ...ESSEN_CLIPS.map((clip, index) => {
-    const sourceScale = clip.scale === 0 ? "major" : clip.scale === 1 ? "minor" : undefined;
-    if (sourceScale === undefined) throw new Error(`invalid Essen scale code: ${clip.scale}`);
-    const newScale = sourceScale === "major" ? "minor" : "major";
-    const rangeStart = Math.floor(index / 50) * 50 + 1;
-    return {
-      title: "m_" + clip.title,
-      subtitle: "Imported from Essen. Modified to " + newScale,
-      category: "Essen (modified)",
-      subcategory: `${rangeStart}-${rangeStart + 49}`,
-      tonic: clip.tonic,
-      scale: newScale,
-      compressedNotes: () => convertCompressedSongMode(clip.compressedNotes, clip.tonic, sourceScale),
-    } satisfies Song;
-  }),
-  ...ESSEN_CLIPS.map((clip, index) => {
-    const scale = clip.scale === 0 ? "major" : clip.scale === 1 ? "minor" : undefined;
-    if (scale === undefined) throw new Error(`invalid Essen scale code: ${clip.scale}`);
-    const rangeStart = Math.floor(index / 50) * 50 + 1;
-    return {
-      title: clip.title,
-      subtitle: "Imported from Essen",
-      category: "Essen",
-      subcategory: `${rangeStart}-${rangeStart + 49}`,
-      tonic: clip.tonic,
-      scale,
-      compressedNotes: clip.compressedNotes,
-    } satisfies Song;
-  }),
+  ...ESSEN_MODIFIED_SONGS,
+  ...ESSEN_SONGS,
+  ...UNCLASSIFIED_ESSEN_CLIPS.map((clip, index) => ({
+    title: clip.title,
+    subtitle: "Imported from Essen. No matching major or minor mode.",
+    category: "Essen",
+    subcategory: getEssenSubcategory(index, true),
+    compressedNotes: clip.compressedNotes,
+  } satisfies Song)),
   ...Object.entries(TSV_CLIPS).map(([title, clip]) => ({
     title,
     subtitle: "",
@@ -417,6 +484,32 @@ export const SONGS: Song[] = [
     scale: clip.scale,
   } satisfies Song)),
 ];
+
+let activeEssenExplorerTitles: Set<string> | null = null;
+
+export function applyEssenExplorerFilter(titles: string[]) {
+  activeEssenExplorerTitles = new Set(titles);
+}
+
+export function hasActiveEssenExplorerFilter() {
+  return activeEssenExplorerTitles !== null;
+}
+
+export function getActiveEssenExplorerFilterCount() {
+  return activeEssenExplorerTitles?.size ?? 0;
+}
+
+export function getExplorerSongs() {
+  const activeTitles = activeEssenExplorerTitles;
+  if (activeTitles === null) return SONGS;
+  return SONGS.filter((song) => {
+    if (song.category === "Essen") return activeTitles.has(song.title);
+    if (song.category === "Essen (modified)" && song.title.startsWith("m_")) {
+      return activeTitles.has(song.title.slice(2));
+    }
+    return true;
+  });
+}
 
 export const SONG_CATEGORIES = [
   "Exercises",
@@ -432,9 +525,10 @@ export const SONG_CATEGORIES = [
 ] as const;
 
 export function getKeyPitchClasses(song: Song) {
+  if (song.tonic === undefined || song.scale === undefined) return new Set<number>();
   return new Set(
     (song.scale === "major" ? MAJOR_INTERVALS : MINOR_INTERVALS).map(
-      (interval) => (song.tonic + interval) % 12,
+      (interval) => (song.tonic! + interval) % 12,
     ),
   );
 }

@@ -3,7 +3,7 @@ import { Chromatone } from "./Chromatone";
 import { MelodyAnalyzer } from "./MelodyAnalyzer";
 import { useSongPlayback } from "./useSongPlayback";
 import type { Song } from "./music";
-import { getSongKey } from "./music";
+import { useSongClassification } from "./useSongClassification";
 
 export function Player({
   song,
@@ -24,22 +24,28 @@ export function Player({
 }) {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(tempo);
+  const keyState = useSongClassification(song);
   const playback = useSongPlayback(song, speed, playing);
   return (
     <div className={`song-player ${className}`}>
       {showNotes && (
         analyzerEnabled
-          ? <MelodyAnalyzer song={song} />
+          ? <MelodyAnalyzer song={song} tempo={speed} />
           : (
             <Chromatone
-              keyLabel={getSongKey(song)}
-              tonic={song.tonic}
+              keyLabel={keyState.status === "ready" ? keyState.label : undefined}
+              tonic={keyState.status === "ready" ? keyState.classification?.tonic : undefined}
               activeNotes={playback.activeNotes}
               noteAttack={playback.noteAttack}
-              showKey={showKey}
+              showKey={showKey && keyState.status === "ready" && keyState.classification !== null}
               showNotes={showNotes}
             />
           )
+      )}
+      {keyState.status === "error" && (
+        <p className="melody-analyzer-status" role="alert">
+          Could not analyze song key: {keyState.message}
+        </p>
       )}
       {onToggleAnalyzer && (
         <div className="analyzer-toggle-row">

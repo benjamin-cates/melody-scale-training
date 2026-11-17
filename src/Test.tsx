@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { downloadJson } from "./AppRoutes";
-import { SONGS } from "./audio/music";
+import { hasKey, SONGS } from "./audio/music";
 import { TestQuestion, type Question, type UserResponse } from "./TestQuestion";
 
 export type { Question, UserResponse } from "./TestQuestion";
@@ -55,10 +55,13 @@ export function createChordQuestions(count: number): Question[] {
 
 export function createMelodyQuestions(count: number, database?: "Peretz" | "Essen"): Question[] {
 	if (database === "Peretz") {
-		const affectSongs = SONGS.filter(
+		const keyedSongs = SONGS.filter(hasKey);
+		const affectSongs = keyedSongs.filter(
 			(song) => song.category === "Peaceful" || song.category === "Sad",
 		);
-		let songs = affectSongs.length > 0 ? affectSongs : SONGS.filter((song) => song.category === "Scales");
+		let songs = affectSongs.length > 0
+			? affectSongs
+			: keyedSongs.filter((song) => song.category === "Scales");
 		songs = shuffle(songs);
 		return Array.from({ length: count }, (_, index) => {
 			const song = songs[index % songs.length];
@@ -72,7 +75,7 @@ export function createMelodyQuestions(count: number, database?: "Peretz" | "Esse
 	}
 	else if (database === "Essen") {
 		const essenSongs = SONGS.filter(
-			(song) => song.category === "Essen"
+			(song) => song.category === "Essen" && !song.title.startsWith("X-")
 		);
 		const indexes = shuffle(Array.from({ length: essenSongs.length }, (_, i) => i));
 		const major_minor = shuffle(Array.from({ length: count }, (_, i) => i % 2));

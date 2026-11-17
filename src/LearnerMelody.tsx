@@ -4,7 +4,7 @@ import { downloadJson } from "./AppRoutes";
 import { Chromatone } from "./audio/Chromatone";
 import { PianoView } from "./audio/PianoView";
 import { useSongPlayback } from "./audio/useSongPlayback";
-import { SONGS, type Scale, type Song, type SongNote } from "./audio/music";
+import { hasKey, SONGS, type KeyedSong, type Scale, type Song, type SongNote } from "./audio/music";
 import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
 
 type GuidanceMode = "visual" | "auditory";
@@ -40,18 +40,19 @@ function shuffle<T>(values: T[]) {
 type MelodySongPair = {
   id: string;
   label: string;
-  songs: Song[];
+  songs: KeyedSong[];
 };
 
 function getLessonSongPairs(): MelodySongPair[] {
   let songNumber = 0;
   return (["Sad", "Peaceful"] as const).flatMap((category) => {
     const originals = SONGS
+      .filter(hasKey)
       .filter((song) => song.category === category && !song.title.endsWith(" (modified)"))
       .slice(0, 2);
     return originals.flatMap((song) => {
       const sourceId = song.title.split(" (")[0];
-      const modifiedSong = SONGS.find(
+      const modifiedSong = SONGS.filter(hasKey).find(
         (candidate) => candidate.category === category && candidate.title === `${sourceId} (modified)`,
       );
       if (!modifiedSong) return [];
@@ -68,7 +69,7 @@ function getLessonSongPairs(): MelodySongPair[] {
 const LESSON_SONG_PAIRS = getLessonSongPairs();
 const LESSON_SONGS = LESSON_SONG_PAIRS.flatMap((pair) => pair.songs);
 
-function createExampleTrials(songs: Song[]): MelodyTrial[] {
+function createExampleTrials(songs: KeyedSong[]): MelodyTrial[] {
   return shuffle(songs).map((song, index) => ({
     id: `example-${Date.now()}-${index}-${song.title}`,
     song,
@@ -83,7 +84,7 @@ function MelodyVisual({
   noteAttack,
 }: {
   guidance: GuidanceMode;
-  song: Song;
+  song: KeyedSong;
   activeNotes: SongNote[];
   noteAttack: { id: number; noteIndices: number[] } | null;
 }) {

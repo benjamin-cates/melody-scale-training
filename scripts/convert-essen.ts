@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-// Use case: bun run scripts/convert-essen.ts Clips-Essen src/audio/generated-essen.ts src/audio/essen-key-rankings.csv
+// Use case: bun run scripts/convert-essen.ts Clips-Essen src/audio/generated-essen.ts
 
 // Clips-Essen can be downloaded from here: https://figshare.com/s/03179521a56c88bfac63 
 // Extract the directory containing the MIDI files and pass it as the first argument
@@ -8,13 +8,9 @@
 
 import { readdir } from "node:fs/promises";
 import { basename, extname, join, resolve } from "node:path";
-import { rankKeyClassifications, type KeyClassification } from "../src/audio/key-analysis";
+import { rankKeyClassifications } from "../src/audio/key-analysis";
 import { encodeSongNotes } from "../src/audio/song-notes";
 import type { SongNote } from "../src/audio/music";
-
-const NOTE_NAMES = [
-    "C", "D♭", "D", "E♭", "E", "F", "F♭", "G", "A♭", "A", "B♭", "B",
-];
 
 type MidiEvent = {
     tick: number;
@@ -26,8 +22,6 @@ type MidiEvent = {
 
 type EssenClip = {
     title: string;
-    tonic: number;
-    scale: number;
     compressedNotes: string;
 };
 
@@ -134,9 +128,7 @@ function getMidiEvents(data: Uint8Array) {
 }
 
 async function analyzeMidiToSong(filePath: string): Promise<{
-    song: EssenClip | null;
-    rankedKeys: KeyClassification[];
-    title: string;
+    song: EssenClip;
 }> {
     const data = new Uint8Array(await Bun.file(filePath).arrayBuffer());
     const { events, ticksPerBeat } = getMidiEvents(data);
@@ -202,46 +194,15 @@ async function analyzeMidiToSong(filePath: string): Promise<{
     const title = basename(filePath).replace(/\.[^.]+$/, "");
     const rankedKeys = rankKeyClassifications(notes);
     const inferredKey = rankedKeys[0];
-    if (!inferredKey) return { song: null, rankedKeys, title };
     const song: EssenClip = {
-        title,
-        tonic: inferredKey.tonic,
-        scale: inferredKey.scale === "major" ? 0 : 1,
+        title: inferredKey ? title : `X-${title}`,
         compressedNotes: await encodeSongNotes(notes),
     };
-    return { song, rankedKeys, title };
+    return { song };
 }
 
-export async function convertMidiToSong(filePath: string): Promise<EssenClip | null> {
+export async function convertMidiToSong(filePath: string): Promise<EssenClip> {
     return (await analyzeMidiToSong(filePath)).song;
-}
-
-function csvField(value: string | number) {
-    const text = String(value);
-    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-type SongRanking = {
-    title: string;
-    rankedKeys: KeyClassification[];
-    song?: EssenClip;
-};
-
-type ConfidentSongRanking = SongRanking & {
-    song: EssenClip;
-    confidenceGap: number;
-};
-
-function getTopConfidentRankings(rows: SongRanking[]): ConfidentSongRanking[] {
-    const sortableRows = rows.flatMap((row) => {
-        const [first, second] = row.rankedKeys;
-        return row.song && first && second
-            ? [{ ...row, song: row.song, confidenceGap: first.confidence - second.confidence }]
-            : [];
-    }).sort((left, right) =>
-        right.confidenceGap - left.confidenceGap || left.title.localeCompare(right.title),
-    );
-    return sortableRows.slice(0, Math.ceil(sortableRows.length * 0.9));
 }
 
 async function findMidiFiles(directory: string): Promise<string[]> {
@@ -262,37 +223,26 @@ async function convertDirectory(inputDirectory: string) {
     if (files.length === 0) throw new Error(`no MIDI files found in ${inputDirectory}`);
 
     const songs: EssenClip[] = [];
-    const excludedSongNames: string[] = [];
-    const rankings: SongRanking[] = [];
     for (const file of files) {
         try {
             const result = await analyzeMidiToSong(file);
-            rankings.push({
-                title: result.title,
-                rankedKeys: result.rankedKeys,
-                ...(result.song ? { song: result.song } : {}),
-            });
-            if (result.song) {
-                songs.push(result.song);
-            } else {
-                excludedSongNames.push(result.title);
-            }
+            songs.push(result.song);
         } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
             throw new Error(`failed to convert ${file}: ${reason}`, { cause: error });
         }
     }
-    return { songs, excludedSongNames, rankings };
+    return songs.sort((left, right) =>
+        left.title.localeCompare(right.title, undefined, { sensitivity: "base", numeric: true }),
+    );
 }
 
 const inputDirectory = resolve(process.argv[2] ?? "Clips-Essen");
 const outputPath = resolve(process.argv[3] ?? "src/audio/generated-essen.ts");
-const { songs, excludedSongNames, rankings } = await convertDirectory(inputDirectory);
-const selectedRankings = getTopConfidentRankings(rankings);
-const selectedSongs = selectedRankings.map(({ song }) => song);
-const records = selectedSongs.map((song) => `  ${JSON.stringify(song)}`).join(",\n");
-const output = `export type EssenClip = { title: string; tonic: number; scale: number; compressedNotes: string };\n\nexport const ESSEN_CLIPS: EssenClip[] = [\n${records}\n];\n`;
+const songs = await convertDirectory(inputDirectory);
+const records = songs.map((song) => `  ${JSON.stringify(song)}`).join(",\n");
+const output = `export type EssenClip = { title: string; compressedNotes: string };\n\nexport const ESSEN_CLIPS: EssenClip[] = [\n${records}\n];\n`;
 await Bun.write(outputPath, output);
-console.log(`Excluded ${excludedSongNames.length} song(s) that do not fit any major or minor scale.`);
-console.log(excludedSongNames.length > 0 ? excludedSongNames.join("\n") : "None");
-console.log(`Generated ${selectedSongs.length} Essen song(s); removed ${songs.length - selectedSongs.length} scale-fitting song(s) outside the top 90% by confidence gap.`);
+const incompatibleCount = songs.filter((song) => song.title.startsWith("X-")).length;
+console.log(`Generated ${songs.length} alphabetically sorted Essen songs.`);
+console.log(`Included ${incompatibleCount} songs with no matching major or minor mode.`);

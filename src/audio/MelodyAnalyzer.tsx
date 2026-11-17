@@ -33,6 +33,11 @@ type Analysis = {
   concurrentMax: number;
   predictedKeys: KeyClassification[];
   pianoRollNotes: TimedNote[];
+  noteCount: number;
+  durationBeats: number;
+  uniqueOnsetCount: number;
+  maxNotesPerBeatInTenNoteWindow: number | null;
+  minNotesPerBeatInTenNoteWindow: number | null;
 };
 
 type AnalysisState =
@@ -101,6 +106,22 @@ function analyzeNotes(notes: SongNote[]): Analysis {
   const onsetTimes = [...new Set(
     timedNotes.filter((note) => note.noteIndices.length > 0).map((note) => note.onset),
   )].sort((a, b) => a - b);
+  const pitchNotes = getPianoNotes(timedNotes).sort((a, b) => a.onset - b.onset || a.end - b.end);
+  const noteCount = pitchNotes.length;
+  const durationBeats = timedNotes.reduce((maximum, note) => Math.max(maximum, note.end), 0);
+  const tenNoteWindowDurations: number[] = [];
+  for (let index = 0; index + 10 <= pitchNotes.length; index++) {
+    const window = pitchNotes.slice(index, index + 10);
+    const windowStart = window[0].onset;
+    const windowEnd = window.reduce((maximum, note) => Math.max(maximum, note.end), 0);
+    if (windowEnd > windowStart) tenNoteWindowDurations.push(windowEnd - windowStart);
+  }
+  const shortestTenNoteWindow = tenNoteWindowDurations.length > 0
+    ? Math.min(...tenNoteWindowDurations)
+    : null;
+  const longestTenNoteWindow = tenNoteWindowDurations.length > 0
+    ? Math.max(...tenNoteWindowDurations)
+    : null;
   const onsetIntervals = onsetTimes.slice(1).map((onset, index) => onset - onsetTimes[index]);
   const onsetIntervalRange = Math.max(4, ...onsetIntervals);
   const onsetIntervalBins = Array.from({ length: ONSET_INTERVAL_BIN_COUNT }, () => 0);
@@ -145,6 +166,15 @@ function analyzeNotes(notes: SongNote[]): Analysis {
     concurrentMax,
     predictedKeys: rankKeyClassifications(notes),
     pianoRollNotes: timedNotes,
+    noteCount,
+    durationBeats,
+    uniqueOnsetCount: onsetTimes.length,
+    maxNotesPerBeatInTenNoteWindow: shortestTenNoteWindow === null
+      ? null
+      : 10 / shortestTenNoteWindow,
+    minNotesPerBeatInTenNoteWindow: longestTenNoteWindow === null
+      ? null
+      : 10 / longestTenNoteWindow,
   };
 }
 
@@ -154,6 +184,10 @@ function getYAxisMaximum(maximumValue: number) {
 
 function formatBeat(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function formatStatistic(value: number | null) {
+  return value === null || !Number.isFinite(value) ? "N/A" : value.toFixed(2);
 }
 
 function BarChart({
@@ -370,7 +404,8 @@ function PianoRoll({ notes }: { notes: TimedNote[] }) {
   );
 }
 
-function getPitchClassColor(pitchClass: number, tonic: number) {
+function getPitchClassColor(pitchClass: number, tonic?: number) {
+  if (tonic === undefined) return "is-other";
   if (pitchClass === tonic) return "is-tonic";
   if (pitchClass === (tonic + 4) % 12) return "is-major-third";
   if (pitchClass === (tonic + 3) % 12) return "is-minor-third";
@@ -378,7 +413,7 @@ function getPitchClassColor(pitchClass: number, tonic: number) {
   return "is-other";
 }
 
-function PitchClassPianoRoll({ notes, tonic }: { notes: TimedNote[]; tonic: number }) {
+function PitchClassPianoRoll({ notes, tonic }: { notes: TimedNote[]; tonic?: number }) {
   const pianoNotes = getPianoNotes(notes);
   if (pianoNotes.length === 0) {
     return <p className="melody-analyzer-status">No notes available for the pitch-class piano roll.</p>;
@@ -397,17 +432,21 @@ function PitchClassPianoRoll({ notes, tonic }: { notes: TimedNote[]; tonic: numb
   return (
     <figure className="melody-chart piano-roll-chart pitch-class-piano-roll">
       <figcaption>Pitch-class piano roll (all octaves)</figcaption>
-      <div className="pitch-class-legend" aria-label="Piano roll note colors">
-        <span><i className="is-tonic" />Tonic</span>
-        <span><i className="is-major-third" />Major third</span>
-        <span><i className="is-minor-third" />Minor third</span>
-        <span><i className="is-perfect-fifth" />Perfect fifth</span>
-        <span><i className="is-other" />Other notes</span>
-      </div>
+      {tonic === undefined ? (
+        <div className="pitch-class-legend">No matching mode</div>
+      ) : (
+        <div className="pitch-class-legend" aria-label="Piano roll note colors">
+          <span><i className="is-tonic" />Tonic</span>
+          <span><i className="is-major-third" />Major third</span>
+          <span><i className="is-minor-third" />Minor third</span>
+          <span><i className="is-perfect-fifth" />Perfect fifth</span>
+          <span><i className="is-other" />Other notes</span>
+        </div>
+      )}
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label={`Pitch-class piano roll for ${NOTE_NAMES[tonic]} tonic, over ${formatBeat(timeMaximum)} beats.`}
+        aria-label={`Pitch-class piano roll for ${tonic === undefined ? "unclassified mode" : `${NOTE_NAMES[tonic]} tonic`}, over ${formatBeat(timeMaximum)} beats.`}
       >
         {Array.from({ length: rowCount + 1 }, (_, index) => {
           const y = margin.top + index * rowHeight;
@@ -491,7 +530,7 @@ function PitchClassPianoRoll({ notes, tonic }: { notes: TimedNote[]; tonic: numb
   );
 }
 
-export function MelodyAnalyzer({ song }: { song: Song }) {
+export function MelodyAnalyzer({ song, tempo = 84 }: { song: Song; tempo?: number }) {
   const [state, setState] = useState<AnalysisState | null>(null);
 
   useEffect(() => {
@@ -530,9 +569,42 @@ export function MelodyAnalyzer({ song }: { song: Song }) {
     position: index + 0.5,
     label: datum.label,
   }));
+  const durationSeconds = tempo > 0 ? analysis.durationBeats * 60 / tempo : null;
+  const averageNotesPerBeat = analysis.durationBeats > 0
+    ? analysis.noteCount / analysis.durationBeats
+    : null;
+  const averageNotesPerSecond = durationSeconds && durationSeconds > 0
+    ? analysis.noteCount / durationSeconds
+    : null;
+  const maxNotesPerSecondInWindow = analysis.maxNotesPerBeatInTenNoteWindow === null
+    ? null
+    : analysis.maxNotesPerBeatInTenNoteWindow * tempo / 60;
+  const minNotesPerSecondInWindow = analysis.minNotesPerBeatInTenNoteWindow === null
+    ? null
+    : analysis.minNotesPerBeatInTenNoteWindow * tempo / 60;
+  const debugEnabled = new URLSearchParams(window.location.search).get("debug") === "true";
 
   return (
     <section className="melody-analyzer" id="melody-analyzer" aria-label={`Melody analysis for ${song.title}`}>
+      {debugEnabled && (
+        <a className="melody-debug-link" href="#essen_debug">
+          Essen database debug
+        </a>
+      )}
+      <section className="melody-statistics" aria-label="Melody duration and tempo statistics">
+        <h3>Duration and tempo statistics</h3>
+        <dl>
+          <div><dt>Playback tempo</dt><dd>{tempo} BPM</dd></div>
+          <div><dt>Average notes per beat</dt><dd>{formatStatistic(averageNotesPerBeat)}</dd></div>
+          <div><dt>Average notes per second</dt><dd>{formatStatistic(averageNotesPerSecond)}</dd></div>
+          <div><dt>Total duration</dt><dd>{formatStatistic(durationSeconds)} seconds</dd></div>
+          <div><dt>Total duration</dt><dd>{formatStatistic(analysis.durationBeats)} beats</dd></div>
+          <div><dt>Unique note onsets</dt><dd>{analysis.uniqueOnsetCount}</dd></div>
+          <div><dt>Maximum notes per second (10-note window)</dt><dd>{formatStatistic(maxNotesPerSecondInWindow)}</dd></div>
+          <div><dt>Minimum notes per second (10-note window)</dt><dd>{formatStatistic(minNotesPerSecondInWindow)}</dd></div>
+        </dl>
+        <p>Ten-note windows count individual pitches, including chord tones, from the first onset through the last note end.</p>
+      </section>
       <BarChart
         title="Note distribution"
         data={analysis.noteDistribution}
@@ -554,7 +626,10 @@ export function MelodyAnalyzer({ song }: { song: Song }) {
         xTicks={concurrentTicks}
       />
       <PianoRoll notes={analysis.pianoRollNotes} />
-      <PitchClassPianoRoll notes={analysis.pianoRollNotes} tonic={song.tonic} />
+      <PitchClassPianoRoll
+        notes={analysis.pianoRollNotes}
+        tonic={song.tonic ?? analysis.predictedKeys[0]?.tonic}
+      />
       <section className="melody-key-predictions" aria-label="Top predicted keys">
         <h3>Top 5 predicted keys</h3>
         {analysis.predictedKeys.length === 0 ? (

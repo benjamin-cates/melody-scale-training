@@ -4,6 +4,50 @@
   gap: 14px;
   margin-top: 18px;
 }
+.melody-debug-link {
+  color: #efc96a;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
+}
+.melody-statistics {
+  padding: 12px;
+  border: 1px solid #506067;
+  background: #304149;
+  color: #b9c2be;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.melody-statistics h3 {
+  margin: 0 0 10px;
+  color: #f2f0e9;
+  font-weight: 400;
+}
+.melody-statistics dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+.melody-statistics dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.melody-statistics dt {
+  color: #b9c2be;
+}
+.melody-statistics dd {
+  margin: 0;
+  color: #efc96a;
+  text-align: right;
+}
+.melody-statistics p {
+  margin: 10px 0 0;
+  color: #98a5a4;
+  font-size: 10px;
+}
 .melody-chart {
   min-width: 0;
   margin: 0;

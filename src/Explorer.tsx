@@ -1,22 +1,40 @@
 import { useState } from "react";
-import { getSongKey, SONG_CATEGORIES, SONGS, type SongCategory } from "./audio/music";
+import {
+  getActiveEssenExplorerFilterCount,
+  getExplorerSongs,
+  hasActiveEssenExplorerFilter,
+  SONG_CATEGORIES,
+  type SongCategory,
+} from "./audio/music";
 import { Chromatone } from "./audio/Chromatone";
 import { Player } from "./audio/Player";
+import { useSongClassification } from "./audio/useSongClassification";
 
 export function Explorer() {
-  const [category, setCategory] = useState<SongCategory>(SONG_CATEGORIES[0]);
-  const [subcategory, setSubcategory] = useState("Other");
-  const [analyzerEnabled, setAnalyzerEnabled] = useState(false);
-  const songsInCategory = SONGS.filter((song) => song.category === category);
-  const hasSubcategories = songsInCategory.some((song) => song.subcategory !== undefined);
+  const [category, setCategory] = useState<SongCategory>(
+    () => hasActiveEssenExplorerFilter() ? "Essen" : SONG_CATEGORIES[0],
+  );
+  const explorerSongs = getExplorerSongs();
+  const categoryOptions = SONG_CATEGORIES.filter((item) =>
+    item === "Custom" || explorerSongs.some((song) => song.category === item),
+  );
+  const songsInCategory = explorerSongs.filter((song) => song.category === category);
   const subcategories = [...new Set(songsInCategory.map((song) => song.subcategory ?? "Other"))];
+  const [subcategory, setSubcategory] = useState(subcategories[0] ?? "Other");
+  const [analyzerEnabled, setAnalyzerEnabled] = useState(false);
+  const hasSubcategories = songsInCategory.some((song) => song.subcategory !== undefined);
   const songsInSubcategory = hasSubcategories
     ? songsInCategory.filter((song) => (song.subcategory ?? "Other") === subcategory)
     : songsInCategory;
   const [songTitle, setSongTitle] = useState(songsInSubcategory[0]?.title ?? "");
-  const song = songsInSubcategory.find((item) => item.title === songTitle) ?? songsInSubcategory[0] ?? songsInCategory[0] ?? SONGS[0];
+  const song = songsInSubcategory.find((item) => item.title === songTitle)
+    ?? songsInSubcategory[0]
+    ?? songsInCategory[0]
+    ?? explorerSongs[0];
+  const songKey = useSongClassification(song);
+  const activeEssenFilter = hasActiveEssenExplorerFilter();
   function selectCategory(nextCategory: SongCategory) {
-    const nextSongs = SONGS.filter((songItem) => songItem.category === nextCategory);
+    const nextSongs = explorerSongs.filter((songItem) => songItem.category === nextCategory);
     const nextSubcategory = [...new Set(nextSongs.map((songItem) => songItem.subcategory ?? "Other"))][0] ?? "Other";
     setCategory(nextCategory);
     setSubcategory(nextSubcategory);
@@ -31,12 +49,18 @@ export function Explorer() {
   }
   return (
     <section className="page-section explorer-page">
+      {activeEssenFilter && (
+        <p className="muted explorer-filter-notice">
+          Showing {getActiveEssenExplorerFilterCount().toLocaleString()} filtered Essen songs and their modified versions.
+          Reload the page to restore the full list.
+        </p>
+      )}
       <section className="practice-panel" aria-label="Melody explorer">
         <div className="explorer-picker">
           <div className="explorer-picker-group">
             <span className="explorer-picker-label">Category</span>
             <div className="explorer-button-row" aria-label="Song category">
-              {SONG_CATEGORIES.map((item) => (
+              {categoryOptions.map((item) => (
                 <button
                   className={item === category ? "explorer-picker-button is-selected" : "explorer-picker-button"}
                   key={item}
@@ -102,7 +126,13 @@ export function Explorer() {
             </div>
             <div className="key-readout">
               <span>Key</span>
-              <strong>{getSongKey(song)}</strong>
+              <strong>
+                {songKey.status === "ready"
+                  ? songKey.label
+                  : songKey.status === "error"
+                    ? "Key analysis failed"
+                    : "Analyzing key..."}
+              </strong>
             </div>
           </div>
         )}

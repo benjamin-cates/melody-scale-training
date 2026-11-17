@@ -41,7 +41,7 @@ export function useSongPlayback(
   }, [song]);
 
   useEffect(() => {
-    if (song.notes || !song.compressedNotes) return;
+    if (song.notes || (!song.compressedNotes && !song.loadNotes)) return;
     let cancelled = false;
     void getSongNotes(song)
       .then((resolvedNotes) => {

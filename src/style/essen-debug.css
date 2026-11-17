@@ -1,0 +1,173 @@
+.essen-debug-page .page-heading > a {
+  color: #c76745;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.essen-debug-song-count {
+  color: #26353c;
+  font:
+    bold 13px "Trebuchet MS",
+    sans-serif;
+}
+.essen-debug-charts {
+  display: grid;
+  gap: 16px;
+}
+.essen-debug-filters {
+  display: grid;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid #506067;
+  background: #304149;
+  color: #b9c2be;
+  font:
+    12px "Trebuchet MS",
+    sans-serif;
+}
+.essen-debug-filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.essen-debug-filter-heading h2 {
+  margin: 0;
+  color: #f2f0e9;
+  font-size: 16px;
+  font-weight: 400;
+}
+.essen-debug-filters button {
+  padding: 6px 9px;
+  border: 1px solid #718087;
+  background: transparent;
+  color: #f2f0e9;
+  font:
+    11px "Trebuchet MS",
+    sans-serif;
+  cursor: pointer;
+}
+.essen-debug-filters fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #506067;
+}
+.essen-debug-filters legend {
+  padding: 0 5px;
+  color: #f2f0e9;
+}
+.essen-debug-key-actions {
+  display: flex;
+  gap: 8px;
+  margin: 2px 0 10px;
+}
+.essen-debug-key-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 7px 12px;
+}
+.essen-debug-key-options label,
+.essen-debug-no-gap-filter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.essen-debug-key-options input,
+.essen-debug-no-gap-filter input {
+  accent-color: #ef8a5b;
+}
+.essen-debug-range-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.essen-debug-range-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px;
+}
+.essen-debug-range-filter label {
+  display: grid;
+  gap: 4px;
+}
+.essen-debug-range-filter input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #718087;
+  background: #26353c;
+  color: #f2f0e9;
+  font: inherit;
+}
+.essen-debug-range-filter small {
+  grid-column: 1 / -1;
+  color: #98a5a4;
+  font-size: 10px;
+}
+.essen-debug-match-count {
+  margin: 0;
+  color: #26353c;
+  font:
+    14px "Trebuchet MS",
+    sans-serif;
+}
+.essen-debug-match-count strong {
+  color: #c76745;
+}
+.essen-debug-chart {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #506067;
+  background: #304149;
+}
+.essen-debug-chart figcaption {
+  margin-bottom: 8px;
+  color: #f2f0e9;
+  font:
+    13px "Trebuchet MS",
+    sans-serif;
+}
+.essen-debug-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.essen-debug-grid {
+  stroke: #506067;
+  stroke-width: 1;
+}
+.essen-debug-bar {
+  fill: #ef8a5b;
+}
+.essen-debug-tick {
+  fill: #b9c2be;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+}
+.essen-debug-axis-label {
+  fill: #98a5a4;
+  font:
+    10px "Trebuchet MS",
+    sans-serif;
+}
+.essen-debug-status {
+  margin: 18px 0;
+  color: #b9c2be;
+  font-size: 13px;
+}
+@media (max-width: 680px) {
+  .essen-debug-page {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+  .essen-debug-chart {
+    padding: 8px;
+  }
+  .essen-debug-filters {
+    padding: 10px;
+  }
+}

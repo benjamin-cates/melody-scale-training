@@ -75,6 +75,10 @@
   flex: 1;
   min-width: 0;
 }
+.vocoder-mode-buttons {
+  display: grid;
+  gap: 8px;
+}
 .vocoder-controls-row {
   display: flex;
   gap: 12px;

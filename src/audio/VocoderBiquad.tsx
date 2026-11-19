@@ -6,6 +6,7 @@ import {
   type FilterSlope,
   type VocoderSettings,
 } from "./vocoder-biquad";
+import { createSpectralSmearing, MAX_SPECTRAL_SMEARING_BINS } from "./spectral-smearing";
 import { getTimbre, preloadTimbre, setTimbre, TIMBRES, TIMBRE_LABELS, type Timbre } from "./audio";
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
@@ -33,14 +34,18 @@ type VocoderProps = {
 export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}) {
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(false);
+  const [smearingEnabled, setSmearingEnabled] = useState(false);
+  const [smearIntensity, setSmearIntensity] = useState(3);
   const [timbre, setSelectedTimbre] = useState<Timbre>(getTimbre);
   const [isTimbreLoading, setIsTimbreLoading] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_VOCODER_SETTINGS);
   const [error, setError] = useState("");
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const smearingSessionRef = useRef<ReturnType<typeof createSpectralSmearing> | null>(null);
 
   const centers = useMemo(() => getVocoderCenterFrequencies(settings), [settings]);
-  const isEnabled = forceEnabled ?? enabled;
+  const isVocoderEnabled = forceEnabled ?? enabled;
+  const isSmearingEnabled = forceEnabled === undefined && smearingEnabled;
 
   useEffect(() => {
     let cancelled = false;
@@ -60,7 +65,7 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   }, [timbre]);
 
   useEffect(() => {
-    if (!isEnabled) return;
+    if (!isVocoderEnabled) return;
     let cancelled = false;
     let animationFrameId: number | null = null;
     let session: ReturnType<typeof createVocoder>;
@@ -121,7 +126,36 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
       });
       session.dispose();
     };
-  }, [centers, isEnabled, settings]);
+  }, [centers, isVocoderEnabled, settings]);
+
+  useEffect(() => {
+    if (!isSmearingEnabled) return;
+    let cancelled = false;
+    let session: ReturnType<typeof createSpectralSmearing>;
+    try {
+      session = createSpectralSmearing(smearIntensity);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "The audio output could not be processed.");
+      setSmearingEnabled(false);
+      return;
+    }
+    smearingSessionRef.current = session;
+    void session.ready.catch((reason: unknown) => {
+      if (!cancelled) {
+        setError(reason instanceof Error ? reason.message : "The audio output could not be processed.");
+        setSmearingEnabled(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+      if (smearingSessionRef.current === session) smearingSessionRef.current = null;
+      session.dispose();
+    };
+  }, [isSmearingEnabled]);
+
+  useEffect(() => {
+    smearingSessionRef.current?.setIntensity(smearIntensity);
+  }, [smearIntensity]);
 
   function updateSettings(patch: Partial<VocoderSettings>) {
     setSettings((current) => ({ ...current, ...patch }));
@@ -132,7 +166,7 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   return (
     <aside className={`vocoder ${open ? "is-open" : ""}`} aria-label="Audio configuration">
       <button className="vocoder-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        <span className={`vocoder-status ${isEnabled ? "is-live" : ""}`} />
+        <span className={`vocoder-status ${isVocoderEnabled || isSmearingEnabled ? "is-live" : ""}`} />
         <span className="vocoder-toggle-label">Config</span>
         <b>{open ? "-" : "+"}</b>
       </button>
@@ -166,44 +200,82 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
             </div>
             <div className="vocoder-controls-row">
               <div className="vocoder-controls">
-                <button
-                  className={`vocoder-power ${isEnabled ? "is-on" : ""}`}
-                  onClick={() => {
-                    setError("");
-                    setEnabled((value) => !value);
-                  }}
-                >
-                  {isEnabled ? "Stop vocoder" : "Start vocoder"}
-                </button>
-                <label className="vocoder-field">
-                  <span>Channels <output>{settings.channels}</output></span>
-                  <input type="range" min="4" max="8" step="4" value={settings.channels} onChange={(event) => updateSettings({ channels: Number(event.target.value) })} />
-                </label>
-                <label className="vocoder-field">
-                  <span>Filter slope <output>{settings.slope} dB/oct</output></span>
-                  <input type="range" min="-24" max="-12" step="12" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) as FilterSlope })} />
-                </label>
-                <label className="vocoder-field">
-                  <span>Envelope low-pass <output>{settings.envelopeCutoffHz} Hz</output></span>
-                  <input type="range" min="100" max="2000" step="50" value={settings.envelopeCutoffHz} onChange={(event) => updateSettings({ envelopeCutoffHz: Number(event.target.value) })} />
-                </label>
+                <div className="vocoder-mode-buttons">
+                  {!isSmearingEnabled && (
+                    <button
+                      className={`vocoder-power ${isVocoderEnabled ? "is-on" : ""}`}
+                      onClick={() => {
+                        setError("");
+                        setSmearingEnabled(false);
+                        setEnabled((value) => !value);
+                      }}
+                    >
+                      {isVocoderEnabled ? "Stop vocoder" : "Start vocoder"}
+                    </button>
+                  )}
+                  {!isVocoderEnabled && (
+                    <button
+                      className={`vocoder-power ${isSmearingEnabled ? "is-on" : ""}`}
+                      onClick={() => {
+                        setError("");
+                        setEnabled(false);
+                        setSmearingEnabled((value) => !value);
+                      }}
+                    >
+                      {isSmearingEnabled ? "Stop spectral smearing" : "Start spectral smearing"}
+                    </button>
+                  )}
+                </div>
+                {isVocoderEnabled ? (
+                  <>
+                    <label className="vocoder-field">
+                      <span>Channels <output>{settings.channels}</output></span>
+                      <input type="range" min="4" max="8" step="4" value={settings.channels} onChange={(event) => updateSettings({ channels: Number(event.target.value) })} />
+                    </label>
+                    <label className="vocoder-field">
+                      <span>Filter slope <output>{settings.slope} dB/oct</output></span>
+                      <input type="range" min="-24" max="-12" step="12" value={settings.slope} onChange={(event) => updateSettings({ slope: Number(event.target.value) as FilterSlope })} />
+                    </label>
+                    <label className="vocoder-field">
+                      <span>Envelope low-pass <output>{settings.envelopeCutoffHz} Hz</output></span>
+                      <input type="range" min="100" max="2000" step="50" value={settings.envelopeCutoffHz} onChange={(event) => updateSettings({ envelopeCutoffHz: Number(event.target.value) })} />
+                    </label>
+                  </>
+                ) : isSmearingEnabled ? (
+                  <label className="vocoder-field">
+                    <span>Spectral smearing <output>{smearIntensity.toFixed(1)} bins</output></span>
+                    <input
+                      type="range"
+                      min="0"
+                      max={MAX_SPECTRAL_SMEARING_BINS}
+                      step="0.1"
+                      value={smearIntensity}
+                      aria-label="Spectral smearing intensity in frequency bins"
+                      onChange={(event) => setSmearIntensity(Number(event.target.value))}
+                    />
+                  </label>
+                ) : null}
                 {error && <p className="vocoder-error">{error}</p>}
-                <p className="vocoder-note">
-                  100-6000 Hz Greenwood-spaced bands with {settings.envelopeCutoffHz} Hz envelopes. <a href="#vocoder_debug">Vocoder debug</a>
-                </p>
+                {isVocoderEnabled && (
+                  <p className="vocoder-note">
+                    100-6000 Hz Greenwood-spaced bands with {settings.envelopeCutoffHz} Hz envelopes. <a href="#vocoder_debug">Vocoder debug</a>
+                  </p>
+                )}
               </div>
-              <div className="vocoder-channel-meter" aria-label="Channel activity meter">
-                {centers.map((center, index) => (
-                  <div
-                    className="vocoder-channel-box"
-                    key={`${index}-${Math.round(center)}`}
-                    ref={(element) => {
-                      boxRefs.current[index] = element;
-                    }}
-                    title={`Channel ${index + 1}: ${Math.round(center)} Hz`}
-                  />
-                ))}
-              </div>
+              {isVocoderEnabled && (
+                <div className="vocoder-channel-meter" aria-label="Channel activity meter">
+                  {centers.map((center, index) => (
+                    <div
+                      className="vocoder-channel-box"
+                      key={`${index}-${Math.round(center)}`}
+                      ref={(element) => {
+                        boxRefs.current[index] = element;
+                      }}
+                      title={`Channel ${index + 1}: ${Math.round(center)} Hz`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

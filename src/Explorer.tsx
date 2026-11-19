@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   getActiveEssenExplorerFilterCount,
   getExplorerSongs,
   hasActiveEssenExplorerFilter,
   SONG_CATEGORIES,
+  type Song,
   type SongCategory,
 } from "./audio/music";
 import { Chromatone } from "./audio/Chromatone";
@@ -32,7 +33,18 @@ export function Explorer() {
     ?? songsInCategory[0]
     ?? explorerSongs[0];
   const songKey = useSongClassification(song);
+  const [playerModification, setPlayerModification] = useState<{
+    song: Song;
+    description: string;
+  } | null>(null);
+  const [playerKey, setPlayerKey] = useState<{ song: Song; label: string } | null>(null);
   const activeEssenFilter = hasActiveEssenExplorerFilter();
+  const reportModification = useCallback((modifiedSong: Song, description: string) => {
+    setPlayerModification({ song: modifiedSong, description });
+  }, []);
+  const reportKey = useCallback((modifiedSong: Song, label: string) => {
+    setPlayerKey({ song: modifiedSong, label });
+  }, []);
   function selectCategory(nextCategory: SongCategory) {
     const nextSongs = explorerSongs.filter((songItem) => songItem.category === nextCategory);
     const nextSubcategory = [...new Set(nextSongs.map((songItem) => songItem.subcategory ?? "Other"))][0] ?? "Other";
@@ -51,7 +63,7 @@ export function Explorer() {
     <section className="page-section explorer-page">
       {activeEssenFilter && (
         <p className="muted explorer-filter-notice">
-          Showing {getActiveEssenExplorerFilterCount().toLocaleString()} filtered Essen songs and their modified versions.
+          Showing {getActiveEssenExplorerFilterCount().toLocaleString()} filtered Essen songs.
           Reload the page to restore the full list.
         </p>
       )}
@@ -121,17 +133,24 @@ export function Explorer() {
         ) : (
           <div className="panel-heading explorer-details">
             <div>
-              <h2>{song.title}</h2>
+              <h2>
+                {song.title}
+                {playerModification?.song === song && playerModification.description
+                  ? ` (${playerModification.description})`
+                  : ""}
+              </h2>
               <p className="muted">{song.subtitle}</p>
             </div>
             <div className="key-readout">
               <span>Key</span>
               <strong>
-                {songKey.status === "ready"
-                  ? songKey.label
-                  : songKey.status === "error"
-                    ? "Key analysis failed"
-                    : "Analyzing key..."}
+                {playerKey?.song === song
+                  ? playerKey.label
+                  : songKey.status === "ready"
+                    ? songKey.label
+                    : songKey.status === "error"
+                      ? "Key analysis failed"
+                      : "Analyzing key..."}
               </strong>
             </div>
           </div>
@@ -140,10 +159,13 @@ export function Explorer() {
           <Chromatone isInteractive />
         ) : (
           <Player
+            key={`${song.category}:${song.subcategory ?? ""}:${song.title}`}
             song={song}
             showKey
             showNotes
             analyzerEnabled={analyzerEnabled}
+            onModificationChange={reportModification}
+            onKeyChange={reportKey}
             onToggleAnalyzer={() => setAnalyzerEnabled((enabled) => !enabled)}
           />
         )}

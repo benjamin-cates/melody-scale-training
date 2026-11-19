@@ -1,4 +1,4 @@
-import { convertSongModeNotes, decodeSongNotes } from "./song-notes";
+import { decodeSongNotes } from "./song-notes";
 import { rankKeyClassifications } from "./key-analysis";
 import { NOTE_NAMES } from "./note-names.ts";
 export {
@@ -19,8 +19,7 @@ export type SongCategory =
   | "Exercises"
   | "Scales"
   | "Tests"
-  | "Essen"
-  | "Essen (modified)";
+  | "Essen";
 
 export type SongNote = {
   noteIndices: number[];
@@ -193,21 +192,6 @@ const ESSEN_SONGS: Song[] = CLASSIFIED_ESSEN_CLIPS.map((clip, index) => ({
   category: "Essen",
   subcategory: getEssenSubcategory(index),
   compressedNotes: clip.compressedNotes,
-}));
-
-const ESSEN_MODIFIED_SONGS: Song[] = ESSEN_SONGS.map((sourceSong, index) => ({
-  title: "m_" + sourceSong.title,
-  subtitle: "Imported from Essen. Modified to the opposite mode.",
-  category: "Essen (modified)",
-  subcategory: getEssenSubcategory(index),
-  loadNotes: async () => {
-    const sourceNotes = await getSongNotes(sourceSong);
-    const sourceKey = rankKeyClassifications(sourceNotes)[0];
-    if (!sourceKey) {
-      throw new Error(`Cannot create a modified mode for ${sourceSong.title}: no matching mode was found`);
-    }
-    return convertSongModeNotes(sourceNotes, sourceKey.tonic, sourceKey.scale);
-  },
 }));
 
 export const SONGS: Song[] = [
@@ -466,7 +450,6 @@ export const SONGS: Song[] = [
       notes
     } satisfies Song;
   }),
-  ...ESSEN_MODIFIED_SONGS,
   ...ESSEN_SONGS,
   ...UNCLASSIFIED_ESSEN_CLIPS.map((clip, index) => ({
     title: clip.title,
@@ -501,12 +484,10 @@ export function getActiveEssenExplorerFilterCount() {
 
 export function getExplorerSongs() {
   const activeTitles = activeEssenExplorerTitles;
-  if (activeTitles === null) return SONGS;
   return SONGS.filter((song) => {
+    if (song.title.endsWith(" (modified)")) return false;
+    if (activeTitles === null) return true;
     if (song.category === "Essen") return activeTitles.has(song.title);
-    if (song.category === "Essen (modified)" && song.title.startsWith("m_")) {
-      return activeTitles.has(song.title.slice(2));
-    }
     return true;
   });
 }
@@ -520,7 +501,6 @@ export const SONG_CATEGORIES = [
   "Scary",
   "Sad",
   "Essen",
-  "Essen (modified)",
   "Custom",
 ] as const;
 

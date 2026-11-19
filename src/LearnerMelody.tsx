@@ -4,7 +4,16 @@ import { downloadJson } from "./AppRoutes";
 import { Chromatone } from "./audio/Chromatone";
 import { PianoView } from "./audio/PianoView";
 import { useSongPlayback } from "./audio/useSongPlayback";
-import { hasKey, SONGS, type KeyedSong, type Scale, type Song, type SongNote } from "./audio/music";
+import {
+  convertSongModeNotes,
+  getSongNotes,
+  hasKey,
+  SONGS,
+  type KeyedSong,
+  type Scale,
+  type Song,
+  type SongNote,
+} from "./audio/music";
 import { LessonContinue, useLessonTimer } from "./LessonContinue.tsx";
 
 type GuidanceMode = "visual" | "auditory";
@@ -50,18 +59,26 @@ function getLessonSongPairs(): MelodySongPair[] {
       .filter(hasKey)
       .filter((song) => song.category === category && !song.title.endsWith(" (modified)"))
       .slice(0, 2);
-    return originals.flatMap((song) => {
+    return originals.map((song) => {
       const sourceId = song.title.split(" (")[0];
-      const modifiedSong = SONGS.filter(hasKey).find(
-        (candidate) => candidate.category === category && candidate.title === `${sourceId} (modified)`,
-      );
-      if (!modifiedSong) return [];
+      const sourceScale = song.scale;
+      const modifiedSong: KeyedSong = {
+        ...song,
+        title: `${sourceId} (modified)`,
+        scale: sourceScale === "major" ? "minor" : "major",
+        notes: undefined,
+        loadNotes: async () => convertSongModeNotes(
+          await getSongNotes(song),
+          song.tonic,
+          sourceScale,
+        ),
+      };
       songNumber += 1;
-      return [{
+      return {
         id: `song-${songNumber}`,
         label: `Song ${songNumber}`,
         songs: [song, modifiedSong],
-      }];
+      };
     });
   });
 }

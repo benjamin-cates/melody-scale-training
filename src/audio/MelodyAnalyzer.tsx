@@ -531,12 +531,17 @@ function PitchClassPianoRoll({ notes, tonic }: { notes: TimedNote[]; tonic?: num
 
 export function MelodyAnalyzer({ song, tempo = 84 }: { song: Song; tempo?: number }) {
   const [state, setState] = useState<AnalysisState | null>(null);
+  const [lastAnalysis, setLastAnalysis] = useState<Analysis | null>(null);
 
   useEffect(() => {
     let active = true;
     setState({ song, status: "loading" });
     void getSongNotes(song).then((notes) => {
-      if (active) setState({ song, status: "ready", analysis: analyzeNotes(notes) });
+      if (active) {
+        const analysis = analyzeNotes(notes);
+        setLastAnalysis(analysis);
+        setState({ song, status: "ready", analysis });
+      }
     }).catch((error: unknown) => {
       if (active) {
         setState({
@@ -552,14 +557,15 @@ export function MelodyAnalyzer({ song, tempo = 84 }: { song: Song; tempo?: numbe
   }, [song]);
 
   const currentState = state?.song === song ? state : null;
-  if (currentState?.status === "loading" || !currentState) {
+  const analysis = currentState?.status === "ready" ? currentState.analysis : lastAnalysis;
+  const isAnalyzing = currentState === null || currentState.status === "loading";
+  if (!analysis) {
     return <p className="melody-analyzer-status" role="status">Analyzing melody...</p>;
   }
-  if (currentState.status === "error") {
+  if (currentState?.status === "error" && lastAnalysis === null) {
     return <p className="melody-analyzer-status" role="alert">Could not analyze melody: {currentState.message}</p>;
   }
 
-  const { analysis } = currentState;
   const gapTicks = Array.from({ length: 5 }, (_, index) => ({
     position: (index * ONSET_INTERVAL_BIN_COUNT) / 4,
     label: formatBeat((index * analysis.onsetIntervalRange) / 4),
@@ -584,7 +590,22 @@ export function MelodyAnalyzer({ song, tempo = 84 }: { song: Song; tempo?: numbe
   const debugEnabled = new URLSearchParams(window.location.search).get("debug") === "true";
 
   return (
-    <section className="melody-analyzer" id="melody-analyzer" aria-label={`Melody analysis for ${song.title}`}>
+    <section
+      className="melody-analyzer"
+      id="melody-analyzer"
+      aria-label={`Melody analysis for ${song.title}`}
+      aria-busy={isAnalyzing}
+    >
+      {isAnalyzing && (
+        <p className="melody-analyzer-status" role="status">
+          Reanalyzing melody; showing the previous analysis until it is ready.
+        </p>
+      )}
+      {currentState?.status === "error" && (
+        <p className="melody-analyzer-status" role="alert">
+          Could not analyze melody: {currentState.message}
+        </p>
+      )}
       {debugEnabled && (
         <a className="melody-debug-link" href="#essen_debug">
           Essen database debug

@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Chromatone } from "./Chromatone";
 import { MelodyAnalyzer } from "./MelodyAnalyzer";
 import { useSongPlayback } from "./useSongPlayback";
-import type { Song } from "./music";
+import {
+  convertSongModeNotes,
+  getSongNotes,
+  type Scale,
+  type Song,
+} from "./music";
 import { useSongClassification } from "./useSongClassification";
 
 export function Player({
@@ -13,6 +18,8 @@ export function Player({
   showNotes = true,
   analyzerEnabled = false,
   onToggleAnalyzer,
+  onModificationChange,
+  onKeyChange,
 }: {
   song: Song;
   tempo?: number;
@@ -21,30 +28,95 @@ export function Player({
   showNotes?: boolean;
   analyzerEnabled?: boolean;
   onToggleAnalyzer?: () => void;
+  onModificationChange?: (song: Song, description: string) => void;
+  onKeyChange?: (song: Song, label: string) => void;
 }) {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(tempo);
+  const [pitchPreference, setPitchPreference] = useState({ song, semitones: 0 });
+  const pitchShift = pitchPreference.song === song ? pitchPreference.semitones : 0;
+  const [modePreference, setModePreference] = useState({ song, flipped: false });
+  const modeFlipped = modePreference.song === song && modePreference.flipped;
   const keyState = useSongClassification(song);
-  const playback = useSongPlayback(song, speed, playing);
+  const sourceClassification = keyState.status === "ready" ? keyState.classification : null;
+  const activeClassification: { tonic: number; scale: Scale } | null = sourceClassification
+    ? {
+      tonic: (sourceClassification.tonic + pitchShift + 12) % 12,
+      scale: modeFlipped
+        ? sourceClassification.scale === "major" ? "minor" : "major"
+        : sourceClassification.scale,
+    }
+    : null;
+  const activeScale = activeClassification?.scale;
+  const transformedSong = useMemo<Song>(() => {
+    if (pitchShift === 0 && !modeFlipped) return song;
+    return {
+      ...song,
+      tonic: undefined,
+      scale: undefined,
+      notes: undefined,
+      loadNotes: async () => {
+        const sourceNotes = await getSongNotes(song);
+        const modeNotes = sourceClassification && activeScale !== sourceClassification.scale
+          ? convertSongModeNotes(
+            sourceNotes,
+            sourceClassification.tonic,
+            sourceClassification.scale,
+          )
+          : sourceNotes;
+        return modeNotes.map((note) => ({
+          ...note,
+          noteIndices: note.noteIndices.map((noteIndex) => noteIndex + pitchShift),
+        }));
+      },
+    };
+  }, [song, sourceClassification, activeScale, pitchShift, modeFlipped]);
+  const transformedKeyState = useSongClassification(transformedSong);
+  const playback = useSongPlayback(transformedSong, speed, playing);
+  const modeButtonLabel = activeClassification
+    ? `Switch to ${activeClassification.scale === "major" ? "minor" : "major"}`
+    : keyState.status === "loading" ? "Loading mode..." : "Mode unavailable";
+
+  const transformedKeyLabel = transformedKeyState.status === "ready"
+    ? transformedKeyState.label
+    : transformedKeyState.status === "error" ? "Key analysis failed" : "Analyzing key...";
+
+  useEffect(() => {
+    const changes: string[] = [];
+    if (pitchShift !== 0) changes.push(`${pitchShift > 0 ? "+" : ""}${pitchShift} semitones`);
+    if (modeFlipped && activeScale) changes.push(`${activeScale} mode`);
+    onModificationChange?.(song, changes.join(", "));
+  }, [song, pitchShift, modeFlipped, activeScale, onModificationChange]);
+
+  useEffect(() => {
+    onKeyChange?.(song, transformedKeyLabel);
+  }, [song, transformedKeyLabel, onKeyChange]);
+
   return (
     <div className={`song-player ${className}`}>
       {showNotes && (
         analyzerEnabled
-          ? <MelodyAnalyzer song={song} tempo={speed} />
+          ? <MelodyAnalyzer song={transformedSong} tempo={speed} />
           : (
             <Chromatone
-              keyLabel={keyState.status === "ready" ? keyState.label : undefined}
-              tonic={keyState.status === "ready" ? keyState.classification?.tonic : undefined}
+              keyLabel={transformedKeyState.status === "ready"
+                ? transformedKeyState.label
+                : undefined}
+              tonic={transformedKeyState.status === "ready"
+                ? transformedKeyState.classification?.tonic
+                : undefined}
               activeNotes={playback.activeNotes}
               noteAttack={playback.noteAttack}
-              showKey={showKey && keyState.status === "ready" && keyState.classification !== null}
+              showKey={showKey
+                && transformedKeyState.status === "ready"
+                && transformedKeyState.classification !== null}
               showNotes={showNotes}
             />
           )
       )}
-      {keyState.status === "error" && (
+      {transformedKeyState.status === "error" && (
         <p className="melody-analyzer-status" role="alert">
-          Could not analyze song key: {keyState.message}
+          Could not analyze song key: {transformedKeyState.message}
         </p>
       )}
       {onToggleAnalyzer && (
@@ -67,19 +139,48 @@ export function Player({
         >
           {playing ? "Ⅱ Pause" : "▶ Play"}
         </button>
-        <div className="tempo-control">
-          <label htmlFor={`tempo-${song.title}`}>Tempo</label>
-          <input
-            id={`tempo-${song.title}`}
-            type="range"
-            min="48"
-            max="144"
-            value={speed}
-            onChange={(event) => setSpeed(Number(event.target.value))}
-          />
-          <output>
-            {speed} <small>BPM</small>
-          </output>
+        <div className="playback-adjustments">
+          <div className="tempo-control">
+            <label htmlFor={`tempo-${song.title}`}>Tempo</label>
+            <input
+              id={`tempo-${song.title}`}
+              type="range"
+              min="48"
+              max="144"
+              value={speed}
+              onChange={(event) => setSpeed(Number(event.target.value))}
+            />
+            <output>
+              {speed} <small>BPM</small>
+            </output>
+          </div>
+          <div className="pitch-control">
+            <label htmlFor={`pitch-shift-${song.title}`}>Pitch shift</label>
+            <input
+              id={`pitch-shift-${song.title}`}
+              type="range"
+              min="-12"
+              max="12"
+              step="1"
+              value={pitchShift}
+              onChange={(event) => setPitchPreference({
+                song,
+                semitones: Number(event.target.value),
+              })}
+            />
+            <output>
+              {pitchShift > 0 ? "+" : ""}{pitchShift} <small>semitones</small>
+            </output>
+            <button
+              className="secondary-button mode-toggle-button"
+              type="button"
+              disabled={activeClassification === null}
+              aria-pressed={modeFlipped}
+              onClick={() => setModePreference({ song, flipped: !modeFlipped })}
+            >
+              {modeButtonLabel}
+            </button>
+          </div>
         </div>
         <div className="progress-text">
           <span>{playing ? "Playing" : "Ready"}</span>

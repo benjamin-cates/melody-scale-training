@@ -161,24 +161,6 @@ function detectKey(notes: SongNote[], fileName: string): DetectedKey {
   };
 }
 
-function convertMode(notes: SongNote[], key: DetectedKey) {
-  const nextScale = key.scale === "major" ? "minor" : "major";
-  const alteredDegrees = key.scale === "major"
-    ? new Map([[4, 3], [9, 8], [11, 10]])
-    : new Map([[3, 4], [8, 9], [10, 11]]);
-
-  return notes.map((note) => ({
-    ...note,
-    noteIndices: note.noteIndices.map((noteIndex) => {
-      const pitchClass = (noteIndex + 21) % 12;
-      const degree = (pitchClass - key.tonic + 12) % 12;
-      const convertedDegree = alteredDegrees.get(degree);
-      if (convertedDegree === undefined) return noteIndex;
-      return noteIndex + (convertedDegree - degree);
-    }),
-  }));
-}
-
 function clipName(fileName: string) {
   return fileName.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_$]/g, "_");
 }
@@ -213,14 +195,6 @@ async function convertDirectory(directory: string) {
       compressedNotes: await encodeSongNotes(notes),
       category,
       ...stats,
-    };
-
-    const modifiedScale = stats.scale === "major" ? "minor" : "major";
-    clips[name + " (modified)"] = {
-      compressedNotes: await encodeSongNotes(convertMode(notes, stats)),
-      tonic: stats.tonic,
-      scale: modifiedScale,
-      category,
     };
   }
   return clips;

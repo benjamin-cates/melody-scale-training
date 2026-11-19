@@ -38,13 +38,21 @@
 .play-button span {
   margin-right: 9px;
 }
-.tempo-control {
+.playback-adjustments {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.tempo-control,
+.pitch-control {
   display: flex;
   align-items: center;
   gap: 15px;
-  flex: 1;
 }
-.tempo-control label {
+.tempo-control label,
+.pitch-control label {
   color: #98a5a4;
   font:
     10px "Trebuchet MS",
@@ -58,16 +66,28 @@ input[type="range"] {
   accent-color: #ef8a5b;
   cursor: pointer;
 }
-.tempo-control output {
+.tempo-control output,
+.pitch-control output {
   min-width: 58px;
   color: #f2f0e9;
   font-size: 14px;
 }
-.tempo-control small {
+.tempo-control small,
+.pitch-control small {
   color: #98a5a4;
   font:
     9px "Trebuchet MS",
     sans-serif;
+}
+.mode-toggle-button {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.mode-toggle-button:disabled {
+  cursor: default;
+  opacity: 0.55;
 }
 .progress-text {
   display: flex;
@@ -91,13 +111,20 @@ input[type="range"] {
     flex-wrap: wrap;
     gap: 12px;
   }
-  .tempo-control {
-    flex: 1;
+  .playback-adjustments {
+    flex: 1 1 100%;
+  }
+  .tempo-control,
+  .pitch-control {
     gap: 8px;
     min-width: 0;
   }
-  .tempo-control input[type="range"] {
+  .tempo-control input[type="range"],
+  .pitch-control input[type="range"] {
     min-width: 0;
+  }
+  .mode-toggle-button {
+    padding: 7px 8px;
   }
   .progress-text {
     margin-left: auto;

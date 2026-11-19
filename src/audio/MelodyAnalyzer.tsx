@@ -47,7 +47,7 @@ type AnalysisState =
 
 const ONSET_INTERVAL_BIN_COUNT = 20;
 const AXIS_SPACING = 5;
-const PIANO_ROLL_BEAT_SPACING = 5;
+const PIANO_ROLL_BEAT_SPACING = 4;
 
 function getTimedNotes(notes: SongNote[]): TimedNote[] {
   let onset = 0;
@@ -77,16 +77,15 @@ function getPianoNotes(notes: TimedNote[]): PianoNote[] {
 }
 
 function getPianoRollTimeMaximum(notes: PianoNote[]) {
-  return Math.max(1, ...notes.map((note) => note.end));
+  const maximum = Math.max(1, ...notes.map((note) => note.end));
+  return Math.ceil(maximum / PIANO_ROLL_BEAT_SPACING) * PIANO_ROLL_BEAT_SPACING;
 }
 
 function getPianoRollBeatTicks(timeMaximum: number) {
-  const ticks = Array.from(
+  return Array.from(
     { length: Math.floor(timeMaximum / PIANO_ROLL_BEAT_SPACING) + 1 },
     (_, index) => index * PIANO_ROLL_BEAT_SPACING,
   );
-  if (ticks[ticks.length - 1] !== timeMaximum) ticks.push(timeMaximum);
-  return ticks;
 }
 
 function getPianoRollBarWidth(duration: number, timeMaximum: number, plotWidth: number) {

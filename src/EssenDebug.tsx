@@ -180,6 +180,21 @@ function NumericRangeFilter({
   );
 }
 
+function getCountAxisScale(maximumValue: number) {
+  const targetStep = maximumValue / 5;
+  const magnitude = 10 ** Math.floor(Math.log10(Math.max(targetStep, 1)));
+  const normalizedStep = targetStep / magnitude;
+  const stepMultiplier = normalizedStep <= 1 ? 1
+    : normalizedStep <= 2 ? 2
+      : normalizedStep <= 5 ? 5
+        : 10;
+  const tickStep = stepMultiplier * magnitude;
+  return {
+    tickStep,
+    maximum: Math.max(tickStep, Math.ceil(maximumValue / tickStep) * tickStep),
+  };
+}
+
 function KeyDistributionChart({ data }: { data: KeyCount[] }) {
   const width = 760;
   const rowHeight = 23;
@@ -187,8 +202,7 @@ function KeyDistributionChart({ data }: { data: KeyCount[] }) {
   const plotWidth = width - margin.left - margin.right;
   const height = margin.top + data.length * rowHeight + margin.bottom;
   const maximumCount = data.reduce((maximum, item) => Math.max(maximum, item.count), 0);
-  const tickStep = Math.max(1, Math.ceil(maximumCount / 5));
-  const xMaximum = Math.max(tickStep, Math.ceil(maximumCount / tickStep) * tickStep);
+  const { tickStep, maximum: xMaximum } = getCountAxisScale(maximumCount);
   const ticks = Array.from(
     { length: Math.floor(xMaximum / tickStep) + 1 },
     (_, index) => index * tickStep,
@@ -267,6 +281,30 @@ function createHistogram(values: number[]) {
   return { minimum, maximum, counts };
 }
 
+function getDescriptiveStatistics(values: number[]) {
+  const sortedValues = [...values].sort((a, b) => a - b);
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
+  const quantile = (probability: number) => {
+    const position = (sortedValues.length - 1) * probability;
+    const lowerIndex = Math.floor(position);
+    const upperIndex = Math.ceil(position);
+    const fraction = position - lowerIndex;
+    return sortedValues[lowerIndex]
+      + (sortedValues[upperIndex] - sortedValues[lowerIndex]) * fraction;
+  };
+
+  return {
+    mean,
+    standardDeviation: Math.sqrt(variance),
+    minimum: sortedValues[0],
+    q1: quantile(0.25),
+    median: quantile(0.5),
+    q3: quantile(0.75),
+    maximum: sortedValues[sortedValues.length - 1],
+  };
+}
+
 function HistogramChart({ title, values, xAxisLabel }: {
   title: string;
   values: number[];
@@ -282,9 +320,9 @@ function HistogramChart({ title, values, xAxisLabel }: {
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
   const histogram = createHistogram(values);
+  const statistics = getDescriptiveStatistics(values);
   const maximumCount = histogram.counts.reduce((maximum, count) => Math.max(maximum, count), 0);
-  const tickStep = Math.max(1, Math.ceil(maximumCount / 5));
-  const yMaximum = Math.max(tickStep, Math.ceil(maximumCount / tickStep) * tickStep);
+  const { tickStep, maximum: yMaximum } = getCountAxisScale(maximumCount);
   const yTicks = Array.from(
     { length: Math.floor(yMaximum / tickStep) + 1 },
     (_, index) => index * tickStep,
@@ -362,6 +400,14 @@ function HistogramChart({ title, values, xAxisLabel }: {
           Songs
         </text>
       </svg>
+      <p className="essen-debug-statistics">
+        Mean: {statistics.mean.toFixed(4)}; standard deviation: {statistics.standardDeviation.toFixed(4)};
+      </p>
+      <p className="essen-debug-statistics">
+        Min: {statistics.minimum.toFixed(4)}; Q1: {statistics.q1.toFixed(4)};
+        {" "}<b>Median: {statistics.median.toFixed(4)}</b>; Q3: {statistics.q3.toFixed(4)};
+        {" "}Max: {statistics.maximum.toFixed(4)}
+      </p>
     </figure>
   );
 }
@@ -443,11 +489,7 @@ export function EssenDebug() {
   return (
     <section className="page-section essen-debug-page">
       <header className="page-heading">
-        <p className="eyebrow">Debug analysis</p>
         <h1>Essen database</h1>
-        <p className="intro-copy">
-          Distribution of stored keys and note-based statistics, calculated from the current Essen clips.
-        </p>
         <p className="essen-debug-song-count">
           Essen songs: {ESSEN_CLIPS.length.toLocaleString()}
         </p>
@@ -532,7 +574,7 @@ export function EssenDebug() {
               />
               <NumericRangeFilter
                 id="essen-confidence-gap"
-                label="Confidence disambiguity (top - second)"
+                label="Confidence (top - second)"
                 range={filters.confidenceGap}
                 extent={confidenceGapExtent}
                 step={0.001}

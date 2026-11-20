@@ -1,4 +1,4 @@
-import { configureOscillatorTimbre, getAudioBus, getAudioContext } from "./audio";
+import { configureOscillatorTimbre, getAudioBus, getAudioContext, getAudioOutput } from "./audio";
 
 export type FilterSlope = -12 | -24;
 
@@ -248,7 +248,7 @@ export function createVocoder(settings: VocoderSettings): VocoderSession {
     activeSessionId = sessionId;
 
     try {
-        graph = buildVocoderGraph(context, source, context.destination, settings);
+        graph = buildVocoderGraph(context, source, getAudioOutput(), settings);
         bus.disconnect();
         bus.connect(source);
         busRouted = true;
@@ -266,7 +266,7 @@ export function createVocoder(settings: VocoderSettings): VocoderSession {
                 graph.nodes.forEach((node) => node.disconnect());
                 if (busRouted && activeSessionId === sessionId) {
                     bus.disconnect();
-                    bus.connect(context.destination);
+                    bus.connect(getAudioOutput());
                     busRouted = false;
                 }
             },
@@ -274,7 +274,7 @@ export function createVocoder(settings: VocoderSettings): VocoderSession {
     } catch (reason) {
         if (busRouted && activeSessionId === sessionId) {
             bus.disconnect();
-            bus.connect(context.destination);
+            bus.connect(getAudioOutput());
         }
         throw reason;
     }
@@ -330,9 +330,9 @@ function createTonePreview(
     const input = context.createGain();
     let graph: VocoderGraph | null = null;
     if (settings) {
-        graph = buildVocoderGraph(context, input, context.destination, settings);
+        graph = buildVocoderGraph(context, input, getAudioOutput(), settings);
     } else {
-        input.connect(context.destination);
+        input.connect(getAudioOutput());
     }
 
     const oscillator = context.createOscillator();
@@ -467,7 +467,7 @@ async function measureToneOutputPower(settings: VocoderSettings, frequencies: nu
     const oscillator = context.createOscillator();
     oscillator.type = "sine";
     oscillator.connect(inputGain);
-    const graph = buildVocoderGraph(context, inputGain, context.destination, settings);
+    const graph = buildVocoderGraph(context, inputGain, getAudioOutput(), settings);
 
     frequencies.forEach((frequency, index) => {
         oscillator.frequency.setValueAtTime(frequency, (index * framesPerTone) / sampleRate);
@@ -528,7 +528,7 @@ export async function measureChannelTonePower(settings: VocoderSettings, frequen
     const oscillator = context.createOscillator();
     oscillator.type = "sine";
     oscillator.connect(inputGain);
-    const graph = buildVocoderGraph(context, inputGain, context.destination, settings, true);
+    const graph = buildVocoderGraph(context, inputGain, getAudioOutput(), settings, true);
 
     frequencies.forEach((frequency, index) => {
         oscillator.frequency.setValueAtTime(frequency, (index * framesPerTone) / sampleRate);

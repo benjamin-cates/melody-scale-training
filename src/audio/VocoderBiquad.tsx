@@ -7,6 +7,8 @@ import {
   type VocoderSettings,
 } from "./vocoder-biquad";
 import { createSpectralSmearing, MAX_SPECTRAL_SMEARING_BINS } from "./spectral-smearing";
+import { openSpectrogramPopup } from "./SpectrogramPopup";
+import { startFinalAudioRecording, type FinalAudioRecording } from "./spectrogram-recording";
 import { getTimbre, preloadTimbre, setTimbre, TIMBRES, TIMBRE_LABELS, type Timbre } from "./audio";
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
@@ -36,12 +38,14 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   const [enabled, setEnabled] = useState(false);
   const [smearingEnabled, setSmearingEnabled] = useState(false);
   const [smearIntensity, setSmearIntensity] = useState(3);
+  const [isRecording, setIsRecording] = useState(false);
   const [timbre, setSelectedTimbre] = useState<Timbre>(getTimbre);
   const [isTimbreLoading, setIsTimbreLoading] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_VOCODER_SETTINGS);
   const [error, setError] = useState("");
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
   const smearingSessionRef = useRef<ReturnType<typeof createSpectralSmearing> | null>(null);
+  const recordingSessionRef = useRef<FinalAudioRecording | null>(null);
 
   const centers = useMemo(() => getVocoderCenterFrequencies(settings), [settings]);
   const isVocoderEnabled = forceEnabled ?? enabled;
@@ -156,6 +160,32 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   useEffect(() => {
     smearingSessionRef.current?.setIntensity(smearIntensity);
   }, [smearIntensity]);
+
+  useEffect(() => () => recordingSessionRef.current?.dispose(), []);
+
+  function toggleRecording() {
+    const activeRecording = recordingSessionRef.current;
+    if (activeRecording) {
+      const showSpectrogram = openSpectrogramPopup();
+      recordingSessionRef.current = null;
+      setIsRecording(false);
+      const recording = activeRecording.stop();
+      if (showSpectrogram) showSpectrogram(recording);
+      else void recording.catch((reason: unknown) => {
+        setError(reason instanceof Error ? reason.message : "The recording could not be opened.");
+      });
+      if (!showSpectrogram) setError("Allow popups to open the recorded spectrogram.");
+      return;
+    }
+
+    try {
+      setError("");
+      recordingSessionRef.current = startFinalAudioRecording();
+      setIsRecording(true);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Audio recording is not supported in this browser.");
+    }
+  }
 
   function updateSettings(patch: Partial<VocoderSettings>) {
     setSettings((current) => ({ ...current, ...patch }));
@@ -276,6 +306,16 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
                   ))}
                 </div>
               )}
+            </div>
+            <div className="vocoder-recording">
+              <button
+                type="button"
+                className={`vocoder-power ${isRecording ? "is-on" : ""}`}
+                aria-pressed={isRecording}
+                onClick={toggleRecording}
+              >
+                {isRecording ? "Stop recording" : "Record spectrogram"}
+              </button>
             </div>
           </div>
         </div>

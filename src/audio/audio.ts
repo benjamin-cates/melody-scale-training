@@ -30,6 +30,7 @@ export type AudioVoice = {
 
 let sharedContext: AudioContext | null = null;
 let sharedBus: GainNode | null = null;
+let sharedOutput: GainNode | null = null;
 const periodicWaves = new WeakMap<AudioContext, Partial<Record<Timbre, PeriodicWave>>>();
 let synthesizerPromise: Promise<WorkletSynthesizer> | null = null;
 const soundFontPromises = new Map<SoundFontTimbre, Promise<WorkletSynthesizer>>();
@@ -154,11 +155,20 @@ export function getAudioContext() {
   return sharedContext;
 }
 
+export function getAudioOutput() {
+  const context = getAudioContext();
+  if (!sharedOutput) {
+    sharedOutput = context.createGain();
+    sharedOutput.connect(context.destination);
+  }
+  return sharedOutput;
+}
+
 export function getAudioBus() {
   const context = getAudioContext();
   if (!sharedBus) {
     sharedBus = context.createGain();
-    sharedBus.connect(context.destination);
+    sharedBus.connect(getAudioOutput());
   }
   return sharedBus;
 }

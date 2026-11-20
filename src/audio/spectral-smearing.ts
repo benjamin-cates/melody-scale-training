@@ -1,4 +1,4 @@
-import { getAudioBus, getAudioContext } from "./audio";
+import { getAudioBus, getAudioContext, getAudioOutput } from "./audio";
 
 const FFT_SIZE = 2048;
 const HOP_SIZE = 512;
@@ -252,7 +252,7 @@ export function createSpectralSmearing(initialSigmaBins: number): SpectralSmeari
       channelCountMode: "explicit",
       processorOptions: { sigma: sigmaBins },
     });
-    source.connect(worklet).connect(context.destination);
+    source.connect(worklet).connect(getAudioOutput());
     await context.resume();
     if (disposed) return;
     try {
@@ -261,7 +261,7 @@ export function createSpectralSmearing(initialSigmaBins: number): SpectralSmeari
       busRouted = true;
     } catch (reason) {
       bus.disconnect();
-      bus.connect(context.destination);
+      bus.connect(getAudioOutput());
       throw reason;
     }
   }).catch((reason: unknown) => {
@@ -284,7 +284,7 @@ export function createSpectralSmearing(initialSigmaBins: number): SpectralSmeari
       source.disconnect();
       if (busRouted && activeSessionId === sessionId) {
         bus.disconnect();
-        bus.connect(context.destination);
+        bus.connect(getAudioOutput());
         busRouted = false;
       }
     },

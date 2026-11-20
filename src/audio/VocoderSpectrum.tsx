@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { configureOscillatorTimbre } from "./audio";
-import { getAudioBus, getAudioContext } from "./audio";
+import { getAudioBus, getAudioContext, getAudioOutput } from "./audio";
 
 type Spacing = "greenwood" | "linear" | "custom";
 type Carrier = "sine" | "noise";
@@ -295,7 +295,7 @@ export function Vocoder() {
       console.log("[VocoderSpectrum] restoring shared bus", { effectId, cancelled, hasGraph: Boolean(graph) });
       const bus = getAudioBus();
       bus.disconnect();
-      bus.connect(getAudioContext().destination);
+      bus.connect(getAudioOutput());
       busRouted = false;
       console.log("[VocoderSpectrum] shared bus restored", { effectId });
     }
@@ -337,7 +337,7 @@ export function Vocoder() {
         normalizer.gain.value = 2.5;
         source.connect(inputAnalyser).connect(worklet).connect(splitter);
         centers.forEach((_, index) => splitter.connect(sum, index));
-        sum.connect(outputAnalyser).connect(normalizer).connect(context.destination);
+        sum.connect(outputAnalyser).connect(normalizer).connect(getAudioOutput());
         const nodes: AudioNode[] = [source, inputAnalyser, worklet, splitter, sum, outputAnalyser, normalizer];
         pendingNodes = nodes;
         await context.resume();
@@ -358,7 +358,7 @@ export function Vocoder() {
           busRouted = true;
         } catch (reason) {
           bus.disconnect();
-          bus.connect(context.destination);
+          bus.connect(getAudioOutput());
           throw reason;
         }
         console.log("[VocoderSpectrum] graph installed", { effectId, processorName });
@@ -410,7 +410,7 @@ export function Vocoder() {
         if (audioRef.current === graph) {
           console.log("[VocoderSpectrum] disconnecting vocoder graph and restoring bus", { effectId });
           graph.bus.disconnect();
-          graph.bus.connect(graph.context.destination);
+          graph.bus.connect(getAudioOutput());
           busRouted = false;
           audioRef.current = null;
           console.log("[VocoderSpectrum] cleanup restored shared bus", { effectId });

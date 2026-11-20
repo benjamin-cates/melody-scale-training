@@ -147,12 +147,12 @@ class SpectralSmearingProcessor extends AudioWorkletProcessor {
       blurredEnergy += this.blurred[bin] * this.blurred[bin] * energyWeight;
     }
     const scale = blurredEnergy > 1e-18 ? Math.sqrt(originalEnergy / blurredEnergy) : 1;
+    const phaseBlend = Math.min(1, this.sigma / 3);
     this.real[0] = this.blurred[0] * scale * (this.real[0] < 0 ? -1 : 1);
     this.imaginary[0] = 0;
     this.real[this.halfSize] = this.blurred[this.halfSize] * scale
       * (this.real[this.halfSize] < 0 ? -1 : 1);
     this.imaginary[this.halfSize] = 0;
-    const phaseBlend = Math.min(1, this.sigma / 10);
     for (let bin = 1; bin < this.halfSize; bin += 1) {
       const magnitude = Math.hypot(this.real[bin], this.imaginary[bin]);
       const targetMagnitude = this.blurred[bin] * scale;
@@ -160,12 +160,9 @@ class SpectralSmearingProcessor extends AudioWorkletProcessor {
       const randomPhase = (Math.random() * 2 - 1) * Math.PI;
       let phaseReal = 0;
       let phaseImaginary = 0;
-      if (magnitude <= 1e-18 || phaseBlend >= 1) {
+      if (magnitude <= 1e-18) {
         phaseReal = Math.cos(randomPhase);
         phaseImaginary = Math.sin(randomPhase);
-      } else if (phaseBlend <= 0) {
-        phaseReal = Math.cos(originalPhase);
-        phaseImaginary = Math.sin(originalPhase);
       } else {
         phaseReal = (1 - phaseBlend) * Math.cos(originalPhase) + phaseBlend * Math.cos(randomPhase);
         phaseImaginary = (1 - phaseBlend) * Math.sin(originalPhase) + phaseBlend * Math.sin(randomPhase);

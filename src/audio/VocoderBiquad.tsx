@@ -6,10 +6,14 @@ import {
   type FilterSlope,
   type VocoderSettings,
 } from "./vocoder-biquad";
-import { createSpectralSmearing, MAX_SPECTRAL_SMEARING_BINS } from "./spectral-smearing";
+import {
+  createSpectralSmearing,
+  getSpectralSmearingSigmaBins,
+  MAX_SPECTRAL_SMEARING_RADIUS_HZ,
+} from "./spectral-smearing";
 import { openSpectrogramPopup } from "./SpectrogramPopup";
 import { startFinalAudioRecording, type FinalAudioRecording } from "./spectrogram-recording";
-import { getTimbre, preloadTimbre, setTimbre, TIMBRES, TIMBRE_LABELS, type Timbre } from "./audio";
+import { getAudioContext, getTimbre, preloadTimbre, setTimbre, TIMBRES, TIMBRE_LABELS, type Timbre } from "./audio";
 
 function getIntensityColor(intensity: number): { background: string; shadow: string } {
   if (intensity <= 0.02) {
@@ -37,7 +41,8 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [smearingEnabled, setSmearingEnabled] = useState(false);
-  const [smearIntensity, setSmearIntensity] = useState(3);
+  const [smearRadiusHz, setSmearRadiusHz] = useState(300);
+  const [audioSampleRate, setAudioSampleRate] = useState(48000);
   const [isRecording, setIsRecording] = useState(false);
   const [timbre, setSelectedTimbre] = useState<Timbre>(getTimbre);
   const [isTimbreLoading, setIsTimbreLoading] = useState(false);
@@ -137,7 +142,9 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
     let cancelled = false;
     let session: ReturnType<typeof createSpectralSmearing>;
     try {
-      session = createSpectralSmearing(smearIntensity);
+      const context = getAudioContext();
+      setAudioSampleRate(context.sampleRate);
+      session = createSpectralSmearing(getSpectralSmearingSigmaBins(smearRadiusHz, context.sampleRate));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "The audio output could not be processed.");
       setSmearingEnabled(false);
@@ -158,8 +165,8 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
   }, [isSmearingEnabled]);
 
   useEffect(() => {
-    smearingSessionRef.current?.setIntensity(smearIntensity);
-  }, [smearIntensity]);
+    smearingSessionRef.current?.setIntensity(getSpectralSmearingSigmaBins(smearRadiusHz, audioSampleRate));
+  }, [smearRadiusHz, audioSampleRate]);
 
   useEffect(() => () => recordingSessionRef.current?.dispose(), []);
 
@@ -273,15 +280,16 @@ export function Vocoder({ forceEnabled, showControls = true }: VocoderProps = {}
                   </>
                 ) : isSmearingEnabled ? (
                   <label className="vocoder-field">
-                    <span>Spectral smearing <output>{smearIntensity.toFixed(1)} bins</output></span>
+                    <span>Smearing radius <output>±{smearRadiusHz} Hz</output></span>
                     <input
                       type="range"
                       min="0"
-                      max={MAX_SPECTRAL_SMEARING_BINS}
-                      step="0.1"
-                      value={smearIntensity}
-                      aria-label="Spectral smearing intensity in frequency bins"
-                      onChange={(event) => setSmearIntensity(Number(event.target.value))}
+                      max={MAX_SPECTRAL_SMEARING_RADIUS_HZ}
+                      step="10"
+                      value={smearRadiusHz}
+                      aria-label="Spectral smearing intensity"
+                      aria-valuetext={`±${smearRadiusHz} hertz radius`}
+                      onChange={(event) => setSmearRadiusHz(Number(event.target.value))}
                     />
                   </label>
                 ) : null}

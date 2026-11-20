@@ -1,21 +1,26 @@
 import { getAudioBus, getAudioContext, getAudioOutput } from "./audio";
 
-const FFT_SIZE = 2048;
+export const SPECTRAL_SMEARING_FFT_SIZE = 2048;
 const HOP_SIZE = 512;
-export const MAX_SPECTRAL_SMEARING_BINS = 50;
+export const MAX_SPECTRAL_SMEARING_RADIUS_HZ = 1000;
+
+export function getSpectralSmearingSigmaBins(radiusHz: number, sampleRate: number) {
+  return Math.max(0, (radiusHz * SPECTRAL_SMEARING_FFT_SIZE) / (4 * sampleRate));
+}
 
 const WORKLET_SOURCE = `
 class SpectralSmearingProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
-    this.size = 2048;
-    this.hop = 512;
+    this.size = ${SPECTRAL_SMEARING_FFT_SIZE};
+    this.hop = ${HOP_SIZE};
     this.halfSize = this.size / 2;
     this.queueLength = this.size * 4;
     this.clock = 0;
     this.historyIndex = 0;
     this.samplesSinceFrame = 0;
     this.sigma = options.processorOptions.sigma;
+    this.maxSigma = (${MAX_SPECTRAL_SMEARING_RADIUS_HZ} * this.size) / (4 * sampleRate);
     this.window = Float32Array.from({ length: this.size }, (_, index) =>
       0.5 - 0.5 * Math.cos((2 * Math.PI * index) / (this.size - 1)));
     this.history = Array.from({ length: 2 }, () => new Float32Array(this.size));
@@ -45,7 +50,7 @@ class SpectralSmearingProcessor extends AudioWorkletProcessor {
   }
 
   setSigma(value) {
-    this.sigma = Math.max(0, Math.min(${MAX_SPECTRAL_SMEARING_BINS}, Number(value) || 0));
+    this.sigma = Math.max(0, Math.min(this.maxSigma, Number(value) || 0));
     if (this.sigma <= 1e-6) {
       this.radius = 0;
       this.kernel = new Float32Array([1]);
@@ -147,11 +152,34 @@ class SpectralSmearingProcessor extends AudioWorkletProcessor {
     this.real[this.halfSize] = this.blurred[this.halfSize] * scale
       * (this.real[this.halfSize] < 0 ? -1 : 1);
     this.imaginary[this.halfSize] = 0;
+    const phaseBlend = Math.min(1, this.sigma / 10);
     for (let bin = 1; bin < this.halfSize; bin += 1) {
       const magnitude = Math.hypot(this.real[bin], this.imaginary[bin]);
-      const ratio = magnitude > 1e-18 ? (this.blurred[bin] * scale) / magnitude : 0;
-      this.real[bin] *= ratio;
-      this.imaginary[bin] *= ratio;
+      const targetMagnitude = this.blurred[bin] * scale;
+      const originalPhase = Math.atan2(this.imaginary[bin], this.real[bin]);
+      const randomPhase = (Math.random() * 2 - 1) * Math.PI;
+      let phaseReal = 0;
+      let phaseImaginary = 0;
+      if (magnitude <= 1e-18 || phaseBlend >= 1) {
+        phaseReal = Math.cos(randomPhase);
+        phaseImaginary = Math.sin(randomPhase);
+      } else if (phaseBlend <= 0) {
+        phaseReal = Math.cos(originalPhase);
+        phaseImaginary = Math.sin(originalPhase);
+      } else {
+        phaseReal = (1 - phaseBlend) * Math.cos(originalPhase) + phaseBlend * Math.cos(randomPhase);
+        phaseImaginary = (1 - phaseBlend) * Math.sin(originalPhase) + phaseBlend * Math.sin(randomPhase);
+        const phaseMagnitude = Math.hypot(phaseReal, phaseImaginary);
+        if (phaseMagnitude <= 1e-12) {
+          phaseReal = Math.cos(randomPhase);
+          phaseImaginary = Math.sin(randomPhase);
+        } else {
+          phaseReal /= phaseMagnitude;
+          phaseImaginary /= phaseMagnitude;
+        }
+      }
+      this.real[bin] = targetMagnitude * phaseReal;
+      this.imaginary[bin] = targetMagnitude * phaseImaginary;
       this.real[this.size - bin] = this.real[bin];
       this.imaginary[this.size - bin] = -this.imaginary[bin];
     }
@@ -237,7 +265,8 @@ export function createSpectralSmearing(initialSigmaBins: number): SpectralSmeari
   const source = context.createGain();
   const sessionId = activeSessionId + 1;
   activeSessionId = sessionId;
-  let sigmaBins = Math.max(0, Math.min(MAX_SPECTRAL_SMEARING_BINS, initialSigmaBins));
+  const maxSigmaBins = getSpectralSmearingSigmaBins(MAX_SPECTRAL_SMEARING_RADIUS_HZ, context.sampleRate);
+  let sigmaBins = Math.max(0, Math.min(maxSigmaBins, initialSigmaBins));
   let worklet: AudioWorkletNode | null = null;
   let busRouted = false;
   let disposed = false;
@@ -274,7 +303,7 @@ export function createSpectralSmearing(initialSigmaBins: number): SpectralSmeari
   return {
     ready,
     setIntensity(nextSigmaBins) {
-      sigmaBins = Math.max(0, Math.min(MAX_SPECTRAL_SMEARING_BINS, nextSigmaBins));
+      sigmaBins = Math.max(0, Math.min(maxSigmaBins, nextSigmaBins));
       worklet?.port.postMessage({ type: "sigma", sigma: sigmaBins });
     },
     dispose() {
